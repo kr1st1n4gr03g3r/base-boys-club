@@ -20,6 +20,7 @@ from functools import lru_cache
 import sys
 import subprocess
 from datetime import date, datetime, timedelta
+from math import asin, cos, radians, sin, sqrt
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -110,14 +111,21 @@ def get_player_info(person_id: int) -> dict:
 
 def get_venue_coords(venue_id: int) -> tuple[float, float] | None:
     try:
-        v = _mlb(f"/venues/{venue_id}", hydrate="location")["venues"][0]
-        coords = v.get("location", {}).get("defaultCoordinates", {})
+        coords = get_venue_info(venue_id).get("location", {}).get("defaultCoordinates", {})
         lat, lon = coords.get("latitude"), coords.get("longitude")
         if lat and lon:
             return float(lat), float(lon)
     except Exception:
         pass
     return None
+
+
+@lru_cache(maxsize=256)
+def get_venue_info(venue_id: int) -> dict:
+    try:
+        return _mlb(f"/venues/{venue_id}", hydrate="location,timezone")["venues"][0]
+    except Exception:
+        return {}
 
 
 def get_last_n_starts(pitcher_id: int, report_date: str, n: int = 3) -> list[dict]:
@@ -583,6 +591,184 @@ def _completed_games_for_team(team_id: int, end_date: str, limit: int = 20) -> l
     return games[-limit:]
 
 
+def _venue_city(venue_id: int | None) -> str:
+    if not venue_id:
+        return DASH
+    venue = get_venue_info(venue_id)
+    loc = venue.get("location", {})
+    city = loc.get("city")
+    state = loc.get("stateAbbrev") or loc.get("state")
+    country = loc.get("country")
+    parts = [part for part in (city, state or country) if part]
+    return ", ".join(parts) if parts else DASH
+
+
+def _venue_timezone(venue_id: int | None) -> str | None:
+    if not venue_id:
+        return None
+    venue = get_venue_info(venue_id)
+    tz = venue.get("timeZone", {})
+    return tz.get("id") or tz.get("tz")
+
+
+def _tz_offset_hours(tz_name: str | None, when: datetime) -> float | None:
+    if not tz_name:
+        return None
+    try:
+        offset = when.astimezone(ZoneInfo(tz_name)).utcoffset()
+    except Exception:
+        return None
+    if offset is None:
+        return None
+    return offset.total_seconds() / 3600
+
+
+def _distance_km(a: tuple[float, float] | None, b: tuple[float, float] | None) -> float | None:
+    if not a or not b:
+        return None
+    lat1, lon1 = a
+    lat2, lon2 = b
+    radius_km = 6371.0
+    dlat = radians(lat2 - lat1)
+    dlon = radians(lon2 - lon1)
+    root = (
+        sin(dlat / 2) ** 2
+        + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2) ** 2
+    )
+    return 2 * radius_km * asin(sqrt(root))
+
+
+def _game_local_datetime(game: dict, venue_id: int | None = None) -> datetime | None:
+    game_utc_str = game.get("gameDate")
+    if not game_utc_str:
+        return None
+    try:
+        game_dt = datetime.fromisoformat(game_utc_str.replace("Z", "+00:00"))
+    except Exception:
+        return None
+    tz_name = _venue_timezone(venue_id or game.get("venue", {}).get("id"))
+    if tz_name:
+        try:
+            return game_dt.astimezone(ZoneInfo(tz_name))
+        except Exception:
+            pass
+    return game_dt
+
+
+def _night_before_day(previous_game: dict | None, current_game: dict, current_venue_id: int | None) -> str:
+    if not previous_game:
+        return DASH
+    prev_local = _game_local_datetime(previous_game)
+    current_local = _game_local_datetime(current_game, current_venue_id)
+    if not prev_local or not current_local:
+        return "Unknown"
+    is_back_to_back = (current_local.date() - prev_local.date()).days == 1
+    was_night = prev_local.hour >= 18
+    is_day = current_local.hour < 17
+    return "Yes" if is_back_to_back and was_night and is_day else "No"
+
+
+def _consecutive_game_days(games: list[dict], report_date: str) -> int:
+    game_dates = {date.fromisoformat(g["gameDate"][:10]) for g in games if g.get("gameDate")}
+    current = date.fromisoformat(report_date)
+    count = 1
+    check = current - timedelta(days=1)
+    while check in game_dates:
+        count += 1
+        check -= timedelta(days=1)
+    return count
+
+
+def _fatigue_metrics(team_id: int, team_label: str, report_date: str, current_game: dict, current_venue_id: int | None) -> dict:
+    recent_games = _completed_games_for_team(team_id, report_date, limit=20)
+    previous_game = recent_games[-1] if recent_games else None
+    report_day = date.fromisoformat(report_date)
+    current_coords = get_venue_coords(current_venue_id) if current_venue_id else None
+
+    if previous_game:
+        prev_date = date.fromisoformat(previous_game["gameDate"][:10])
+        previous_venue_id = previous_game.get("venue", {}).get("id")
+        previous_coords = get_venue_coords(previous_venue_id) if previous_venue_id else None
+        days_off = max((report_day - prev_date).days - 1, 0)
+        distance = _distance_km(previous_coords, current_coords)
+        previous_city = _venue_city(previous_venue_id)
+    else:
+        previous_venue_id = None
+        days_off = DASH
+        distance = None
+        previous_city = DASH
+
+    current_city = _venue_city(current_venue_id)
+    three_day_start = report_day - timedelta(days=3)
+    games_last_3 = sum(
+        1
+        for game in recent_games
+        if three_day_start <= date.fromisoformat(game["gameDate"][:10]) < report_day
+    )
+    consecutive_days = _consecutive_game_days(recent_games, report_date)
+
+    game_dt = datetime.fromisoformat(current_game.get("gameDate", "").replace("Z", "+00:00"))
+    previous_offset = _tz_offset_hours(_venue_timezone(previous_venue_id), game_dt) if previous_game else None
+    current_offset = _tz_offset_hours(_venue_timezone(current_venue_id), game_dt)
+    if previous_offset is None or current_offset is None:
+        tz_change = DASH
+        jet_lag = "Unknown"
+        tz_delta = 0
+    else:
+        tz_delta = current_offset - previous_offset
+        sign = "+" if tz_delta > 0 else ""
+        tz_change = f"{sign}{tz_delta:.0f}h"
+        jet_lag = "East" if tz_delta > 0 else "West" if tz_delta < 0 else "None"
+
+    night_day = _night_before_day(previous_game, current_game, current_venue_id)
+    distance_label = f"{distance:.0f} km" if distance is not None else DASH
+
+    risk_points = 0
+    if days_off == 0:
+        risk_points += 1
+    if games_last_3 >= 3:
+        risk_points += 1
+    if distance and distance >= 800:
+        risk_points += 1
+    if abs(tz_delta) >= 1:
+        risk_points += 1
+    if night_day == "Yes":
+        risk_points += 1
+    arrival_risk = "High" if risk_points >= 3 else "Moderate" if risk_points >= 1 else "Low"
+
+    notes = []
+    if previous_game:
+        notes.append(f"Prev: {previous_city}")
+    if days_off == 0:
+        notes.append("No off day")
+    elif days_off != DASH:
+        notes.append(f"{days_off} off day{'s' if days_off != 1 else ''}")
+    if distance is not None:
+        notes.append("Travel estimated from venue coordinates")
+    if night_day == "Yes":
+        notes.append("Night-before-day flag")
+    if jet_lag in ("East", "West"):
+        notes.append(f"{jet_lag}bound time shift")
+    rest_notes = "; ".join(notes) if notes else "No previous completed game found"
+
+    return {
+        "team": team_label,
+        "date": format_display_date(report_date),
+        "venue": current_game.get("venue", {}).get("name", DASH),
+        "city": current_city,
+        "previous_city": previous_city,
+        "days_off": days_off,
+        "games_last_3": games_last_3,
+        "consecutive_days": consecutive_days,
+        "tz_change": tz_change,
+        "travel_distance": distance_label,
+        "night_before_day": night_day,
+        "jet_lag": jet_lag,
+        "arrival_risk": arrival_risk,
+        "rest_notes": rest_notes,
+    }
+
+
 def _last_hitter_games(
     team_id: int,
     side_team_id: int,
@@ -672,14 +858,23 @@ def _season_hitter_row_html(player: dict | None, team_label: str, lineup_spot: i
     )
 
 
-def _fatigue_row_html(team_label: str, report_date: str, venue_name: str) -> str:
+def _fatigue_row_html(metrics: dict) -> str:
     return (
         "<tr class=\"hitter-row\">"
-        f"<td class=\"identity\">{html(team_label)}</td>"
-        f"<td>{html(format_display_date(report_date))}</td>"
-        f"<td>{html(venue_name)}</td>"
-        "<td>—</td><td>—</td>"
-        "<td colspan=\"9\" class=\"na\">Awaiting fatigue data</td>"
+        f"<td class=\"identity\">{html(metrics['team'])}</td>"
+        f"<td>{html(metrics['date'])}</td>"
+        f"<td>{html(metrics['venue'])}</td>"
+        f"<td>{html(metrics['city'])}</td>"
+        f"<td>{html(metrics['previous_city'])}</td>"
+        f"<td>{html(metrics['days_off'])}</td>"
+        f"<td>{html(metrics['games_last_3'])}</td>"
+        f"<td>{html(metrics['consecutive_days'])}</td>"
+        f"<td>{html(metrics['tz_change'])}</td>"
+        f"<td>{html(metrics['travel_distance'])}</td>"
+        f"<td>{html(metrics['night_before_day'])}</td>"
+        f"<td>{html(metrics['jet_lag'])}</td>"
+        f"<td>{html(metrics['arrival_risk'])}</td>"
+        f"<td>{html(metrics['rest_notes'])}</td>"
         "</tr>"
     )
 
@@ -765,7 +960,8 @@ def build_hitter_section(
     pitcher_hand: str,
     report_date: str,
     boxscore: dict | None,
-    venue_name: str,
+    current_game: dict,
+    current_venue_id: int | None,
     is_opponent: bool = False,
 ) -> str:
     lineup = _lineup_players(boxscore, side, 5)
@@ -775,6 +971,7 @@ def build_hitter_section(
     today_rows = []
     detail_rows = []
     season_rows = []
+    fatigue = _fatigue_metrics(team_id, label, report_date, current_game, current_venue_id)
     for spot in range(1, 6):
         lineup_item = next((item for item in lineup if item["lineup_spot"] == spot), None)
         player = lineup_item["player"] if lineup_item else None
@@ -835,7 +1032,7 @@ def build_hitter_section(
       <table class="hitters-table">
         {_fatigue_table_header()}
         <tbody>
-          {_fatigue_row_html(label, report_date, venue_name)}
+          {_fatigue_row_html(fatigue)}
         </tbody>
       </table>
     </div>
@@ -974,7 +1171,8 @@ def build_report_html(game: dict, report_date: str) -> str:
         opp_pitch_hand,
         report_date,
         boxscore,
-        venue_name,
+        game,
+        venue_id,
     ) + build_hitter_section(
         opponent_name,
         opp_team_id,
@@ -983,7 +1181,8 @@ def build_report_html(game: dict, report_date: str) -> str:
         pitch_hand,
         report_date,
         boxscore,
-        venue_name,
+        game,
+        venue_id,
         is_opponent=True,
     )
 
