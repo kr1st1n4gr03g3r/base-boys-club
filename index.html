@@ -12,25 +12,27 @@
 
   <h1>⚾ Base Boys Blue Club</h1>
 
-  <div class="logo-matchup" aria-label="Blue Jays versus Minnesota Twins">
-    <img class="team-logo" src="https://www.mlbstatic.com/team-logos/141.svg" alt="Toronto Blue Jays logo">
-    <span class="vs-label">VS</span>
-    <img class="team-logo" src="https://www.mlbstatic.com/team-logos/142.svg" alt="Minnesota Twins logo">
-  </div>
-
   <div class="game-header">
+    <div class="logo-matchup" aria-label="Blue Jays versus Minnesota Twins">
+      <img class="team-logo" src="https://www.mlbstatic.com/team-logos/141.svg" alt="Toronto Blue Jays logo">
+      <span class="vs-label">VS</span>
+      <img class="team-logo" src="https://www.mlbstatic.com/team-logos/142.svg" alt="Minnesota Twins logo">
+    </div>
     <div class="matchup">
       2026-04-30<span class="sep">|</span>Blue Jays vs. Minnesota Twins<span class="sep">|</span>Game Start: 7:40 PM ET<span class="sep">|</span>Venue: Target Field<span class="sep">|</span>Weather: 49°F, 8 mph wind, 1% precip
     </div>
-    <div class="pitcher-line">
-      Blue Jays Starting Pitcher:
-      <span class="pitcher-name">Kevin Gausman</span>,
-      RHP <span class="hand-icon">✋</span><span class="sep2">|</span>Status:
-      <span class="status-probable">Probable</span>
-    </div>
-    <div class="time-line">
-      <span class="time-label">Current Time</span>
-      <span class="time-value" id="current-time">2:17:43 PM ET</span>
+    <div class="pill-row">
+      <div class="screen-pill screen-pill-active">Pitchers</div>
+      <div class="screen-pill">Hitters</div>
+      <div class="screen-pill">Placeholder</div>
+      <div class="time-line game-countdown" id="game-countdown" data-game-start="2026-04-30T23:40:00Z" data-game-status="Scheduled">
+        <span class="time-label">Time Until Game</span>
+        <span class="time-value" id="game-countdown-value">--:--:--</span>
+      </div>
+      <div class="time-line">
+        <span class="time-label">Current Time</span>
+        <span class="time-value" id="current-time">2:31:37 PM ET</span>
+      </div>
     </div>
     <!-- Date picker paused for now.
     <form class="date-picker" action="" method="get">
@@ -40,6 +42,15 @@
       </select>
     </form>
     -->
+  </div>
+
+  <div class="game-header pitcher-card">
+    <div class="pitcher-line">
+      Blue Jays Starting Pitcher:
+      <span class="pitcher-name">Kevin Gausman</span>,
+      RHP <span class="hand-icon">✋</span><span class="sep2">|</span>Status:
+      <span class="status-probable">Probable</span>
+    </div>
   </div>
 
   <h3>Last 3 starts</h3>
@@ -480,6 +491,10 @@
 
   <script>
     const currentTime = document.getElementById("current-time");
+    const gameCountdown = document.getElementById("game-countdown");
+    const gameCountdownValue = document.getElementById("game-countdown-value");
+    const gameStart = new Date(gameCountdown.dataset.gameStart);
+    const gameStatus = gameCountdown.dataset.gameStatus;
     const timeFormatter = new Intl.DateTimeFormat("en-US", {
       hour: "numeric",
       minute: "2-digit",
@@ -493,8 +508,36 @@
       currentTime.textContent = timeFormatter.format(new Date());
     }
 
+    function updateGameCountdown() {
+      if (gameStatus === "Final") {
+        gameCountdown.classList.add("game-countdown-final");
+        gameCountdownValue.textContent = "FINAL";
+        return;
+      }
+
+      const remainingMs = gameStart.getTime() - Date.now();
+      if (!Number.isFinite(remainingMs)) {
+        gameCountdownValue.textContent = "--:--:--";
+        return;
+      }
+
+      if (remainingMs <= 0) {
+        gameCountdown.classList.add("game-countdown-live");
+        gameCountdownValue.textContent = "LIVE";
+        return;
+      }
+
+      const totalSeconds = Math.floor(remainingMs / 1000);
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      gameCountdownValue.textContent = `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    }
+
     updateCurrentTime();
+    updateGameCountdown();
     setInterval(updateCurrentTime, 1000);
+    setInterval(updateGameCountdown, 1000);
   </script>
 
 </body>

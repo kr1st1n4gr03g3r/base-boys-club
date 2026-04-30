@@ -512,6 +512,8 @@ def build_report_html(game: dict, report_date: str) -> str:
         "DATE_FORM_ACTION": "",
         "OPP_TODAY":     opponent_name,
         "GAME_TIME":     game_time,
+        "GAME_START_ISO": game_utc_str,
+        "GAME_STATUS":    detail,
         "CURRENT_TIME":  current_time,
         "VENUE_NAME":    venue_name,
         "WEATHER":       weather,

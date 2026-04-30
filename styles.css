@@ -10,6 +10,7 @@
   --orange: #ffb86c;
   --purple: #bd93f9;
   --yellow: #f1fa8c;
+  --pink: #ff79c6;
   --rhb-bg: #2d1f0f;
   --rhb-fg: #ffb86c;
   --lhb-bg: #1a1228;
@@ -45,13 +46,13 @@ h3 {
 .logo-matchup {
   display: flex;
   align-items: center;
-  gap: 14px;
-  margin: -2px 0 16px;
+  gap: 16px;
+  margin: 0 0 12px;
 }
 
 .team-logo {
-  width: 58px;
-  height: 58px;
+  width: 54px;
+  height: 54px;
   object-fit: contain;
 }
 
@@ -84,6 +85,15 @@ h3 {
   padding: 0 6px;
 }
 
+.pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.screen-pill,
 .time-line {
   display: inline-flex;
   align-items: center;
@@ -94,9 +104,40 @@ h3 {
   color: var(--fg);
   font-size: 12px;
   font-weight: 600;
-  margin-top: 12px;
-  margin-bottom: 8px;
   padding: 4px 10px;
+}
+
+.screen-pill {
+  color: var(--comment);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.screen-pill-active {
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
+.game-countdown .time-value {
+  color: var(--yellow);
+}
+
+.game-countdown-live {
+  border-color: #ff5555;
+}
+
+.game-countdown-live .time-label,
+.game-countdown-live .time-value {
+  color: #ff5555;
+}
+
+.game-countdown-final {
+  border-color: var(--green);
+}
+
+.game-countdown-final .time-label,
+.game-countdown-final .time-value {
+  color: var(--green);
 }
 
 .time-label {
@@ -168,6 +209,18 @@ h3 {
 
 .opponent-pitcher-card {
   margin-top: 12px;
+}
+
+.pitcher-card,
+.opponent-pitcher-card {
+  border-left-color: var(--pink);
+  margin-top: 12px;
+}
+
+.pitcher-card .pitcher-line,
+.opponent-pitcher-card .pitcher-line {
+  font-size: 15px;
+  font-weight: 600;
 }
 
 .status-probable {
