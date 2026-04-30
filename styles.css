@@ -143,6 +143,36 @@ h3 {
   margin: 0;
 }
 
+.hitters-card {
+  border-left-color: var(--green);
+  margin-top: 12px;
+}
+
+.hitter-header-line {
+  color: var(--fg);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.lineup-status {
+  color: var(--orange);
+  font-weight: 700;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.hitters-table {
+  min-width: 1280px;
+}
+
+tr.hitter-row td {
+  background-color: var(--bg);
+  color: var(--fg);
+}
+
 .game-countdown .time-value {
   color: var(--yellow);
 }
