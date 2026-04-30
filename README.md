@@ -1,35 +1,51 @@
 # ⚾️ Base Boys Blue Club
-Baseball statistics and visualizations for the Toronto Blue Jays -->
 
-### Init Setup instructions:
+Baseball statistics and visualizations for the Toronto Blue Jays.
 
-1. Open a virtual environment:
+## Init setup instructions
+
+### 1. Open a virtual environment
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install pybaseball pandas
-pip freeze > requirements.txt
+pip install requests pandas
 ```
 
-2. Create a quick test file
-```bash
-touch main.py
-```
-
-3. Put into `main.py`:
-```python
-from pybaseball import batting_stats
-
-batters = batting_stats(2026)
-print(batters[["Name", "Team", "G", "HR", "AVG", "OBP", "SLG"]].head(10))
-```
-4. Run it:
+### 2. Confirm the packages work from terminal
 
 ```bash
-python main.py
+python -c "import requests; import pandas; print('Packages are working')"
 ```
 
-5. Add to `.gitignore`:
+### 3. Tell VS Code to use your virtual environment
+
+In VS Code:
+
+1. Press `Cmd + Shift + P`
+2. Search for `Python: Select Interpreter`
+3. Select:
+
+```text
+./.venv/bin/python
+```
+
+### 4. Reload VS Code
+
+In VS Code:
+
+1. Press `Cmd + Shift + P`
+2. Search for `Developer: Reload Window`
+3. Press Enter
+
+### 5. Run the test file
+
+```bash
+python3 test.py
+```
+
+### 6. Add to `.gitignore`
+
 ```gitignore
 .venv/
 __pycache__/
