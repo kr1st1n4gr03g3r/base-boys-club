@@ -502,6 +502,90 @@
       </div>
     </div>
 
+    <h3>Today</h3>
+    <div class="table-scroll">
+      <table class="hitters-table">
+        <thead>
+          <tr class="group-header">
+            <th colspan="6">Game Context</th>
+            <th colspan="9">Box Score</th>
+            <th colspan="6">Plate Discipline / Quality</th>
+          </tr>
+          <tr>
+            <th>Date</th>
+            <th>Player</th>
+            <th>Opp</th>
+            <th>Bat Side</th>
+            <th>Pitcher Hand</th>
+            <th>Lineup Spot</th>
+            <th>PA</th>
+            <th>H</th>
+            <th>HR</th>
+            <th>BB</th>
+            <th>K</th>
+            <th>AVG</th>
+            <th>OBP</th>
+            <th>SLG</th>
+            <th>K%</th>
+            <th>BB%</th>
+            <th>Whiff%</th>
+            <th>Chase%</th>
+            <th>HardHit%</th>
+            <th>Barrel%</th>
+            <th>BABIP</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Temporary placeholder rows. Today will summarize each lineup slot's combined last-3-game stats. -->
+          <tr class="hitter-row">
+            <td>{{TODAY_DATE}}</td>
+            <td class="identity">TBD</td>
+            <td>{{OPP_TODAY}}</td>
+            <td>—</td>
+            <td>{{OPP_PITCH_HAND}}</td>
+            <td>1</td>
+            <td colspan="15" class="na">Awaiting combined last-3-game hitter data</td>
+          </tr>
+          <tr class="hitter-row">
+            <td>{{TODAY_DATE}}</td>
+            <td class="identity">TBD</td>
+            <td>{{OPP_TODAY}}</td>
+            <td>—</td>
+            <td>{{OPP_PITCH_HAND}}</td>
+            <td>2</td>
+            <td colspan="15" class="na">Awaiting combined last-3-game hitter data</td>
+          </tr>
+          <tr class="hitter-row">
+            <td>{{TODAY_DATE}}</td>
+            <td class="identity">TBD</td>
+            <td>{{OPP_TODAY}}</td>
+            <td>—</td>
+            <td>{{OPP_PITCH_HAND}}</td>
+            <td>3</td>
+            <td colspan="15" class="na">Awaiting combined last-3-game hitter data</td>
+          </tr>
+          <tr class="hitter-row">
+            <td>{{TODAY_DATE}}</td>
+            <td class="identity">TBD</td>
+            <td>{{OPP_TODAY}}</td>
+            <td>—</td>
+            <td>{{OPP_PITCH_HAND}}</td>
+            <td>4</td>
+            <td colspan="15" class="na">Awaiting combined last-3-game hitter data</td>
+          </tr>
+          <tr class="hitter-row">
+            <td>{{TODAY_DATE}}</td>
+            <td class="identity">TBD</td>
+            <td>{{OPP_TODAY}}</td>
+            <td>—</td>
+            <td>{{OPP_PITCH_HAND}}</td>
+            <td>5</td>
+            <td colspan="15" class="na">Awaiting combined last-3-game hitter data</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
     <h3>Last 3 games</h3>
     <div class="table-scroll">
       <table class="hitters-table">
@@ -536,50 +620,141 @@
           </tr>
         </thead>
         <tbody>
-          <tr class="hitter-row">
-            <td>—</td>
-            <td class="identity">Lineup Spot 1</td>
+          <!-- Temporary placeholder rows. These will expand each known top-5 hitter into three previous game rows. -->
+          <tr class="hitter-row hitter-detail-start">
+            <td>Game -1</td>
+            <td class="identity">TBD</td>
             <td>—</td>
             <td>—</td>
             <td>—</td>
             <td>1</td>
-            <td colspan="15" class="na">Awaiting hitter data</td>
+            <td colspan="15" class="na">Awaiting detailed game row</td>
           </tr>
           <tr class="hitter-row">
+            <td>Game -2</td>
+            <td class="identity">TBD</td>
             <td>—</td>
-            <td class="identity">Lineup Spot 2</td>
+            <td>—</td>
+            <td>—</td>
+            <td>1</td>
+            <td colspan="15" class="na">Awaiting detailed game row</td>
+          </tr>
+          <tr class="hitter-row">
+            <td>Game -3</td>
+            <td class="identity">TBD</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>1</td>
+            <td colspan="15" class="na">Awaiting detailed game row</td>
+          </tr>
+          <tr class="hitter-row hitter-detail-start">
+            <td>Game -1</td>
+            <td class="identity">TBD</td>
             <td>—</td>
             <td>—</td>
             <td>—</td>
             <td>2</td>
-            <td colspan="15" class="na">Awaiting hitter data</td>
+            <td colspan="15" class="na">Awaiting detailed game row</td>
           </tr>
           <tr class="hitter-row">
+            <td>Game -2</td>
+            <td class="identity">TBD</td>
             <td>—</td>
-            <td class="identity">Lineup Spot 3</td>
+            <td>—</td>
+            <td>—</td>
+            <td>2</td>
+            <td colspan="15" class="na">Awaiting detailed game row</td>
+          </tr>
+          <tr class="hitter-row">
+            <td>Game -3</td>
+            <td class="identity">TBD</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>2</td>
+            <td colspan="15" class="na">Awaiting detailed game row</td>
+          </tr>
+          <tr class="hitter-row hitter-detail-start">
+            <td>Game -1</td>
+            <td class="identity">TBD</td>
             <td>—</td>
             <td>—</td>
             <td>—</td>
             <td>3</td>
-            <td colspan="15" class="na">Awaiting hitter data</td>
+            <td colspan="15" class="na">Awaiting detailed game row</td>
           </tr>
           <tr class="hitter-row">
+            <td>Game -2</td>
+            <td class="identity">TBD</td>
             <td>—</td>
-            <td class="identity">Lineup Spot 4</td>
+            <td>—</td>
+            <td>—</td>
+            <td>3</td>
+            <td colspan="15" class="na">Awaiting detailed game row</td>
+          </tr>
+          <tr class="hitter-row">
+            <td>Game -3</td>
+            <td class="identity">TBD</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>3</td>
+            <td colspan="15" class="na">Awaiting detailed game row</td>
+          </tr>
+          <tr class="hitter-row hitter-detail-start">
+            <td>Game -1</td>
+            <td class="identity">TBD</td>
             <td>—</td>
             <td>—</td>
             <td>—</td>
             <td>4</td>
-            <td colspan="15" class="na">Awaiting hitter data</td>
+            <td colspan="15" class="na">Awaiting detailed game row</td>
           </tr>
           <tr class="hitter-row">
+            <td>Game -2</td>
+            <td class="identity">TBD</td>
             <td>—</td>
-            <td class="identity">Lineup Spot 5</td>
+            <td>—</td>
+            <td>—</td>
+            <td>4</td>
+            <td colspan="15" class="na">Awaiting detailed game row</td>
+          </tr>
+          <tr class="hitter-row">
+            <td>Game -3</td>
+            <td class="identity">TBD</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>4</td>
+            <td colspan="15" class="na">Awaiting detailed game row</td>
+          </tr>
+          <tr class="hitter-row hitter-detail-start">
+            <td>Game -1</td>
+            <td class="identity">TBD</td>
             <td>—</td>
             <td>—</td>
             <td>—</td>
             <td>5</td>
-            <td colspan="15" class="na">Awaiting hitter data</td>
+            <td colspan="15" class="na">Awaiting detailed game row</td>
+          </tr>
+          <tr class="hitter-row">
+            <td>Game -2</td>
+            <td class="identity">TBD</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>5</td>
+            <td colspan="15" class="na">Awaiting detailed game row</td>
+          </tr>
+          <tr class="hitter-row">
+            <td>Game -3</td>
+            <td class="identity">TBD</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>5</td>
+            <td colspan="15" class="na">Awaiting detailed game row</td>
           </tr>
         </tbody>
       </table>
@@ -682,6 +857,381 @@
         <tbody>
           <tr class="hitter-row">
             <td class="identity">Blue Jays</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td colspan="9" class="na">Awaiting fatigue data</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="game-header hitters-card opponent-hitters-card">
+      <div class="hitter-header-line">
+        {{OPP_TODAY}} Hitters
+        <span class="sep2">|</span>
+        Top 1-5 Lineup
+        <span class="sep2">|</span>
+        <span class="lineup-status">Probable</span>
+      </div>
+    </div>
+
+    <h3>{{OPP_TODAY}} Today</h3>
+    <div class="table-scroll">
+      <table class="hitters-table">
+        <thead>
+          <tr class="group-header">
+            <th colspan="6">Game Context</th>
+            <th colspan="9">Box Score</th>
+            <th colspan="6">Plate Discipline / Quality</th>
+          </tr>
+          <tr>
+            <th>Date</th>
+            <th>Player</th>
+            <th>Opp</th>
+            <th>Bat Side</th>
+            <th>Pitcher Hand</th>
+            <th>Lineup Spot</th>
+            <th>PA</th>
+            <th>H</th>
+            <th>HR</th>
+            <th>BB</th>
+            <th>K</th>
+            <th>AVG</th>
+            <th>OBP</th>
+            <th>SLG</th>
+            <th>K%</th>
+            <th>BB%</th>
+            <th>Whiff%</th>
+            <th>Chase%</th>
+            <th>HardHit%</th>
+            <th>Barrel%</th>
+            <th>BABIP</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Temporary placeholder rows. Opponent Today will summarize each lineup slot's combined last-3-game stats. -->
+          <tr class="hitter-row">
+            <td>{{TODAY_DATE}}</td>
+            <td class="identity">TBD</td>
+            <td>Blue Jays</td>
+            <td>—</td>
+            <td>{{PITCH_HAND}}</td>
+            <td>1</td>
+            <td colspan="15" class="na">Awaiting combined last-3-game hitter data</td>
+          </tr>
+          <tr class="hitter-row">
+            <td>{{TODAY_DATE}}</td>
+            <td class="identity">TBD</td>
+            <td>Blue Jays</td>
+            <td>—</td>
+            <td>{{PITCH_HAND}}</td>
+            <td>2</td>
+            <td colspan="15" class="na">Awaiting combined last-3-game hitter data</td>
+          </tr>
+          <tr class="hitter-row">
+            <td>{{TODAY_DATE}}</td>
+            <td class="identity">TBD</td>
+            <td>Blue Jays</td>
+            <td>—</td>
+            <td>{{PITCH_HAND}}</td>
+            <td>3</td>
+            <td colspan="15" class="na">Awaiting combined last-3-game hitter data</td>
+          </tr>
+          <tr class="hitter-row">
+            <td>{{TODAY_DATE}}</td>
+            <td class="identity">TBD</td>
+            <td>Blue Jays</td>
+            <td>—</td>
+            <td>{{PITCH_HAND}}</td>
+            <td>4</td>
+            <td colspan="15" class="na">Awaiting combined last-3-game hitter data</td>
+          </tr>
+          <tr class="hitter-row">
+            <td>{{TODAY_DATE}}</td>
+            <td class="identity">TBD</td>
+            <td>Blue Jays</td>
+            <td>—</td>
+            <td>{{PITCH_HAND}}</td>
+            <td>5</td>
+            <td colspan="15" class="na">Awaiting combined last-3-game hitter data</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>{{OPP_TODAY}} last 3 games</h3>
+    <div class="table-scroll">
+      <table class="hitters-table">
+        <thead>
+          <tr class="group-header">
+            <th colspan="6">Game Context</th>
+            <th colspan="9">Box Score</th>
+            <th colspan="6">Plate Discipline / Quality</th>
+          </tr>
+          <tr>
+            <th>Date</th>
+            <th>Player</th>
+            <th>Opp</th>
+            <th>Bat Side</th>
+            <th>Pitcher Hand</th>
+            <th>Lineup Spot</th>
+            <th>PA</th>
+            <th>H</th>
+            <th>HR</th>
+            <th>BB</th>
+            <th>K</th>
+            <th>AVG</th>
+            <th>OBP</th>
+            <th>SLG</th>
+            <th>K%</th>
+            <th>BB%</th>
+            <th>Whiff%</th>
+            <th>Chase%</th>
+            <th>HardHit%</th>
+            <th>Barrel%</th>
+            <th>BABIP</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Temporary placeholder rows. These will expand each known opposing top-5 hitter into three previous game rows. -->
+          <tr class="hitter-row hitter-detail-start">
+            <td>Game -1</td>
+            <td class="identity">TBD</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>1</td>
+            <td colspan="15" class="na">Awaiting detailed game row</td>
+          </tr>
+          <tr class="hitter-row">
+            <td>Game -2</td>
+            <td class="identity">TBD</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>1</td>
+            <td colspan="15" class="na">Awaiting detailed game row</td>
+          </tr>
+          <tr class="hitter-row">
+            <td>Game -3</td>
+            <td class="identity">TBD</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>1</td>
+            <td colspan="15" class="na">Awaiting detailed game row</td>
+          </tr>
+          <tr class="hitter-row hitter-detail-start">
+            <td>Game -1</td>
+            <td class="identity">TBD</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>2</td>
+            <td colspan="15" class="na">Awaiting detailed game row</td>
+          </tr>
+          <tr class="hitter-row">
+            <td>Game -2</td>
+            <td class="identity">TBD</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>2</td>
+            <td colspan="15" class="na">Awaiting detailed game row</td>
+          </tr>
+          <tr class="hitter-row">
+            <td>Game -3</td>
+            <td class="identity">TBD</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>2</td>
+            <td colspan="15" class="na">Awaiting detailed game row</td>
+          </tr>
+          <tr class="hitter-row hitter-detail-start">
+            <td>Game -1</td>
+            <td class="identity">TBD</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>3</td>
+            <td colspan="15" class="na">Awaiting detailed game row</td>
+          </tr>
+          <tr class="hitter-row">
+            <td>Game -2</td>
+            <td class="identity">TBD</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>3</td>
+            <td colspan="15" class="na">Awaiting detailed game row</td>
+          </tr>
+          <tr class="hitter-row">
+            <td>Game -3</td>
+            <td class="identity">TBD</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>3</td>
+            <td colspan="15" class="na">Awaiting detailed game row</td>
+          </tr>
+          <tr class="hitter-row hitter-detail-start">
+            <td>Game -1</td>
+            <td class="identity">TBD</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>4</td>
+            <td colspan="15" class="na">Awaiting detailed game row</td>
+          </tr>
+          <tr class="hitter-row">
+            <td>Game -2</td>
+            <td class="identity">TBD</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>4</td>
+            <td colspan="15" class="na">Awaiting detailed game row</td>
+          </tr>
+          <tr class="hitter-row">
+            <td>Game -3</td>
+            <td class="identity">TBD</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>4</td>
+            <td colspan="15" class="na">Awaiting detailed game row</td>
+          </tr>
+          <tr class="hitter-row hitter-detail-start">
+            <td>Game -1</td>
+            <td class="identity">TBD</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>5</td>
+            <td colspan="15" class="na">Awaiting detailed game row</td>
+          </tr>
+          <tr class="hitter-row">
+            <td>Game -2</td>
+            <td class="identity">TBD</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>5</td>
+            <td colspan="15" class="na">Awaiting detailed game row</td>
+          </tr>
+          <tr class="hitter-row">
+            <td>Game -3</td>
+            <td class="identity">TBD</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>5</td>
+            <td colspan="15" class="na">Awaiting detailed game row</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>{{OPP_TODAY}} season</h3>
+    <div class="table-scroll">
+      <table class="hitters-table">
+        <thead>
+          <tr class="group-header">
+            <th colspan="3">Player</th>
+            <th colspan="10">Season Production</th>
+            <th colspan="8">Batted Ball / Expected</th>
+          </tr>
+          <tr>
+            <th>Player</th>
+            <th>Team</th>
+            <th>Bat Side</th>
+            <th>PA</th>
+            <th>AVG</th>
+            <th>OBP</th>
+            <th>SLG</th>
+            <th>OPS</th>
+            <th>ISO</th>
+            <th>BABIP</th>
+            <th>K%</th>
+            <th>BB%</th>
+            <th>Whiff%</th>
+            <th>Chase%</th>
+            <th>Contact%</th>
+            <th>HardHit%</th>
+            <th>Barrel%</th>
+            <th>wOBA</th>
+            <th>xwOBA</th>
+            <th>vs RHP OPS</th>
+            <th>vs LHP OPS</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="hitter-row">
+            <td class="identity">Lineup Spot 1</td>
+            <td>{{OPP_TODAY}}</td>
+            <td>—</td>
+            <td colspan="18" class="na">Awaiting season hitter data</td>
+          </tr>
+          <tr class="hitter-row">
+            <td class="identity">Lineup Spot 2</td>
+            <td>{{OPP_TODAY}}</td>
+            <td>—</td>
+            <td colspan="18" class="na">Awaiting season hitter data</td>
+          </tr>
+          <tr class="hitter-row">
+            <td class="identity">Lineup Spot 3</td>
+            <td>{{OPP_TODAY}}</td>
+            <td>—</td>
+            <td colspan="18" class="na">Awaiting season hitter data</td>
+          </tr>
+          <tr class="hitter-row">
+            <td class="identity">Lineup Spot 4</td>
+            <td>{{OPP_TODAY}}</td>
+            <td>—</td>
+            <td colspan="18" class="na">Awaiting season hitter data</td>
+          </tr>
+          <tr class="hitter-row">
+            <td class="identity">Lineup Spot 5</td>
+            <td>{{OPP_TODAY}}</td>
+            <td>—</td>
+            <td colspan="18" class="na">Awaiting season hitter data</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>{{OPP_TODAY}} fatigue</h3>
+    <div class="table-scroll">
+      <table class="hitters-table">
+        <thead>
+          <tr class="group-header">
+            <th colspan="5">Travel Context</th>
+            <th colspan="5">Workload</th>
+            <th colspan="4">Risk</th>
+          </tr>
+          <tr>
+            <th>Team</th>
+            <th>Date</th>
+            <th>Venue</th>
+            <th>City</th>
+            <th>Previous City</th>
+            <th>Days Off</th>
+            <th>Games Last 3 Days</th>
+            <th>Consecutive Game Days</th>
+            <th>Time Zone Change</th>
+            <th>Travel Distance</th>
+            <th>Night Before Day?</th>
+            <th>Jet Lag Direction</th>
+            <th>Arrival Risk</th>
+            <th>Rest Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="hitter-row">
+            <td class="identity">{{OPP_TODAY}}</td>
             <td>—</td>
             <td>—</td>
             <td>—</td>

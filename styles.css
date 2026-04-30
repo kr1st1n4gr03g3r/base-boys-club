@@ -148,6 +148,11 @@ h3 {
   margin-top: 12px;
 }
 
+.opponent-hitters-card {
+  border-left-color: var(--purple);
+  margin-top: 20px;
+}
+
 .hitter-header-line {
   color: var(--fg);
   font-size: 15px;
@@ -171,6 +176,10 @@ h3 {
 tr.hitter-row td {
   background-color: var(--bg);
   color: var(--fg);
+}
+
+tr.hitter-detail-start td {
+  border-top: 2px solid var(--comment);
 }
 
 .game-countdown .time-value {
