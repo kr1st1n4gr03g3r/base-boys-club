@@ -109,13 +109,38 @@ h3 {
 
 .screen-pill {
   color: var(--comment);
+  cursor: pointer;
+  font-family: inherit;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.screen-pill:hover {
+  border-color: var(--comment);
+  color: var(--fg);
 }
 
 .screen-pill-active {
   border-color: var(--cyan);
   color: var(--cyan);
+}
+
+.view-panel[hidden] {
+  display: none;
+}
+
+.empty-panel {
+  border-left-color: var(--purple);
+  margin-top: 12px;
+}
+
+.empty-panel h3 {
+  margin-top: 0;
+}
+
+.empty-panel p {
+  color: var(--comment);
+  margin: 0;
 }
 
 .game-countdown .time-value {

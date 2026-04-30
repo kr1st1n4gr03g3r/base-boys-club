@@ -19,19 +19,19 @@
       <img class="team-logo" src="https://www.mlbstatic.com/team-logos/142.svg" alt="Minnesota Twins logo">
     </div>
     <div class="matchup">
-      2026-04-30<span class="sep">|</span>Blue Jays vs. Minnesota Twins<span class="sep">|</span>Game Start: 7:40 PM ET<span class="sep">|</span>Venue: Target Field<span class="sep">|</span>Weather: 49°F, 8 mph wind, 1% precip
+      30/04/2026<span class="sep">|</span>Blue Jays vs. Minnesota Twins<span class="sep">|</span>Game Start: 7:40 PM ET<span class="sep">|</span>Venue: Target Field<span class="sep">|</span>Weather: 49°F, 8 mph wind, 1% precip
     </div>
     <div class="pill-row">
-      <div class="screen-pill screen-pill-active">Pitchers</div>
-      <div class="screen-pill">Hitters</div>
-      <div class="screen-pill">Placeholder</div>
+      <button class="screen-pill screen-pill-active" type="button" data-view-target="pitchers">Pitchers</button>
+      <button class="screen-pill" type="button" data-view-target="hitters">Hitters</button>
+      <button class="screen-pill" type="button" data-view-target="placeholder">Placeholder</button>
       <div class="time-line game-countdown" id="game-countdown" data-game-start="2026-04-30T23:40:00Z" data-game-status="Scheduled">
         <span class="time-label">Time Until Game</span>
         <span class="time-value" id="game-countdown-value">--:--:--</span>
       </div>
       <div class="time-line">
         <span class="time-label">Current Time</span>
-        <span class="time-value" id="current-time">2:31:37 PM ET</span>
+        <span class="time-value" id="current-time">2:34:38 PM ET</span>
       </div>
     </div>
     <!-- Date picker paused for now.
@@ -44,6 +44,7 @@
     -->
   </div>
 
+  <section class="view-panel view-panel-active" id="pitchers-panel">
   <div class="game-header pitcher-card">
     <div class="pitcher-line">
       Blue Jays Starting Pitcher:
@@ -113,7 +114,7 @@
 
       <!-- ════════════════════════════════════════════════ GAME 1 -->
       <tr class="game-summary">
-        <td class="identity" rowspan="3">2026-04-14</td>
+        <td class="identity" rowspan="3">14/04/2026</td>
         <td class="identity" rowspan="3">Kevin Gausman</td>
         <td class="identity" rowspan="3">Milwaukee Brewers</td>
         <td class="identity" rowspan="3">5.0</td>
@@ -168,7 +169,7 @@
 
       <!-- ════════════════════════════════════════════════ GAME 2 -->
       <tr class="game-summary">
-        <td class="identity" rowspan="3">2026-04-19</td>
+        <td class="identity" rowspan="3">19/04/2026</td>
         <td class="identity" rowspan="3">Kevin Gausman</td>
         <td class="identity" rowspan="3">Arizona Diamondbacks</td>
         <td class="identity" rowspan="3">6.0</td>
@@ -223,7 +224,7 @@
 
       <!-- ════════════════════════════════════════════════ GAME 3 -->
       <tr class="game-summary">
-        <td class="identity" rowspan="3">2026-04-25</td>
+        <td class="identity" rowspan="3">25/04/2026</td>
         <td class="identity" rowspan="3">Kevin Gausman</td>
         <td class="identity" rowspan="3">Cleveland Guardians</td>
         <td class="identity" rowspan="3">6.2</td>
@@ -323,7 +324,7 @@
 
       <!-- ════════════════════════════════════════════════ OPPONENT GAME 1 -->
       <tr class="game-summary">
-        <td class="identity" rowspan="3">2026-04-13</td>
+        <td class="identity" rowspan="3">13/04/2026</td>
         <td class="identity" rowspan="3">Bailey Ober</td>
         <td class="identity" rowspan="3">Boston Red Sox</td>
         <td class="identity" rowspan="3">6.0</td>
@@ -378,7 +379,7 @@
 
       <!-- ════════════════════════════════════════════════ OPPONENT GAME 2 -->
       <tr class="game-summary">
-        <td class="identity" rowspan="3">2026-04-19</td>
+        <td class="identity" rowspan="3">19/04/2026</td>
         <td class="identity" rowspan="3">Bailey Ober</td>
         <td class="identity" rowspan="3">Cincinnati Reds</td>
         <td class="identity" rowspan="3">6.1</td>
@@ -433,7 +434,7 @@
 
       <!-- ════════════════════════════════════════════════ OPPONENT GAME 3 -->
       <tr class="game-summary">
-        <td class="identity" rowspan="3">2026-04-25</td>
+        <td class="identity" rowspan="3">25/04/2026</td>
         <td class="identity" rowspan="3">Bailey Ober</td>
         <td class="identity" rowspan="3">Tampa Bay Rays</td>
         <td class="identity" rowspan="3">6.0</td>
@@ -488,6 +489,21 @@
 
     </tbody>
   </table>
+  </section>
+
+  <section class="view-panel" id="hitters-panel" hidden>
+    <div class="game-header empty-panel">
+      <h3>Hitters</h3>
+      <p>Hitter data goes here next.</p>
+    </div>
+  </section>
+
+  <section class="view-panel" id="placeholder-panel" hidden>
+    <div class="game-header empty-panel">
+      <h3>Placeholder</h3>
+      <p>Future report space.</p>
+    </div>
+  </section>
 
   <script>
     const currentTime = document.getElementById("current-time");
@@ -534,8 +550,30 @@
       gameCountdownValue.textContent = `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
     }
 
+    function setupViewToggles() {
+      const buttons = document.querySelectorAll("[data-view-target]");
+      const panels = document.querySelectorAll(".view-panel");
+
+      buttons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const target = button.dataset.viewTarget;
+
+          buttons.forEach((item) => {
+            item.classList.toggle("screen-pill-active", item === button);
+          });
+
+          panels.forEach((panel) => {
+            const isActive = panel.id === `${target}-panel`;
+            panel.hidden = !isActive;
+            panel.classList.toggle("view-panel-active", isActive);
+          });
+        });
+      });
+    }
+
     updateCurrentTime();
     updateGameCountdown();
+    setupViewToggles();
     setInterval(updateCurrentTime, 1000);
     setInterval(updateGameCountdown, 1000);
   </script>

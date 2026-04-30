@@ -171,6 +171,13 @@ def pitch_hand_icon(pitch_hand: str) -> str:
     return ""
 
 
+def format_display_date(value: str) -> str:
+    try:
+        return date.fromisoformat(value).strftime("%d/%m/%Y")
+    except Exception:
+        return value
+
+
 # ── Weather ───────────────────────────────────────────────────────────────────
 
 def get_weather(lat: float, lon: float, game_utc_str: str) -> str:
@@ -344,7 +351,7 @@ def build_row(split: dict, n: int, sc: dict | None,
 
     p = key_prefix
     row = {
-        f"{p}DATE_{n}":      game_date,
+        f"{p}DATE_{n}":      format_display_date(game_date),
         f"{p}NAME_{n}":      pitcher,
         f"{p}OPP_{n}":       opponent,
         f"{p}IP_{n}":        ip_str,
@@ -506,7 +513,7 @@ def build_report_html(game: dict, report_date: str) -> str:
     opp_logo_url  = f"https://www.mlbstatic.com/team-logos/{opp_team_id}.svg"
 
     ctx: dict = {
-        "TODAY_DATE":    report_date,
+        "TODAY_DATE":    format_display_date(report_date),
         # Date picker paused for now.
         "DATE_OPTIONS":  "",
         "DATE_FORM_ACTION": "",

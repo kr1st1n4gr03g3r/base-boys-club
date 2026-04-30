@@ -22,9 +22,9 @@
       {{TODAY_DATE}}<span class="sep">|</span>Blue Jays vs. {{OPP_TODAY}}<span class="sep">|</span>Game Start: {{GAME_TIME}}<span class="sep">|</span>Venue: {{VENUE_NAME}}<span class="sep">|</span>Weather: {{WEATHER}}
     </div>
     <div class="pill-row">
-      <div class="screen-pill screen-pill-active">Pitchers</div>
-      <div class="screen-pill">Hitters</div>
-      <div class="screen-pill">Placeholder</div>
+      <button class="screen-pill screen-pill-active" type="button" data-view-target="pitchers">Pitchers</button>
+      <button class="screen-pill" type="button" data-view-target="hitters">Hitters</button>
+      <button class="screen-pill" type="button" data-view-target="placeholder">Placeholder</button>
       <div class="time-line game-countdown" id="game-countdown" data-game-start="{{GAME_START_ISO}}" data-game-status="{{GAME_STATUS}}">
         <span class="time-label">Time Until Game</span>
         <span class="time-value" id="game-countdown-value">--:--:--</span>
@@ -44,6 +44,7 @@
     -->
   </div>
 
+  <section class="view-panel view-panel-active" id="pitchers-panel">
   <div class="game-header pitcher-card">
     <div class="pitcher-line">
       Blue Jays Starting Pitcher:
@@ -488,6 +489,21 @@
 
     </tbody>
   </table>
+  </section>
+
+  <section class="view-panel" id="hitters-panel" hidden>
+    <div class="game-header empty-panel">
+      <h3>Hitters</h3>
+      <p>Hitter data goes here next.</p>
+    </div>
+  </section>
+
+  <section class="view-panel" id="placeholder-panel" hidden>
+    <div class="game-header empty-panel">
+      <h3>Placeholder</h3>
+      <p>Future report space.</p>
+    </div>
+  </section>
 
   <script>
     const currentTime = document.getElementById("current-time");
@@ -534,8 +550,30 @@
       gameCountdownValue.textContent = `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
     }
 
+    function setupViewToggles() {
+      const buttons = document.querySelectorAll("[data-view-target]");
+      const panels = document.querySelectorAll(".view-panel");
+
+      buttons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const target = button.dataset.viewTarget;
+
+          buttons.forEach((item) => {
+            item.classList.toggle("screen-pill-active", item === button);
+          });
+
+          panels.forEach((panel) => {
+            const isActive = panel.id === `${target}-panel`;
+            panel.hidden = !isActive;
+            panel.classList.toggle("view-panel-active", isActive);
+          });
+        });
+      });
+    }
+
     updateCurrentTime();
     updateGameCountdown();
+    setupViewToggles();
     setInterval(updateCurrentTime, 1000);
     setInterval(updateGameCountdown, 1000);
   </script>
