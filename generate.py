@@ -35,10 +35,13 @@ except Exception:
 # ── constants ─────────────────────────────────────────────────────────────────
 
 TEAM_ID = 141  # Toronto Blue Jays
-SEASON = date.today().year
-TODAY = date.today().isoformat()
+DEFAULT_REPORT_DATE = date.today().isoformat()
 TEMPLATE = Path(__file__).parent / "template.html"
 OUTPUT = Path(__file__).parent / "index.html"
+# Date picker / local server paused for now.
+# STYLESHEET = Path(__file__).parent / "styles.css"
+# HOST = "127.0.0.1"
+# PORT = 8765
 DASH = "—"
 
 _SWING_DESC = frozenset({
@@ -87,10 +90,10 @@ def _mlb(path: str, **params):
     return r.json()
 
 
-def get_todays_game() -> dict | None:
+def get_game_for_date(report_date: str) -> dict | None:
     data = _mlb("/schedule",
                 sportId=1, teamId=TEAM_ID,
-                startDate=TODAY, endDate=TODAY,
+                startDate=report_date, endDate=report_date,
                 gameType="R",
                 hydrate="probablePitcher,venue,team")
     for blk in data.get("dates", []):
@@ -115,13 +118,32 @@ def get_venue_coords(venue_id: int) -> tuple[float, float] | None:
     return None
 
 
-def get_last_n_starts(pitcher_id: int, n: int = 3) -> list[dict]:
+def get_last_n_starts(pitcher_id: int, report_date: str, n: int = 3) -> list[dict]:
+    season = date.fromisoformat(report_date).year
     data = _mlb(f"/people/{pitcher_id}/stats",
                 stats="gameLog", group="pitching",
-                season=SEASON, gameType="R")
+                season=season, gameType="R")
     splits = data.get("stats", [{}])[0].get("splits", [])
-    starts = [s for s in splits if s.get("stat", {}).get("gamesStarted", 0) == 1]
+    starts = [
+        s for s in splits
+        if s.get("stat", {}).get("gamesStarted", 0) == 1
+        and s.get("date", "") <= report_date
+    ]
     return starts[-n:]
+
+
+def get_boxscore_starter(game_pk: int, side: str) -> dict:
+    try:
+        box = _mlb(f"/game/{game_pk}/boxscore")
+        players = box.get("teams", {}).get(side, {}).get("players", {})
+        for player in players.values():
+            pitching = player.get("stats", {}).get("pitching", {})
+            if pitching.get("gamesStarted") == 1:
+                person = player.get("person", {})
+                return {"id": person.get("id"), "fullName": person.get("fullName", "TBD")}
+    except Exception:
+        pass
+    return {}
 
 
 def resolve_pitcher(probable: dict) -> tuple[int | None, str, str]:
@@ -139,6 +161,14 @@ def resolve_pitcher(probable: dict) -> tuple[int | None, str, str]:
             pass
 
     return pitcher_id, pitcher_name, pitch_hand
+
+
+def pitch_hand_icon(pitch_hand: str) -> str:
+    if pitch_hand == "RHP":
+        return "✋"
+    if pitch_hand == "LHP":
+        return "🤚"
+    return ""
 
 
 # ── Weather ───────────────────────────────────────────────────────────────────
@@ -359,6 +389,18 @@ def render(tmpl: str, data: dict) -> str:
     return tmpl
 
 
+# Date picker paused for now.
+# def build_date_options(report_date: str, days_back: int = 14) -> str:
+#     selected = date.fromisoformat(report_date)
+#     options = []
+#     for offset in range(days_back + 1):
+#         value = (selected - timedelta(days=offset)).isoformat()
+#         label = (selected - timedelta(days=offset)).strftime("%a, %b %-d, %Y")
+#         selected_attr = " selected" if value == report_date else ""
+#         options.append(f'<option value="{value}"{selected_attr}>{label}</option>')
+#     return "\n".join(options)
+
+
 def open_output_in_chrome(path: Path) -> None:
     url = path.resolve().as_uri()
     try:
@@ -388,18 +430,30 @@ def open_output_in_chrome(path: Path) -> None:
             details = fallback.stderr.strip() or result.stderr.strip() or "unknown error"
             print(f"Could not open Chrome automatically: {details}")
     except Exception as exc:
-        print(f"Could not open Chrome automatically: {exc}")
+            print(f"Could not open Chrome automatically: {exc}")
 
 
-# ── Main ──────────────────────────────────────────────────────────────────────
+# Date picker / local server paused for now.
+# def open_url_in_chrome(url: str) -> None:
+#     try:
+#         subprocess.run(["open", "-a", "Google Chrome", url], check=False)
+#     except Exception as exc:
+#         print(f"Could not open Chrome automatically: {exc}")
 
-def main():
-    print(f"Fetching data for {TODAY} …")
 
-    game = get_todays_game()
+def render_report(report_date: str) -> str:
+    print(f"Fetching data for {report_date} …")
+
+    game = get_game_for_date(report_date)
     if not game:
-        print("No Blue Jays game scheduled today.")
-        sys.exit(0)
+        raise ValueError(f"No Blue Jays game scheduled on {report_date}.")
+
+    return build_report_html(game, report_date)
+
+
+def build_report_html(game: dict, report_date: str) -> str:
+    selected_date = date.fromisoformat(report_date)
+    is_past_date = selected_date < date.today()
 
     home     = game["teams"]["home"]["team"]
     away     = game["teams"]["away"]["team"]
@@ -423,54 +477,60 @@ def main():
     current_time = datetime.now(ZoneInfo("America/Toronto")).strftime("%-I:%M:%S %p ET")
 
     weather = DASH
-    if venue_id:
+    if venue_id and not is_past_date:
         coords = get_venue_coords(venue_id)
         if coords:
             weather = get_weather(coords[0], coords[1], game_utc_str)
 
-    # ── Pitcher status (same game state for both pitchers) ─────────────────
-    detail        = game.get("status", {}).get("detailedState", "Scheduled")
-    pitcher_status = "Confirmed" if detail in ("Pre-Game", "Warmup", "In Progress") else "Probable"
-    status_class   = "status-confirmed" if pitcher_status == "Confirmed" else "status-probable"
+    detail = game.get("status", {}).get("detailedState", "Scheduled")
+    if detail == "Final":
+        pitcher_status = "Final"
+    elif detail in ("Pre-Game", "Warmup", "In Progress"):
+        pitcher_status = "Confirmed"
+    else:
+        pitcher_status = "Probable"
+    status_class = f"status-{pitcher_status.lower()}"
 
-    # ── Blue Jays probable pitcher ─────────────────────────────────────────
-    jays_probable   = game["teams"][jays_side].get("probablePitcher", {})
-    pitcher_id, pitcher_name, pitch_hand = resolve_pitcher(jays_probable)
-
-    # ── Opposing probable pitcher ──────────────────────────────────────────
+    game_pk = game.get("gamePk")
+    jays_probable = game["teams"][jays_side].get("probablePitcher", {})
     opp_probable = game["teams"][opp_side].get("probablePitcher", {})
+    if not jays_probable and game_pk:
+        jays_probable = get_boxscore_starter(game_pk, jays_side)
+    if not opp_probable and game_pk:
+        opp_probable = get_boxscore_starter(game_pk, opp_side)
+
+    pitcher_id, pitcher_name, pitch_hand = resolve_pitcher(jays_probable)
     opp_pitcher_id, opp_pitcher_name, opp_pitch_hand = resolve_pitcher(opp_probable)
 
-    # ── Team logo URLs (mlbstatic.com CDN — see module docstring) ──────────
     jays_logo_url = f"https://www.mlbstatic.com/team-logos/{TEAM_ID}.svg"
     opp_logo_url  = f"https://www.mlbstatic.com/team-logos/{opp_team_id}.svg"
 
-    # ── Build context ──────────────────────────────────────────────────────
     ctx: dict = {
-        "TODAY_DATE":    TODAY,
+        "TODAY_DATE":    report_date,
+        # Date picker paused for now.
+        "DATE_OPTIONS":  "",
+        "DATE_FORM_ACTION": "",
         "OPP_TODAY":     opponent_name,
         "GAME_TIME":     game_time,
         "CURRENT_TIME":  current_time,
         "VENUE_NAME":    venue_name,
         "WEATHER":       weather,
-        # Blue Jays pitcher header
         "STARTING_PITCHER": pitcher_name,
         "PITCH_HAND":       pitch_hand,
+        "PITCH_HAND_ICON":  pitch_hand_icon(pitch_hand),
         "PITCHER_STATUS":   pitcher_status,
         "STATUS_CLASS":     status_class,
-        # Opposing pitcher header
         "OPP_STARTING_PITCHER": opp_pitcher_name,
         "OPP_PITCH_HAND":       opp_pitch_hand,
-        "OPP_PITCHER_STATUS":   pitcher_status,    # same game state
+        "OPP_PITCH_HAND_ICON":  pitch_hand_icon(opp_pitch_hand),
+        "OPP_PITCHER_STATUS":   pitcher_status,
         "OPP_STATUS_CLASS":     status_class,
-        # Logos
         "JAYS_LOGO_URL": jays_logo_url,
         "OPP_LOGO_URL":  opp_logo_url,
         "OPP_TEAM_NAME": opponent_name,
     }
 
-    # Blue Jays pitcher — last 3 starts
-    jays_starts = get_last_n_starts(pitcher_id, 3) if pitcher_id else []
+    jays_starts = get_last_n_starts(pitcher_id, report_date, 3) if pitcher_id else []
     prev_date = None
     for i, split in enumerate(jays_starts):
         sc = get_statcast_splits(pitcher_id, split["date"]) if pitcher_id else None
@@ -479,8 +539,7 @@ def main():
     for i in range(len(jays_starts), 3):
         ctx.update(empty_row(i + 1, key_prefix=""))
 
-    # Opposing pitcher — last 3 starts
-    opp_starts = get_last_n_starts(opp_pitcher_id, 3) if opp_pitcher_id else []
+    opp_starts = get_last_n_starts(opp_pitcher_id, report_date, 3) if opp_pitcher_id else []
     opp_prev_date = None
     for i, split in enumerate(opp_starts):
         sc = get_statcast_splits(opp_pitcher_id, split["date"]) if opp_pitcher_id else None
@@ -489,7 +548,68 @@ def main():
     for i in range(len(opp_starts), 3):
         ctx.update(empty_row(i + 1, key_prefix="OP_"))
 
-    output = render(TEMPLATE.read_text(), ctx)
+    return render(TEMPLATE.read_text(), ctx)
+
+
+# Date picker / local server paused for now.
+# class ReportHandler(BaseHTTPRequestHandler):
+#     def do_GET(self):
+#         parsed = urlparse(self.path)
+#         if parsed.path == "/styles.css":
+#             self._send_file(STYLESHEET, "text/css")
+#             return
+#
+#         if parsed.path not in ("/", "/index.html"):
+#             self.send_error(404)
+#             return
+#
+#         report_date = parse_qs(parsed.query).get("date", [DEFAULT_REPORT_DATE])[0]
+#         try:
+#             datetime.strptime(report_date, "%Y-%m-%d")
+#             html = render_report(report_date)
+#         except Exception as exc:
+#             html = f"""<!DOCTYPE html>
+# <html lang="en">
+# <head>
+#   <meta charset="UTF-8">
+#   <title>Base Boys Blue Club</title>
+#   <link rel="stylesheet" href="/styles.css">
+# </head>
+# <body>
+#   <h1>⚾ Base Boys Blue Club</h1>
+#   <div class="game-header">
+#     <div class="matchup">Could not render {report_date}</div>
+#     <div class="pitcher-line">{exc}</div>
+#   </div>
+# </body>
+# </html>"""
+#         self._send_bytes(html.encode("utf-8"), "text/html; charset=utf-8")
+#
+#     def log_message(self, format: str, *args) -> None:
+#         return
+#
+#     def _send_file(self, path: Path, content_type: str) -> None:
+#         self._send_bytes(path.read_bytes(), content_type)
+#
+#     def _send_bytes(self, body: bytes, content_type: str) -> None:
+#         self.send_response(200)
+#         self.send_header("Content-Type", content_type)
+#         self.send_header("Content-Length", str(len(body)))
+#         self.end_headers()
+#         self.wfile.write(body)
+#
+#
+# def serve(report_date: str) -> None:
+#     url = f"http://{HOST}:{PORT}/?date={report_date}"
+#     print(f"Serving date picker at {url}")
+#     open_url_in_chrome(url)
+#     HTTPServer((HOST, PORT), ReportHandler).serve_forever()
+
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+
+def main():
+    output = render_report(DEFAULT_REPORT_DATE)
     OUTPUT.write_text(output)
     print(f"Written → {OUTPUT}")
     open_output_in_chrome(OUTPUT)

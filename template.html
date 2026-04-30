@@ -25,13 +25,21 @@
     <div class="pitcher-line">
       Blue Jays Starting Pitcher:
       <span class="pitcher-name">{{STARTING_PITCHER}}</span>,
-      {{PITCH_HAND}}<span class="sep2">|</span>Status:
+      {{PITCH_HAND}} <span class="hand-icon">{{PITCH_HAND_ICON}}</span><span class="sep2">|</span>Status:
       <span class="{{STATUS_CLASS}}">{{PITCHER_STATUS}}</span>
     </div>
     <div class="time-line">
       <span class="time-label">Current Time</span>
       <span class="time-value" id="current-time">{{CURRENT_TIME}}</span>
     </div>
+    <!-- Date picker paused for now.
+    <form class="date-picker" action="{{DATE_FORM_ACTION}}" method="get">
+      <label class="time-label" for="report-date">Choose another date</label>
+      <select id="report-date" name="date" onchange="this.form.submit()">
+        {{DATE_OPTIONS}}
+      </select>
+    </form>
+    -->
   </div>
 
   <h3>Last 3 starts</h3>
@@ -264,7 +272,7 @@
     <div class="pitcher-line">
       {{OPP_TODAY}} Starting Pitcher:
       <span class="pitcher-name">{{OPP_STARTING_PITCHER}}</span>,
-      {{OPP_PITCH_HAND}}<span class="sep2">|</span>Status:
+      {{OPP_PITCH_HAND}} <span class="hand-icon">{{OPP_PITCH_HAND_ICON}}</span><span class="sep2">|</span>Status:
       <span class="{{OPP_STATUS_CLASS}}">{{OPP_PITCHER_STATUS}}</span>
     </div>
   </div>

@@ -110,6 +110,40 @@ h3 {
   color: var(--green);
 }
 
+/* Date picker paused for now.
+.date-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--fg);
+  font-size: 12px;
+  font-weight: 600;
+  margin: 12px 0 8px 10px;
+  padding: 4px 10px;
+}
+
+.date-picker select {
+  appearance: none;
+  border: 0;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--cyan);
+  cursor: pointer;
+  font: inherit;
+  padding: 3px 26px 3px 10px;
+}
+
+.date-picker::after {
+  color: var(--comment);
+  content: "⌄";
+  margin-left: -28px;
+  pointer-events: none;
+}
+*/
+
 .pitcher-line {
   font-size: 13px;
   color: var(--fg);
@@ -118,6 +152,12 @@ h3 {
 .pitcher-name {
   color: var(--cyan);
   font-weight: 700;
+}
+
+.hand-icon {
+  display: inline-block;
+  font-size: 14px;
+  margin-left: 2px;
 }
 
 .opponent-pitcher-line {
@@ -136,6 +176,11 @@ h3 {
 }
 
 .status-confirmed {
+  color: var(--green);
+  font-weight: 600;
+}
+
+.status-final {
   color: var(--green);
   font-weight: 600;
 }
