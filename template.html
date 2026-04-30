@@ -195,13 +195,13 @@
 
   <div class="game-header">
     <div class="matchup">
-      2026-04-30<span class="sep">|</span>Blue Jays vs. Minnesota Twins<span class="sep">|</span>Game Start: 7:40 PM ET<span class="sep">|</span>Venue: Target Field<span class="sep">|</span>Weather: 49°F, 8 mph wind, 1% precip
+      {{TODAY_DATE}}<span class="sep">|</span>Blue Jays vs. {{OPP_TODAY}}<span class="sep">|</span>Game Start: {{GAME_TIME}}<span class="sep">|</span>Venue: {{VENUE_NAME}}<span class="sep">|</span>Weather: {{WEATHER}}
     </div>
     <div class="pitcher-line">
       Blue Jays Starting Pitcher:
-      <span class="pitcher-name">Kevin Gausman</span>,
-      RHP<span class="sep2">|</span>Status:
-      <span class="status-probable">Probable</span>
+      <span class="pitcher-name">{{STARTING_PITCHER}}</span>,
+      {{PITCH_HAND}}<span class="sep2">|</span>Status:
+      <span class="{{STATUS_CLASS}}">{{PITCHER_STATUS}}</span>
     </div>
   </div>
 
@@ -265,167 +265,167 @@
 
       <!-- ════════════════════════════════════════════════ GAME 1 -->
       <tr class="game-summary">
-        <td class="identity" rowspan="3">2026-04-14</td>
-        <td class="identity" rowspan="3">Kevin Gausman</td>
-        <td class="identity" rowspan="3">Milwaukee Brewers</td>
-        <td class="identity" rowspan="3">5.0</td>
-        <td class="identity" rowspan="3">—</td>
+        <td class="identity" rowspan="3">{{DATE_1}}</td>
+        <td class="identity" rowspan="3">{{NAME_1}}</td>
+        <td class="identity" rowspan="3">{{OPP_1}}</td>
+        <td class="identity" rowspan="3">{{IP_1}}</td>
+        <td class="identity" rowspan="3">{{DAYS_OFF_1}}</td>
         <td class="combined-label">Combined:</td>
-        <td>6</td>
-        <td>3</td>
-        <td>3</td>
-        <td>3</td>
-        <td>5</td>
-        <td>1</td>
-        <td>5.40</td>
-        <td>1.80</td>
-        <td>20.8%</td>
-        <td>12.5%</td>
-        <td>0.333</td>
-        <td>29.8%</td>
-        <td>32.8%</td>
+        <td>{{H_1}}</td>
+        <td>{{R_1}}</td>
+        <td>{{ER_1}}</td>
+        <td>{{BB_1}}</td>
+        <td>{{K_1}}</td>
+        <td>{{HR_1}}</td>
+        <td>{{ERA_1}}</td>
+        <td>{{WHIP_1}}</td>
+        <td>{{K_PCT_1}}</td>
+        <td>{{BB_PCT_1}}</td>
+        <td>{{BABIP_1}}</td>
+        <td>{{WHIFF_PCT_1}}</td>
+        <td>{{CHASE_PCT_1}}</td>
       </tr>
       <tr class="split-rhb">
         <td class="split-label">↳ vs RHB</td>
-        <td>3</td>
+        <td>{{RHB_H_1}}</td>
         <td class="na">N/A</td>
         <td class="na">N/A</td>
-        <td>2</td>
-        <td>0</td>
-        <td>0</td>
+        <td>{{RHB_BB_1}}</td>
+        <td>{{RHB_K_1}}</td>
+        <td>{{RHB_HR_1}}</td>
         <td class="na">N/A</td>
-        <td>2.50</td>
-        <td>0.0%</td>
-        <td>18.2%</td>
-        <td>0.333</td>
-        <td>15.8%</td>
-        <td>33.3%</td>
+        <td>{{RHB_WHIP_1}}</td>
+        <td>{{RHB_K_PCT_1}}</td>
+        <td>{{RHB_BB_PCT_1}}</td>
+        <td>{{RHB_BABIP_1}}</td>
+        <td>{{RHB_WHIFF_PCT_1}}</td>
+        <td>{{RHB_CHASE_PCT_1}}</td>
       </tr>
       <tr class="split-lhb">
         <td class="split-label">↳ vs LHB</td>
-        <td>3</td>
+        <td>{{LHB_H_1}}</td>
         <td class="na">N/A</td>
         <td class="na">N/A</td>
-        <td>1</td>
-        <td>5</td>
-        <td>1</td>
+        <td>{{LHB_BB_1}}</td>
+        <td>{{LHB_K_1}}</td>
+        <td>{{LHB_HR_1}}</td>
         <td class="na">N/A</td>
-        <td>1.33</td>
-        <td>38.5%</td>
-        <td>7.7%</td>
-        <td>0.333</td>
-        <td>39.3%</td>
-        <td>32.3%</td>
+        <td>{{LHB_WHIP_1}}</td>
+        <td>{{LHB_K_PCT_1}}</td>
+        <td>{{LHB_BB_PCT_1}}</td>
+        <td>{{LHB_BABIP_1}}</td>
+        <td>{{LHB_WHIFF_PCT_1}}</td>
+        <td>{{LHB_CHASE_PCT_1}}</td>
       </tr>
 
       <!-- ════════════════════════════════════════════════ GAME 2 -->
       <tr class="game-summary">
-        <td class="identity" rowspan="3">2026-04-19</td>
-        <td class="identity" rowspan="3">Kevin Gausman</td>
-        <td class="identity" rowspan="3">Arizona Diamondbacks</td>
-        <td class="identity" rowspan="3">6.0</td>
-        <td class="identity" rowspan="3">5</td>
+        <td class="identity" rowspan="3">{{DATE_2}}</td>
+        <td class="identity" rowspan="3">{{NAME_2}}</td>
+        <td class="identity" rowspan="3">{{OPP_2}}</td>
+        <td class="identity" rowspan="3">{{IP_2}}</td>
+        <td class="identity" rowspan="3">{{DAYS_OFF_2}}</td>
         <td class="combined-label">Combined:</td>
-        <td>7</td>
-        <td>2</td>
-        <td>2</td>
-        <td>1</td>
-        <td>4</td>
-        <td>0</td>
-        <td>3.00</td>
-        <td>1.33</td>
-        <td>16.0%</td>
-        <td>4.0%</td>
-        <td>0.350</td>
-        <td>17.5%</td>
-        <td>34.1%</td>
+        <td>{{H_2}}</td>
+        <td>{{R_2}}</td>
+        <td>{{ER_2}}</td>
+        <td>{{BB_2}}</td>
+        <td>{{K_2}}</td>
+        <td>{{HR_2}}</td>
+        <td>{{ERA_2}}</td>
+        <td>{{WHIP_2}}</td>
+        <td>{{K_PCT_2}}</td>
+        <td>{{BB_PCT_2}}</td>
+        <td>{{BABIP_2}}</td>
+        <td>{{WHIFF_PCT_2}}</td>
+        <td>{{CHASE_PCT_2}}</td>
       </tr>
       <tr class="split-rhb">
         <td class="split-label">↳ vs RHB</td>
-        <td>3</td>
+        <td>{{RHB_H_2}}</td>
         <td class="na">N/A</td>
         <td class="na">N/A</td>
-        <td>0</td>
-        <td>2</td>
-        <td>0</td>
+        <td>{{RHB_BB_2}}</td>
+        <td>{{RHB_K_2}}</td>
+        <td>{{RHB_HR_2}}</td>
         <td class="na">N/A</td>
-        <td>1.12</td>
-        <td>18.2%</td>
-        <td>0.0%</td>
-        <td>0.333</td>
-        <td>20.0%</td>
-        <td>38.1%</td>
+        <td>{{RHB_WHIP_2}}</td>
+        <td>{{RHB_K_PCT_2}}</td>
+        <td>{{RHB_BB_PCT_2}}</td>
+        <td>{{RHB_BABIP_2}}</td>
+        <td>{{RHB_WHIFF_PCT_2}}</td>
+        <td>{{RHB_CHASE_PCT_2}}</td>
       </tr>
       <tr class="split-lhb">
         <td class="split-label">↳ vs LHB</td>
-        <td>4</td>
+        <td>{{LHB_H_2}}</td>
         <td class="na">N/A</td>
         <td class="na">N/A</td>
-        <td>1</td>
-        <td>2</td>
-        <td>0</td>
+        <td>{{LHB_BB_2}}</td>
+        <td>{{LHB_K_2}}</td>
+        <td>{{LHB_HR_2}}</td>
         <td class="na">N/A</td>
-        <td>1.50</td>
-        <td>14.3%</td>
-        <td>7.1%</td>
-        <td>0.364</td>
-        <td>15.0%</td>
-        <td>30.4%</td>
+        <td>{{LHB_WHIP_2}}</td>
+        <td>{{LHB_K_PCT_2}}</td>
+        <td>{{LHB_BB_PCT_2}}</td>
+        <td>{{LHB_BABIP_2}}</td>
+        <td>{{LHB_WHIFF_PCT_2}}</td>
+        <td>{{LHB_CHASE_PCT_2}}</td>
       </tr>
 
       <!-- ════════════════════════════════════════════════ GAME 3 -->
       <tr class="game-summary">
-        <td class="identity" rowspan="3">2026-04-25</td>
-        <td class="identity" rowspan="3">Kevin Gausman</td>
-        <td class="identity" rowspan="3">Cleveland Guardians</td>
-        <td class="identity" rowspan="3">6.2</td>
-        <td class="identity" rowspan="3">6</td>
+        <td class="identity" rowspan="3">{{DATE_3}}</td>
+        <td class="identity" rowspan="3">{{NAME_3}}</td>
+        <td class="identity" rowspan="3">{{OPP_3}}</td>
+        <td class="identity" rowspan="3">{{IP_3}}</td>
+        <td class="identity" rowspan="3">{{DAYS_OFF_3}}</td>
         <td class="combined-label">Combined:</td>
-        <td>6</td>
-        <td>2</td>
-        <td>2</td>
-        <td>0</td>
-        <td>3</td>
-        <td>1</td>
-        <td>2.70</td>
-        <td>0.90</td>
-        <td>12.0%</td>
-        <td>0.0%</td>
-        <td>0.238</td>
-        <td>23.4%</td>
-        <td>32.5%</td>
+        <td>{{H_3}}</td>
+        <td>{{R_3}}</td>
+        <td>{{ER_3}}</td>
+        <td>{{BB_3}}</td>
+        <td>{{K_3}}</td>
+        <td>{{HR_3}}</td>
+        <td>{{ERA_3}}</td>
+        <td>{{WHIP_3}}</td>
+        <td>{{K_PCT_3}}</td>
+        <td>{{BB_PCT_3}}</td>
+        <td>{{BABIP_3}}</td>
+        <td>{{WHIFF_PCT_3}}</td>
+        <td>{{CHASE_PCT_3}}</td>
       </tr>
       <tr class="split-rhb">
         <td class="split-label">↳ vs RHB</td>
-        <td>1</td>
+        <td>{{RHB_H_3}}</td>
         <td class="na">N/A</td>
         <td class="na">N/A</td>
-        <td>0</td>
-        <td>2</td>
-        <td>1</td>
+        <td>{{RHB_BB_3}}</td>
+        <td>{{RHB_K_3}}</td>
+        <td>{{RHB_HR_3}}</td>
         <td class="na">N/A</td>
-        <td>0.60</td>
-        <td>33.3%</td>
-        <td>0.0%</td>
-        <td>0.000</td>
-        <td>58.3%</td>
-        <td>50.0%</td>
+        <td>{{RHB_WHIP_3}}</td>
+        <td>{{RHB_K_PCT_3}}</td>
+        <td>{{RHB_BB_PCT_3}}</td>
+        <td>{{RHB_BABIP_3}}</td>
+        <td>{{RHB_WHIFF_PCT_3}}</td>
+        <td>{{RHB_CHASE_PCT_3}}</td>
       </tr>
       <tr class="split-lhb">
         <td class="split-label">↳ vs LHB</td>
-        <td>5</td>
+        <td>{{LHB_H_3}}</td>
         <td class="na">N/A</td>
         <td class="na">N/A</td>
-        <td>0</td>
-        <td>1</td>
-        <td>0</td>
+        <td>{{LHB_BB_3}}</td>
+        <td>{{LHB_K_3}}</td>
+        <td>{{LHB_HR_3}}</td>
         <td class="na">N/A</td>
-        <td>1.07</td>
-        <td>5.0%</td>
-        <td>0.0%</td>
-        <td>0.278</td>
-        <td>11.4%</td>
-        <td>28.1%</td>
+        <td>{{LHB_WHIP_3}}</td>
+        <td>{{LHB_K_PCT_3}}</td>
+        <td>{{LHB_BB_PCT_3}}</td>
+        <td>{{LHB_BABIP_3}}</td>
+        <td>{{LHB_WHIFF_PCT_3}}</td>
+        <td>{{LHB_CHASE_PCT_3}}</td>
       </tr>
 
     </tbody>
