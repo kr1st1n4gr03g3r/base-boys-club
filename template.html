@@ -7,191 +7,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
-  <style>
-    /* ── Dracula palette ───────────────────────────────────────── */
-    :root {
-      --bg:       #282a36;
-      --surface:  #21222c;
-      --line:     #44475a;
-      --fg:       #f8f8f2;
-      --comment:  #6272a4;
-      --cyan:     #8be9fd;
-      --green:    #50fa7b;
-      --orange:   #ffb86c;
-      --purple:   #bd93f9;
-      --yellow:   #f1fa8c;
-      --rhb-bg:   #2d1f0f;
-      --rhb-fg:   #ffb86c;
-      --lhb-bg:   #1a1228;
-      --lhb-fg:   #bd93f9;
-    }
-
-    /* ── base ──────────────────────────────────────────────────── */
-    body {
-      font-family: 'IBM Plex Sans', sans-serif;
-      background-color: var(--bg);
-      color: var(--fg);
-      padding: 24px;
-      font-size: 14px;
-      line-height: 1.5;
-    }
-
-    h1 { color: var(--cyan); margin-bottom: 12px; }
-
-    h3 {
-      color: var(--comment);
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      margin: 20px 0 8px;
-    }
-
-    /* ── game-header card ──────────────────────────────────────── */
-    .game-header {
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-left: 3px solid var(--cyan);
-      border-radius: 6px;
-      padding: 14px 18px;
-      margin-bottom: 4px;
-    }
-
-    .matchup {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--yellow);
-      margin-bottom: 6px;
-    }
-
-    .matchup .sep { color: var(--comment); padding: 0 6px; }
-
-    .pitcher-line { font-size: 13px; color: var(--fg); }
-    .pitcher-name { color: var(--cyan); font-weight: 700; }
-    .status-probable  { color: var(--orange); font-weight: 600; }
-    .status-confirmed { color: var(--green);  font-weight: 600; }
-    .sep2 { color: var(--comment); padding: 0 6px; }
-
-    /* ── table ─────────────────────────────────────────────────── */
-    table { border-collapse: collapse; width: 100%; }
-
-    th, td {
-      border: 1px solid var(--line);
-      padding: 6px 10px;
-      text-align: center;
-      white-space: nowrap;
-    }
-
-    /* column-header row */
-    thead tr:not(.group-header) th {
-      background-color: var(--line);
-      color: var(--fg);
-      font-weight: 600;
-      font-size: 12px;
-    }
-
-    /* group-header row */
-    thead tr.group-header th {
-      background-color: var(--surface);
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--purple);
-      border-bottom: 1px solid var(--purple);
-    }
-
-    /* ── custom tooltips ───────────────────────────────────────── */
-    th[data-tip] {
-      position: relative;
-      cursor: help;
-      text-decoration: underline dotted var(--comment);
-      text-underline-offset: 3px;
-    }
-
-    th[data-tip]::after {
-      content: attr(data-tip);
-      position: absolute;
-      bottom: calc(100% + 8px);
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--line);
-      color: var(--fg);
-      border: 1px solid var(--comment);
-      border-radius: 4px;
-      padding: 6px 10px;
-      font-size: 11px;
-      font-weight: 400;
-      line-height: 1.4;
-      white-space: normal;
-      width: max-content;
-      max-width: 220px;
-      text-decoration: none;
-      text-transform: none;
-      letter-spacing: 0;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.12s ease;
-      z-index: 100;
-    }
-
-    th[data-tip]:hover::after { opacity: 1; }
-
-    /* ── game-summary rows ─────────────────────────────────────── */
-    tr.game-summary td {
-      background-color: var(--bg);
-      color: var(--fg);
-      border-top: 2px solid var(--comment);
-    }
-
-    /* identity cells: Date / Name / Opp / IP / Days Off — span 3 rows */
-    td.identity {
-      vertical-align: middle;
-      font-weight: 600;
-      background-color: var(--surface) !important;
-      color: var(--fg);
-    }
-
-    /* Handedness label cell on Combined row */
-    td.combined-label {
-      font-weight: 700;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--comment);
-      background-color: var(--bg);
-      text-align: left;
-      padding-left: 10px;
-    }
-
-    /* ── split rows ────────────────────────────────────────────── */
-    tr.split-rhb td {
-      background-color: var(--rhb-bg);
-      color: var(--rhb-fg);
-      font-size: 12px;
-    }
-
-    tr.split-lhb td {
-      background-color: var(--lhb-bg);
-      color: var(--lhb-fg);
-      font-size: 12px;
-    }
-
-    td.split-label {
-      font-weight: 700;
-      text-align: left;
-      padding-left: 10px;
-    }
-
-    /* N/A placeholder styling on split rows */
-    td.na {
-      color: var(--comment);
-      font-style: italic;
-      font-size: 11px;
-    }
-  </style>
 </head>
 <body>
 
   <h1>⚾ Base Boys Blue Club</h1>
+
+  <div class="logo-matchup" aria-label="Blue Jays versus {{OPP_TEAM_NAME}}">
+    <img class="team-logo" src="{{JAYS_LOGO_URL}}" alt="Toronto Blue Jays logo">
+    <span class="vs-label">VS</span>
+    <img class="team-logo" src="{{OPP_LOGO_URL}}" alt="{{OPP_TEAM_NAME}} logo">
+  </div>
 
   <div class="game-header">
     <div class="matchup">
@@ -202,6 +27,10 @@
       <span class="pitcher-name">{{STARTING_PITCHER}}</span>,
       {{PITCH_HAND}}<span class="sep2">|</span>Status:
       <span class="{{STATUS_CLASS}}">{{PITCHER_STATUS}}</span>
+    </div>
+    <div class="time-line">
+      <span class="time-label">Current Time</span>
+      <span class="time-value" id="current-time">{{CURRENT_TIME}}</span>
     </div>
   </div>
 
@@ -430,6 +259,235 @@
 
     </tbody>
   </table>
+
+  <div class="game-header opponent-pitcher-card">
+    <div class="pitcher-line">
+      {{OPP_TODAY}} Starting Pitcher:
+      <span class="pitcher-name">{{OPP_STARTING_PITCHER}}</span>,
+      {{OPP_PITCH_HAND}}<span class="sep2">|</span>Status:
+      <span class="{{OPP_STATUS_CLASS}}">{{OPP_PITCHER_STATUS}}</span>
+    </div>
+  </div>
+
+  <h3>{{OPP_TODAY}} pitcher last 3 starts</h3>
+
+  <table>
+    <thead>
+      <tr class="group-header">
+        <th colspan="6">Game</th>
+        <th colspan="7">Game Stats</th>
+        <th colspan="6">Plate Discipline / Quality</th>
+      </tr>
+      <tr>
+        <th data-tip="Date of the start">Date</th>
+        <th data-tip="Pitcher name">Name</th>
+        <th data-tip="Opposing team">Opp</th>
+        <th data-tip="IP — Innings Pitched">IP</th>
+        <th data-tip="Days Off — Days since previous start">Days Off</th>
+        <th data-tip="Row type: Combined (full game), vs RHB, or vs LHB">Handedness</th>
+        <th data-tip="H — Hits allowed">H</th>
+        <th data-tip="R — Runs allowed (earned + unearned)">R</th>
+        <th data-tip="ER — Earned Runs allowed">ER</th>
+        <th data-tip="BB — Base on Balls (Walks)">BB</th>
+        <th data-tip="K — Strikeouts">K</th>
+        <th data-tip="HR — Home Runs allowed">HR</th>
+        <th data-tip="ERA — Earned Run Average for this start: ER × 9 ÷ IP">ERA</th>
+        <th data-tip="WHIP — (Walks + Hits) ÷ Innings Pitched. Split-row WHIP is approximate (IP estimated from batter outs).">WHIP</th>
+        <th data-tip="K% — Strikeout rate: strikeouts ÷ batters faced">K%</th>
+        <th data-tip="BB% — Walk rate: walks ÷ batters faced">BB%</th>
+        <th data-tip="BABIP — Batting Average on Balls In Play: (H − HR) ÷ balls in play. Game-level from Statcast.">BABIP</th>
+        <th data-tip="Whiff% — Swinging strikes ÷ total swings (Statcast)">Whiff%</th>
+        <th data-tip="Chase% — Swings at pitches outside the strike zone ÷ all pitches outside zone (Statcast)">Chase%</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <!-- ════════════════════════════════════════════════ OPPONENT GAME 1 -->
+      <tr class="game-summary">
+        <td class="identity" rowspan="3">{{OP_DATE_1}}</td>
+        <td class="identity" rowspan="3">{{OP_NAME_1}}</td>
+        <td class="identity" rowspan="3">{{OP_OPP_1}}</td>
+        <td class="identity" rowspan="3">{{OP_IP_1}}</td>
+        <td class="identity" rowspan="3">{{OP_DAYS_OFF_1}}</td>
+        <td class="combined-label">Combined:</td>
+        <td>{{OP_H_1}}</td>
+        <td>{{OP_R_1}}</td>
+        <td>{{OP_ER_1}}</td>
+        <td>{{OP_BB_1}}</td>
+        <td>{{OP_K_1}}</td>
+        <td>{{OP_HR_1}}</td>
+        <td>{{OP_ERA_1}}</td>
+        <td>{{OP_WHIP_1}}</td>
+        <td>{{OP_K_PCT_1}}</td>
+        <td>{{OP_BB_PCT_1}}</td>
+        <td>{{OP_BABIP_1}}</td>
+        <td>{{OP_WHIFF_PCT_1}}</td>
+        <td>{{OP_CHASE_PCT_1}}</td>
+      </tr>
+      <tr class="split-rhb">
+        <td class="split-label">↳ vs RHB</td>
+        <td>{{OP_RHB_H_1}}</td>
+        <td class="na">N/A</td>
+        <td class="na">N/A</td>
+        <td>{{OP_RHB_BB_1}}</td>
+        <td>{{OP_RHB_K_1}}</td>
+        <td>{{OP_RHB_HR_1}}</td>
+        <td class="na">N/A</td>
+        <td>{{OP_RHB_WHIP_1}}</td>
+        <td>{{OP_RHB_K_PCT_1}}</td>
+        <td>{{OP_RHB_BB_PCT_1}}</td>
+        <td>{{OP_RHB_BABIP_1}}</td>
+        <td>{{OP_RHB_WHIFF_PCT_1}}</td>
+        <td>{{OP_RHB_CHASE_PCT_1}}</td>
+      </tr>
+      <tr class="split-lhb">
+        <td class="split-label">↳ vs LHB</td>
+        <td>{{OP_LHB_H_1}}</td>
+        <td class="na">N/A</td>
+        <td class="na">N/A</td>
+        <td>{{OP_LHB_BB_1}}</td>
+        <td>{{OP_LHB_K_1}}</td>
+        <td>{{OP_LHB_HR_1}}</td>
+        <td class="na">N/A</td>
+        <td>{{OP_LHB_WHIP_1}}</td>
+        <td>{{OP_LHB_K_PCT_1}}</td>
+        <td>{{OP_LHB_BB_PCT_1}}</td>
+        <td>{{OP_LHB_BABIP_1}}</td>
+        <td>{{OP_LHB_WHIFF_PCT_1}}</td>
+        <td>{{OP_LHB_CHASE_PCT_1}}</td>
+      </tr>
+
+      <!-- ════════════════════════════════════════════════ OPPONENT GAME 2 -->
+      <tr class="game-summary">
+        <td class="identity" rowspan="3">{{OP_DATE_2}}</td>
+        <td class="identity" rowspan="3">{{OP_NAME_2}}</td>
+        <td class="identity" rowspan="3">{{OP_OPP_2}}</td>
+        <td class="identity" rowspan="3">{{OP_IP_2}}</td>
+        <td class="identity" rowspan="3">{{OP_DAYS_OFF_2}}</td>
+        <td class="combined-label">Combined:</td>
+        <td>{{OP_H_2}}</td>
+        <td>{{OP_R_2}}</td>
+        <td>{{OP_ER_2}}</td>
+        <td>{{OP_BB_2}}</td>
+        <td>{{OP_K_2}}</td>
+        <td>{{OP_HR_2}}</td>
+        <td>{{OP_ERA_2}}</td>
+        <td>{{OP_WHIP_2}}</td>
+        <td>{{OP_K_PCT_2}}</td>
+        <td>{{OP_BB_PCT_2}}</td>
+        <td>{{OP_BABIP_2}}</td>
+        <td>{{OP_WHIFF_PCT_2}}</td>
+        <td>{{OP_CHASE_PCT_2}}</td>
+      </tr>
+      <tr class="split-rhb">
+        <td class="split-label">↳ vs RHB</td>
+        <td>{{OP_RHB_H_2}}</td>
+        <td class="na">N/A</td>
+        <td class="na">N/A</td>
+        <td>{{OP_RHB_BB_2}}</td>
+        <td>{{OP_RHB_K_2}}</td>
+        <td>{{OP_RHB_HR_2}}</td>
+        <td class="na">N/A</td>
+        <td>{{OP_RHB_WHIP_2}}</td>
+        <td>{{OP_RHB_K_PCT_2}}</td>
+        <td>{{OP_RHB_BB_PCT_2}}</td>
+        <td>{{OP_RHB_BABIP_2}}</td>
+        <td>{{OP_RHB_WHIFF_PCT_2}}</td>
+        <td>{{OP_RHB_CHASE_PCT_2}}</td>
+      </tr>
+      <tr class="split-lhb">
+        <td class="split-label">↳ vs LHB</td>
+        <td>{{OP_LHB_H_2}}</td>
+        <td class="na">N/A</td>
+        <td class="na">N/A</td>
+        <td>{{OP_LHB_BB_2}}</td>
+        <td>{{OP_LHB_K_2}}</td>
+        <td>{{OP_LHB_HR_2}}</td>
+        <td class="na">N/A</td>
+        <td>{{OP_LHB_WHIP_2}}</td>
+        <td>{{OP_LHB_K_PCT_2}}</td>
+        <td>{{OP_LHB_BB_PCT_2}}</td>
+        <td>{{OP_LHB_BABIP_2}}</td>
+        <td>{{OP_LHB_WHIFF_PCT_2}}</td>
+        <td>{{OP_LHB_CHASE_PCT_2}}</td>
+      </tr>
+
+      <!-- ════════════════════════════════════════════════ OPPONENT GAME 3 -->
+      <tr class="game-summary">
+        <td class="identity" rowspan="3">{{OP_DATE_3}}</td>
+        <td class="identity" rowspan="3">{{OP_NAME_3}}</td>
+        <td class="identity" rowspan="3">{{OP_OPP_3}}</td>
+        <td class="identity" rowspan="3">{{OP_IP_3}}</td>
+        <td class="identity" rowspan="3">{{OP_DAYS_OFF_3}}</td>
+        <td class="combined-label">Combined:</td>
+        <td>{{OP_H_3}}</td>
+        <td>{{OP_R_3}}</td>
+        <td>{{OP_ER_3}}</td>
+        <td>{{OP_BB_3}}</td>
+        <td>{{OP_K_3}}</td>
+        <td>{{OP_HR_3}}</td>
+        <td>{{OP_ERA_3}}</td>
+        <td>{{OP_WHIP_3}}</td>
+        <td>{{OP_K_PCT_3}}</td>
+        <td>{{OP_BB_PCT_3}}</td>
+        <td>{{OP_BABIP_3}}</td>
+        <td>{{OP_WHIFF_PCT_3}}</td>
+        <td>{{OP_CHASE_PCT_3}}</td>
+      </tr>
+      <tr class="split-rhb">
+        <td class="split-label">↳ vs RHB</td>
+        <td>{{OP_RHB_H_3}}</td>
+        <td class="na">N/A</td>
+        <td class="na">N/A</td>
+        <td>{{OP_RHB_BB_3}}</td>
+        <td>{{OP_RHB_K_3}}</td>
+        <td>{{OP_RHB_HR_3}}</td>
+        <td class="na">N/A</td>
+        <td>{{OP_RHB_WHIP_3}}</td>
+        <td>{{OP_RHB_K_PCT_3}}</td>
+        <td>{{OP_RHB_BB_PCT_3}}</td>
+        <td>{{OP_RHB_BABIP_3}}</td>
+        <td>{{OP_RHB_WHIFF_PCT_3}}</td>
+        <td>{{OP_RHB_CHASE_PCT_3}}</td>
+      </tr>
+      <tr class="split-lhb">
+        <td class="split-label">↳ vs LHB</td>
+        <td>{{OP_LHB_H_3}}</td>
+        <td class="na">N/A</td>
+        <td class="na">N/A</td>
+        <td>{{OP_LHB_BB_3}}</td>
+        <td>{{OP_LHB_K_3}}</td>
+        <td>{{OP_LHB_HR_3}}</td>
+        <td class="na">N/A</td>
+        <td>{{OP_LHB_WHIP_3}}</td>
+        <td>{{OP_LHB_K_PCT_3}}</td>
+        <td>{{OP_LHB_BB_PCT_3}}</td>
+        <td>{{OP_LHB_BABIP_3}}</td>
+        <td>{{OP_LHB_WHIFF_PCT_3}}</td>
+        <td>{{OP_LHB_CHASE_PCT_3}}</td>
+      </tr>
+
+    </tbody>
+  </table>
+
+  <script>
+    const currentTime = document.getElementById("current-time");
+    const timeFormatter = new Intl.DateTimeFormat("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+      timeZone: "America/Toronto",
+      timeZoneName: "short",
+    });
+
+    function updateCurrentTime() {
+      currentTime.textContent = timeFormatter.format(new Date());
+    }
+
+    updateCurrentTime();
+    setInterval(updateCurrentTime, 1000);
+  </script>
 
 </body>
 </html>
