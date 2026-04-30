@@ -15,9 +15,11 @@ Logo source:
 
 from __future__ import annotations
 
+from html import escape
+from functools import lru_cache
 import sys
 import subprocess
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -187,8 +189,8 @@ def get_weather(lat: float, lon: float, game_utc_str: str) -> str:
             params={
                 "latitude": lat, "longitude": lon,
                 "hourly": "temperature_2m,precipitation_probability,windspeed_10m",
-                "temperature_unit": "fahrenheit",
-                "wind_speed_unit": "mph",
+                "temperature_unit": "celsius",
+                "wind_speed_unit": "kmh",
                 "timezone": "auto",
                 "forecast_days": 2,
             },
@@ -211,7 +213,7 @@ def get_weather(lat: float, lon: float, game_utc_str: str) -> str:
         temp   = data["hourly"]["temperature_2m"][idx]
         wind   = data["hourly"]["windspeed_10m"][idx]
         precip = data["hourly"]["precipitation_probability"][idx]
-        return f"{temp:.0f}°F, {wind:.0f} mph wind, {precip}% precip"
+        return f"{temp:.0f}°C, {wind:.0f} kph wind, {precip}% precip"
     except Exception:
         return DASH
 
@@ -388,6 +390,458 @@ def empty_row(n: int, key_prefix: str = "") -> dict:
     return row
 
 
+# ── Hitter builders ───────────────────────────────────────────────────────────
+
+def html(value) -> str:
+    return escape(str(value if value is not None else DASH))
+
+
+def _int_stat(stats: dict, key: str) -> int:
+    try:
+        return int(stats.get(key, 0))
+    except Exception:
+        return 0
+
+
+def _rate(num: int | float, den: int | float, places: int = 3) -> str:
+    return f"{num / den:.{places}f}" if den else DASH
+
+
+def _pct(num: int | float, den: int | float) -> str:
+    return f"{100 * num / den:.1f}%" if den else DASH
+
+
+def _bat_side(person_id: int | None) -> str:
+    if not person_id:
+        return DASH
+    try:
+        side = get_player_info(person_id).get("batSide", {}).get("description", "")
+    except Exception:
+        return DASH
+    lower = side.lower()
+    if "switch" in lower:
+        return "S"
+    if "right" in lower:
+        return "R"
+    if "left" in lower:
+        return "L"
+    return side or DASH
+
+
+def _total_bases(stats: dict) -> int:
+    hits = _int_stat(stats, "hits")
+    doubles = _int_stat(stats, "doubles")
+    triples = _int_stat(stats, "triples")
+    homers = _int_stat(stats, "homeRuns")
+    singles = hits - doubles - triples - homers
+    return singles + (2 * doubles) + (3 * triples) + (4 * homers)
+
+
+def _boxscore_player_row(
+    player: dict,
+    report_date: str,
+    opponent: str,
+    pitcher_hand: str,
+    lineup_spot: int,
+) -> dict:
+    stats = player.get("stats", {}).get("batting", {})
+    person = player.get("person", {})
+    person_id = person.get("id")
+
+    ab = _int_stat(stats, "atBats")
+    pa = _int_stat(stats, "plateAppearances")
+    hits = _int_stat(stats, "hits")
+    walks = _int_stat(stats, "baseOnBalls")
+    hbp = _int_stat(stats, "hitByPitch")
+    sac_flies = _int_stat(stats, "sacFlies")
+    strikeouts = _int_stat(stats, "strikeOuts")
+    obp_den = ab + walks + hbp + sac_flies
+
+    return {
+        "date": format_display_date(report_date),
+        "player": person.get("fullName", "TBD"),
+        "opp": opponent,
+        "bat_side": _bat_side(person_id),
+        "pitcher_hand": pitcher_hand,
+        "lineup_spot": lineup_spot,
+        "pa": pa,
+        "h": hits,
+        "hr": _int_stat(stats, "homeRuns"),
+        "bb": walks,
+        "k": strikeouts,
+        "avg": _rate(hits, ab),
+        "obp": _rate(hits + walks + hbp, obp_den),
+        "slg": _rate(_total_bases(stats), ab),
+        "k_pct": _pct(strikeouts, pa),
+        "bb_pct": _pct(walks, pa),
+        "whiff_pct": DASH,
+        "chase_pct": DASH,
+        "hardhit_pct": DASH,
+        "barrel_pct": DASH,
+        "babip": DASH,
+    }
+
+
+def _blank_hitter_row(lineup_spot: int, report_date: str, opponent: str, pitcher_hand: str) -> dict:
+    return {
+        "date": format_display_date(report_date),
+        "player": "TBD",
+        "opp": opponent,
+        "bat_side": DASH,
+        "pitcher_hand": pitcher_hand,
+        "lineup_spot": lineup_spot,
+        "pa": DASH,
+        "h": DASH,
+        "hr": DASH,
+        "bb": DASH,
+        "k": DASH,
+        "avg": DASH,
+        "obp": DASH,
+        "slg": DASH,
+        "k_pct": DASH,
+        "bb_pct": DASH,
+        "whiff_pct": DASH,
+        "chase_pct": DASH,
+        "hardhit_pct": DASH,
+        "barrel_pct": DASH,
+        "babip": DASH,
+    }
+
+
+def _sum_hitter_rows(rows: list[dict], fallback: dict) -> dict:
+    if not rows:
+        combined = fallback.copy()
+        combined.update({
+            "pa": DASH, "h": DASH, "hr": DASH, "bb": DASH, "k": DASH,
+            "avg": DASH, "obp": DASH, "slg": DASH, "k_pct": DASH, "bb_pct": DASH,
+        })
+        return combined
+
+    pa = sum(int(r["pa"]) for r in rows if isinstance(r["pa"], int))
+    hits = sum(int(r["h"]) for r in rows if isinstance(r["h"], int))
+    homers = sum(int(r["hr"]) for r in rows if isinstance(r["hr"], int))
+    walks = sum(int(r["bb"]) for r in rows if isinstance(r["bb"], int))
+    strikeouts = sum(int(r["k"]) for r in rows if isinstance(r["k"], int))
+
+    # Boxscore rows do not carry AB/TB after formatting, so combined slash lines
+    # intentionally wait for the real hitter aggregation pass.
+    combined = fallback.copy()
+    combined.update({
+        "pa": pa,
+        "h": hits,
+        "hr": homers,
+        "bb": walks,
+        "k": strikeouts,
+        "avg": DASH,
+        "obp": DASH,
+        "slg": DASH,
+        "k_pct": _pct(strikeouts, pa),
+        "bb_pct": _pct(walks, pa),
+    })
+    return combined
+
+
+@lru_cache(maxsize=128)
+def _get_boxscore(game_pk: int) -> dict | None:
+    try:
+        return _mlb(f"/game/{game_pk}/boxscore")
+    except Exception:
+        return None
+
+
+def _lineup_players(boxscore: dict | None, side: str, limit: int = 5) -> list[dict]:
+    if not boxscore:
+        return []
+    team_box = boxscore.get("teams", {}).get(side, {})
+    players = team_box.get("players", {})
+    lineup = team_box.get("battingOrder", [])[:limit]
+    result = []
+    for lineup_spot, player_id in enumerate(lineup, start=1):
+        player = players.get(f"ID{player_id}")
+        if player:
+            result.append({"lineup_spot": lineup_spot, "player": player})
+    return result
+
+
+@lru_cache(maxsize=64)
+def _completed_games_for_team(team_id: int, end_date: str, limit: int = 20) -> list[dict]:
+    season_start = f"{date.fromisoformat(end_date).year}-03-01"
+    data = _mlb(
+        "/schedule",
+        sportId=1,
+        teamId=team_id,
+        startDate=season_start,
+        endDate=end_date,
+        gameType="R",
+    )
+    games = []
+    for block in data.get("dates", []):
+        for game in block.get("games", []):
+            game_date = game.get("gameDate", "")[:10]
+            if game_date < end_date and game.get("status", {}).get("codedGameState") == "F":
+                games.append(game)
+    return games[-limit:]
+
+
+def _last_hitter_games(
+    team_id: int,
+    side_team_id: int,
+    player_id: int,
+    end_date: str,
+    pitcher_hand: str,
+    max_games: int = 3,
+) -> list[dict]:
+    rows = []
+    for game in reversed(_completed_games_for_team(team_id, end_date)):
+        box = _get_boxscore(game["gamePk"])
+        if not box:
+            continue
+        home_id = game["teams"]["home"]["team"]["id"]
+        side = "home" if home_id == side_team_id else "away"
+        opponent = game["teams"]["away" if side == "home" else "home"]["team"]["name"]
+        team_box = box.get("teams", {}).get(side, {})
+        player = team_box.get("players", {}).get(f"ID{player_id}")
+        lineup = team_box.get("battingOrder", [])
+        if not player or str(player_id) not in [str(x) for x in lineup]:
+            continue
+        lineup_spot = [str(x) for x in lineup].index(str(player_id)) + 1
+        rows.append(_boxscore_player_row(player, game["gameDate"][:10], opponent, pitcher_hand, lineup_spot))
+        if len(rows) == max_games:
+            break
+    return rows
+
+
+def _hitter_row_html(row: dict, include_date: bool = True, include_opp: bool = True) -> str:
+    cells = []
+    if include_date:
+        cells.append(f"<td>{html(row['date'])}</td>")
+    cells.extend([
+        f"<td>{html(row['lineup_spot'])}</td>",
+        f"<td class=\"identity\">{html(row['player'])}</td>",
+    ])
+    if include_opp:
+        cells.append(f"<td>{html(row['opp'])}</td>")
+    cells.extend([
+        f"<td>{html(row['bat_side'])}</td>",
+        f"<td>{html(row['pitcher_hand'])}</td>",
+        f"<td>{html(row['pa'])}</td>",
+        f"<td>{html(row['h'])}</td>",
+        f"<td>{html(row['hr'])}</td>",
+        f"<td>{html(row['bb'])}</td>",
+        f"<td>{html(row['k'])}</td>",
+        f"<td>{html(row['avg'])}</td>",
+        f"<td>{html(row['obp'])}</td>",
+        f"<td>{html(row['slg'])}</td>",
+        f"<td>{html(row['k_pct'])}</td>",
+        f"<td>{html(row['bb_pct'])}</td>",
+        f"<td class=\"na\">{html(row['whiff_pct'])}</td>",
+        f"<td class=\"na\">{html(row['chase_pct'])}</td>",
+        f"<td class=\"na\">{html(row['hardhit_pct'])}</td>",
+        f"<td class=\"na\">{html(row['barrel_pct'])}</td>",
+        f"<td class=\"na\">{html(row['babip'])}</td>",
+    ])
+    return "<tr class=\"hitter-row\">" + "".join(cells) + "</tr>"
+
+
+def _hitter_detail_rows_html(rows: list[dict], fallback: dict) -> str:
+    detail_rows = rows or [
+        {**fallback, "date": f"Game -{n}", "pa": DASH, "h": DASH, "hr": DASH, "bb": DASH,
+         "k": DASH, "avg": DASH, "obp": DASH, "slg": DASH, "k_pct": DASH, "bb_pct": DASH,
+         "whiff_pct": DASH, "chase_pct": DASH, "hardhit_pct": DASH, "barrel_pct": DASH, "babip": DASH}
+        for n in range(1, 4)
+    ]
+    rendered = []
+    for i, row in enumerate(detail_rows):
+        klass = "hitter-row hitter-detail-start" if i == 0 else "hitter-row"
+        rendered.append(_hitter_row_html(row).replace('class="hitter-row"', f'class="{klass}"', 1))
+    return "\n".join(rendered)
+
+
+def _season_hitter_row_html(player: dict | None, team_label: str, lineup_spot: int) -> str:
+    name = player.get("person", {}).get("fullName") if player else f"Lineup Spot {lineup_spot}"
+    person_id = player.get("person", {}).get("id") if player else None
+    bat_side = _bat_side(person_id)
+    return (
+        "<tr class=\"hitter-row\">"
+        f"<td>{html(lineup_spot)}</td>"
+        f"<td class=\"identity\">{html(name or 'TBD')}</td>"
+        f"<td>{html(team_label)}</td>"
+        f"<td>{html(bat_side)}</td>"
+        "<td colspan=\"18\" class=\"na\">Awaiting season hitter data</td>"
+        "</tr>"
+    )
+
+
+def _fatigue_row_html(team_label: str, report_date: str, venue_name: str) -> str:
+    return (
+        "<tr class=\"hitter-row\">"
+        f"<td class=\"identity\">{html(team_label)}</td>"
+        f"<td>{html(format_display_date(report_date))}</td>"
+        f"<td>{html(venue_name)}</td>"
+        "<td>—</td><td>—</td>"
+        "<td colspan=\"9\" class=\"na\">Awaiting fatigue data</td>"
+        "</tr>"
+    )
+
+
+def _hitter_table_header(include_date: bool = True, include_opp: bool = True) -> str:
+    date_header = "<th>Date</th>" if include_date else ""
+    opp_header = "<th>Opp</th>" if include_opp else ""
+    context_cols = 4 + int(include_date) + int(include_opp)
+    return f"""
+      <thead>
+        <tr class="group-header">
+          <th colspan="{context_cols}">Game Context</th>
+          <th colspan="8">Box Score</th>
+          <th colspan="7">Plate Discipline / Quality</th>
+        </tr>
+        <tr>
+          {date_header}
+          <th>Lineup Spot</th>
+          <th>Player</th>
+          {opp_header}
+          <th>Bat Side</th>
+          <th>Pitcher Hand</th>
+          <th>PA</th>
+          <th>H</th>
+          <th>HR</th>
+          <th>BB</th>
+          <th>K</th>
+          <th>AVG</th>
+          <th>OBP</th>
+          <th>SLG</th>
+          <th>K%</th>
+          <th>BB%</th>
+          <th>Whiff%</th>
+          <th>Chase%</th>
+          <th>HardHit%</th>
+          <th>Barrel%</th>
+          <th>BABIP</th>
+        </tr>
+      </thead>
+    """
+
+
+def _season_table_header() -> str:
+    return """
+      <thead>
+        <tr class="group-header">
+          <th colspan="4">Player</th>
+          <th colspan="10">Season Production</th>
+          <th colspan="8">Batted Ball / Expected</th>
+        </tr>
+        <tr>
+          <th>Lineup Spot</th><th>Player</th><th>Team</th><th>Bat Side</th>
+          <th>PA</th><th>AVG</th><th>OBP</th><th>SLG</th><th>OPS</th><th>ISO</th>
+          <th>BABIP</th><th>K%</th><th>BB%</th><th>Whiff%</th><th>Chase%</th>
+          <th>Contact%</th><th>HardHit%</th><th>Barrel%</th><th>wOBA</th><th>xwOBA</th>
+          <th>vs RHP OPS</th><th>vs LHP OPS</th>
+        </tr>
+      </thead>
+    """
+
+
+def _fatigue_table_header() -> str:
+    return """
+      <thead>
+        <tr class="group-header">
+          <th colspan="5">Travel Context</th><th colspan="5">Workload</th><th colspan="4">Risk</th>
+        </tr>
+        <tr>
+          <th>Team</th><th>Date</th><th>Venue</th><th>City</th><th>Previous City</th>
+          <th>Days Off</th><th>Games Last 3 Days</th><th>Consecutive Game Days</th>
+          <th>Time Zone Change</th><th>Travel Distance</th><th>Night Before Day?</th>
+          <th>Jet Lag Direction</th><th>Arrival Risk</th><th>Rest Notes</th>
+        </tr>
+      </thead>
+    """
+
+
+def build_hitter_section(
+    label: str,
+    team_id: int,
+    side: str,
+    opponent_label: str,
+    pitcher_hand: str,
+    report_date: str,
+    boxscore: dict | None,
+    venue_name: str,
+    is_opponent: bool = False,
+) -> str:
+    lineup = _lineup_players(boxscore, side, 5)
+    status = "Confirmed" if len(lineup) == 5 else "Probable"
+    card_class = "game-header hitters-card opponent-hitters-card" if is_opponent else "game-header hitters-card"
+
+    today_rows = []
+    detail_rows = []
+    season_rows = []
+    for spot in range(1, 6):
+        lineup_item = next((item for item in lineup if item["lineup_spot"] == spot), None)
+        player = lineup_item["player"] if lineup_item else None
+        fallback = _blank_hitter_row(spot, report_date, opponent_label, pitcher_hand)
+        if player:
+            fallback["player"] = player.get("person", {}).get("fullName", "TBD")
+            fallback["bat_side"] = _bat_side(player.get("person", {}).get("id"))
+            recent = _last_hitter_games(team_id, team_id, player.get("person", {}).get("id"), report_date, pitcher_hand)
+        else:
+            recent = []
+        today_rows.append(_hitter_row_html(_sum_hitter_rows(recent, fallback), include_date=False, include_opp=False))
+        detail_rows.append(_hitter_detail_rows_html(recent, fallback))
+        season_rows.append(_season_hitter_row_html(player, label, spot))
+
+    return f"""
+    <div class="{card_class}">
+      <div class="hitter-header-line">
+        {html(label)} Hitters
+        <span class="sep2">|</span>
+        Top 1-5 Lineup
+        <span class="sep2">|</span>
+        <span class="lineup-status">{html(status)}</span>
+      </div>
+    </div>
+
+    <h3>{html(label)} Today</h3>
+    <div class="table-scroll">
+      <table class="hitters-table">
+        {_hitter_table_header(include_date=False, include_opp=False)}
+        <tbody>
+          {''.join(today_rows)}
+        </tbody>
+      </table>
+    </div>
+
+    <h3>{html(label)} last 3 games</h3>
+    <div class="table-scroll">
+      <table class="hitters-table">
+        {_hitter_table_header(include_date=True)}
+        <tbody>
+          {''.join(detail_rows)}
+        </tbody>
+      </table>
+    </div>
+
+    <h3>{html(label)} season</h3>
+    <div class="table-scroll">
+      <table class="hitters-table">
+        {_season_table_header()}
+        <tbody>
+          {''.join(season_rows)}
+        </tbody>
+      </table>
+    </div>
+
+    <h3>{html(label)} fatigue</h3>
+    <div class="table-scroll">
+      <table class="hitters-table">
+        {_fatigue_table_header()}
+        <tbody>
+          {_fatigue_row_html(label, report_date, venue_name)}
+        </tbody>
+      </table>
+    </div>
+    """
+
+
 # ── Template renderer ─────────────────────────────────────────────────────────
 
 def render(tmpl: str, data: dict) -> str:
@@ -511,6 +965,27 @@ def build_report_html(game: dict, report_date: str) -> str:
 
     jays_logo_url = f"https://www.mlbstatic.com/team-logos/{TEAM_ID}.svg"
     opp_logo_url  = f"https://www.mlbstatic.com/team-logos/{opp_team_id}.svg"
+    boxscore = _get_boxscore(game_pk) if game_pk else None
+    hitters_content = build_hitter_section(
+        "Blue Jays",
+        TEAM_ID,
+        jays_side,
+        opponent_name,
+        opp_pitch_hand,
+        report_date,
+        boxscore,
+        venue_name,
+    ) + build_hitter_section(
+        opponent_name,
+        opp_team_id,
+        opp_side,
+        "Blue Jays",
+        pitch_hand,
+        report_date,
+        boxscore,
+        venue_name,
+        is_opponent=True,
+    )
 
     ctx: dict = {
         "TODAY_DATE":    format_display_date(report_date),
@@ -537,6 +1012,7 @@ def build_report_html(game: dict, report_date: str) -> str:
         "JAYS_LOGO_URL": jays_logo_url,
         "OPP_LOGO_URL":  opp_logo_url,
         "OPP_TEAM_NAME": opponent_name,
+        "HITTERS_CONTENT": hitters_content,
     }
 
     jays_starts = get_last_n_starts(pitcher_id, report_date, 3) if pitcher_id else []
