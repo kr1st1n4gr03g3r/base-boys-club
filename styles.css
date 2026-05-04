@@ -424,3 +424,142 @@ td.na {
   font-style: italic;
   font-size: 11px;
 }
+
+/* ── Probability tab ──────────────────────────────────────────────────────── */
+
+.probability-card {
+  border-left-color: var(--cyan);
+  margin-top: 12px;
+}
+
+.opponent-probability-card {
+  border-left-color: var(--purple);
+  margin-top: 20px;
+}
+
+.prob-subtitle {
+  color: var(--comment);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.prob-empty-state {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--comment);
+  font-style: italic;
+  margin-top: 12px;
+  padding: 20px 18px;
+  text-align: center;
+}
+
+.prob-table {
+  min-width: 1600px;
+}
+
+td.prob-cell {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--cyan);
+}
+
+td.adj-cell {
+  color: var(--comment);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+td.notes-cell {
+  font-size: 12px;
+  color: var(--comment);
+  text-align: left;
+  white-space: normal;
+  max-width: 280px;
+  min-width: 180px;
+}
+
+/* Confidence badges */
+.confidence-badge {
+  display: inline-block;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.confidence-high {
+  background-color: rgba(80, 250, 123, 0.12);
+  color: var(--green);
+  border: 1px solid var(--green);
+}
+
+.confidence-medium {
+  background-color: rgba(255, 184, 108, 0.12);
+  color: var(--orange);
+  border: 1px solid var(--orange);
+}
+
+.confidence-low {
+  background-color: rgba(98, 114, 164, 0.12);
+  color: var(--comment);
+  border: 1px solid var(--comment);
+}
+
+/* Lean badges */
+.lean-badge {
+  display: inline-block;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.lean-strong-over {
+  background-color: rgba(80, 250, 123, 0.12);
+  color: var(--green);
+  border: 1px solid var(--green);
+}
+
+.lean-slight-over {
+  background-color: rgba(80, 250, 123, 0.06);
+  color: #90faa8;
+  border: 1px solid #90faa8;
+}
+
+.lean-neutral {
+  background-color: rgba(98, 114, 164, 0.12);
+  color: var(--comment);
+  border: 1px solid var(--comment);
+}
+
+.lean-slight-under {
+  background-color: rgba(255, 184, 108, 0.12);
+  color: var(--orange);
+  border: 1px solid var(--orange);
+}
+
+.lean-strong-under {
+  background-color: rgba(255, 85, 85, 0.12);
+  color: #ff5555;
+  border: 1px solid #ff5555;
+}
+
+.lean-avoid {
+  background-color: rgba(189, 147, 249, 0.12);
+  color: var(--purple);
+  border: 1px solid var(--purple);
+}
+
+.prob-disclaimer {
+  color: var(--comment);
+  font-size: 11px;
+  font-style: italic;
+  margin-top: 12px;
+  text-align: center;
+}

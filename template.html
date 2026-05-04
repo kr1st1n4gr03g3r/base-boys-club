@@ -24,7 +24,7 @@
     <div class="pill-row">
       <button class="screen-pill screen-pill-active" type="button" data-view-target="pitchers">Pitchers</button>
       <button class="screen-pill" type="button" data-view-target="hitters">Hitters</button>
-      <button class="screen-pill" type="button" data-view-target="placeholder">Placeholder</button>
+      <button class="screen-pill" type="button" data-view-target="probability">Probability</button>
       <div class="time-line game-countdown" id="game-countdown" data-game-start="{{GAME_START_ISO}}" data-game-status="{{GAME_STATUS}}">
         <span class="time-label">Time Until Game</span>
         <span class="time-value" id="game-countdown-value">--:--:--</span>
@@ -495,11 +495,8 @@
     {{HITTERS_CONTENT}}
   </section>
 
-  <section class="view-panel" id="placeholder-panel" hidden>
-    <div class="game-header empty-panel">
-      <h3>Placeholder</h3>
-      <p>Future report space.</p>
-    </div>
+  <section class="view-panel" id="probability-panel" hidden>
+    {{PROBABILITY_CONTENT}}
   </section>
 
   <script>

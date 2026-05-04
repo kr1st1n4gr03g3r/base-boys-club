@@ -1039,6 +1039,704 @@ def build_hitter_section(
     """
 
 
+# ── Probability model ─────────────────────────────────────────────────────────
+
+_LEAGUE_AVG_HIT_RATE = 0.195   # H / PA, approximate 2024 MLB average
+_LEAGUE_AVG_K_RATE   = 0.220   # K / PA
+_LEAGUE_AVG_BB_RATE  = 0.085   # BB / PA
+_LEAGUE_AVG_HR_RATE  = 0.030   # HR / PA
+_LEAGUE_AVG_XBH_RATE = 0.075   # XBH / PA
+_LEAGUE_AVG_ISO      = 0.160   # SLG - AVG
+_LEAGUE_AVG_BARREL   = 0.075   # Barrel%
+_LEAGUE_AVG_HARDHIT  = 0.370   # HardHit%
+
+# Per-PA hit/hr adjustments by venue ID.  Positive = hitter-friendly.
+# Unknown venues default to {"hit": 0.0, "hr": 0.0}.
+_PARK_FACTORS: dict[int, dict] = {
+    19:   {"hit":  0.020, "hr":  0.015},  # Coors Field (COL)
+    2602: {"hit":  0.010, "hr":  0.010},  # Great American Ball Park (CIN)
+    2681: {"hit":  0.010, "hr":  0.010},  # Citizens Bank Park (PHI)
+    5325: {"hit":  0.010, "hr":  0.010},  # Globe Life Field (TEX)
+    3313: {"hit":  0.005, "hr":  0.010},  # Yankee Stadium (NYY)
+    3:    {"hit":  0.010, "hr":  0.005},  # Fenway Park (BOS)
+    32:   {"hit":  0.005, "hr":  0.005},  # American Family Field (MIL)
+    14:   {"hit":  0.000, "hr": -0.003},  # Rogers Centre (TOR)
+    4705: {"hit":  0.005, "hr":  0.005},  # Truist Park (ATL)
+    2392: {"hit":  0.005, "hr":  0.000},  # Minute Maid Park (HOU)
+    3312: {"hit":  0.000, "hr":  0.000},  # Target Field (MIN)
+    5:    {"hit":  0.000, "hr": -0.005},  # Progressive Field (CLE)
+    7:    {"hit":  0.000, "hr": -0.005},  # Kauffman Stadium (KC)
+    2889: {"hit": -0.005, "hr": -0.005},  # Busch Stadium (STL)
+    22:   {"hit":  0.000, "hr": -0.005},  # Dodger Stadium (LAD)
+    3289: {"hit": -0.005, "hr": -0.005},  # Citi Field (NYM)
+    4:    {"hit":  0.005, "hr":  0.010},  # Guaranteed Rate Field (CWS)
+    680:  {"hit": -0.010, "hr": -0.010},  # T-Mobile Park (SEA)
+    12:   {"hit": -0.005, "hr": -0.010},  # Tropicana Field (TB)
+    2395: {"hit": -0.010, "hr": -0.015},  # Oracle Park (SF)
+    2680: {"hit": -0.010, "hr": -0.010},  # Petco Park (SD)
+    15:   {"hit":  0.010, "hr":  0.010},  # Chase Field (ARI)
+    4169: {"hit": -0.005, "hr": -0.005},  # loanDepot park (MIA)
+    31:   {"hit": -0.005, "hr": -0.010},  # PNC Park (PIT)
+    10:   {"hit": -0.010, "hr": -0.010},  # Oakland Coliseum (OAK)
+    17:   {"hit":  0.005, "hr":  0.005},  # Wrigley Field (CHC)
+    2:    {"hit":  0.005, "hr":  0.005},  # Camden Yards (BAL)
+}
+
+
+def _prob_clamp(value: float, lo: float, hi: float) -> float:
+    return max(lo, min(hi, value))
+
+
+def _prob_at_least_one(per_pa_prob: float, projected_pa: float) -> float:
+    p = _prob_clamp(per_pa_prob, 0.0, 1.0)
+    return 1.0 - (1.0 - p) ** projected_pa
+
+
+def _projected_pa(lineup_spot: int) -> float:
+    pa_map = {1: 4.7, 2: 4.6, 3: 4.5, 4: 4.4, 5: 4.3, 6: 4.1, 7: 3.9, 8: 3.8, 9: 3.7}
+    return pa_map.get(lineup_spot, 4.1)
+
+
+def _fmt_pct(v: float | None) -> str:
+    if v is None or (isinstance(v, float) and v != v):
+        return DASH
+    return f"{v * 100:.1f}%"
+
+
+def _fmt_adj(v: float) -> str:
+    if abs(v) < 0.0005:
+        return "–"
+    sign = "+" if v > 0 else ""
+    return f"{sign}{v * 100:.1f}%"
+
+
+@lru_cache(maxsize=256)
+def _get_batter_season_splits(player_id: int, season: int) -> dict:
+    """Return batter's H/PA, K/PA, BB/PA, HR/PA, XBH/PA vs RHP and vs LHP."""
+    try:
+        data = _mlb(
+            f"/people/{player_id}/stats",
+            stats="vsLeft,vsRight",
+            group="hitting",
+            season=season,
+            gameType="R",
+        )
+        result: dict = {"vs_rhp": {}, "vs_lhp": {}}
+        for sg in data.get("stats", []):
+            type_name = sg.get("type", {}).get("displayName", "")
+            splits = sg.get("splits", [])
+            if not splits:
+                continue
+            s = splits[0].get("stat", {})
+            pa = int(s.get("plateAppearances", 0))
+            if pa < 10:
+                continue
+            hits    = int(s.get("hits", 0))
+            bb      = int(s.get("baseOnBalls", 0))
+            k       = int(s.get("strikeOuts", 0))
+            hr      = int(s.get("homeRuns", 0))
+            doubles = int(s.get("doubles", 0))
+            triples = int(s.get("triples", 0))
+            xbh     = doubles + triples + hr
+            try:
+                avg = float(s.get("avg", 0) or 0)
+                slg = float(s.get("slg", 0) or 0)
+                iso = max(0.0, slg - avg)
+            except (ValueError, TypeError):
+                iso = _LEAGUE_AVG_ISO
+            entry = {
+                "pa":       pa,
+                "hit_rate": hits / pa,
+                "bb_rate":  bb   / pa,
+                "k_rate":   k    / pa,
+                "hr_rate":  hr   / pa,
+                "xbh_rate": xbh  / pa,
+                "iso":      iso,
+            }
+            if type_name == "vsRight":    # batter vs RHP
+                result["vs_rhp"] = entry
+            elif type_name == "vsLeft":   # batter vs LHP
+                result["vs_lhp"] = entry
+        return result
+    except Exception:
+        return {"vs_rhp": {}, "vs_lhp": {}}
+
+
+@lru_cache(maxsize=256)
+def _get_pitcher_season_splits(pitcher_id: int, season: int) -> dict:
+    """Return pitcher's H/BF, K/BF, BB/BF, HR/BF vs LHB and vs RHB."""
+    try:
+        data = _mlb(
+            f"/people/{pitcher_id}/stats",
+            stats="vsLeft,vsRight",
+            group="pitching",
+            season=season,
+            gameType="R",
+        )
+        result: dict = {"vs_rhb": {}, "vs_lhb": {}}
+        for sg in data.get("stats", []):
+            type_name = sg.get("type", {}).get("displayName", "")
+            splits = sg.get("splits", [])
+            if not splits:
+                continue
+            s  = splits[0].get("stat", {})
+            bf = int(s.get("battersFaced", 0))
+            if bf < 10:
+                continue
+            hits    = int(s.get("hits", 0))
+            bb      = int(s.get("baseOnBalls", 0))
+            k       = int(s.get("strikeOuts", 0))
+            hr      = int(s.get("homeRuns", 0))
+            doubles = int(s.get("doubles", 0))
+            triples = int(s.get("triples", 0))
+            xbh     = doubles + triples + hr
+            entry = {
+                "pa":       bf,
+                "hit_rate": hits / bf,
+                "bb_rate":  bb   / bf,
+                "k_rate":   k    / bf,
+                "hr_rate":  hr   / bf,
+                "xbh_rate": xbh  / bf,
+            }
+            if type_name == "vsRight":    # pitcher vs RHB
+                result["vs_rhb"] = entry
+            elif type_name == "vsLeft":   # pitcher vs LHB
+                result["vs_lhb"] = entry
+        return result
+    except Exception:
+        return {"vs_rhb": {}, "vs_lhb": {}}
+
+
+def _batter_split_key(pitcher_hand: str) -> str:
+    """Which batter-vs-pitcher-hand key to use based on opposing pitcher."""
+    return "vs_rhp" if pitcher_hand == "RHP" else "vs_lhp"
+
+
+def _pitcher_split_key_for_batter(bat_side: str, pitcher_hand: str) -> str:
+    """Which pitcher-vs-batter-hand key to use.
+
+    Switch hitters bat from the side opposite the pitcher:
+    vs RHP → bats Left → pitcher sees LHB → use pitcher's vs_lhb
+    vs LHP → bats Right → pitcher sees RHB → use pitcher's vs_rhb
+    """
+    if bat_side == "S":
+        eff = "L" if pitcher_hand == "RHP" else "R"
+    else:
+        eff = bat_side
+    return "vs_rhb" if eff == "R" else "vs_lhb"
+
+
+def _batter_recent_rates(recent_rows: list[dict]) -> dict:
+    total_pa = sum(int(r["pa"]) for r in recent_rows if isinstance(r.get("pa"), int))
+    if total_pa == 0:
+        return {}
+    def _s(key: str) -> int:
+        return sum(int(r[key]) for r in recent_rows if isinstance(r.get(key), int))
+    return {
+        "hit_rate": _s("h")  / total_pa,
+        "bb_rate":  _s("bb") / total_pa,
+        "k_rate":   _s("k")  / total_pa,
+        "hr_rate":  _s("hr") / total_pa,
+    }
+
+
+def _pitcher_recent_rates(starts: list[dict]) -> dict:
+    total_bf = sum(int(s.get("stat", {}).get("battersFaced", 0)) for s in starts)
+    if total_bf == 0:
+        return {}
+    def _s(key: str) -> int:
+        return sum(int(s.get("stat", {}).get(key, 0)) for s in starts)
+    return {
+        "hit_rate": _s("hits")         / total_bf,
+        "bb_rate":  _s("baseOnBalls")  / total_bf,
+        "k_rate":   _s("strikeOuts")   / total_bf,
+        "hr_rate":  _s("homeRuns")     / total_bf,
+    }
+
+
+def _get_park_factors(venue_id: int | None) -> dict:
+    if venue_id is None:
+        return {"hit": 0.0, "hr": 0.0}
+    return _PARK_FACTORS.get(venue_id, {"hit": 0.0, "hr": 0.0})
+
+
+def _parse_weather_adjustment(weather_str: str) -> dict:
+    """Parse the weather display string into per-PA hit and HR adjustments."""
+    hit_adj = 0.0
+    hr_adj  = 0.0
+    try:
+        if "°C" in weather_str:
+            temp_c = int(weather_str.split("°C")[0].split()[-1])
+            if temp_c < 10:
+                hit_adj -= 0.010; hr_adj -= 0.010
+            elif temp_c < 15:
+                hit_adj -= 0.005; hr_adj -= 0.005
+            elif temp_c > 25:
+                hit_adj += 0.005; hr_adj += 0.005
+        lower = weather_str.lower()
+        if "% precip" in lower:
+            precip = int(lower.split("% precip")[0].split()[-1])
+            if precip >= 40:
+                hit_adj -= 0.005
+            if precip >= 70:
+                hit_adj -= 0.005
+    except Exception:
+        pass
+    return {
+        "hit": _prob_clamp(hit_adj, -0.015, 0.015),
+        "hr":  _prob_clamp(hr_adj,  -0.020, 0.020),
+    }
+
+
+def _calc_fatigue_adjustment(fatigue: dict) -> float:
+    """Convert team fatigue metrics to a per-PA probability adjustment."""
+    adj = 0.0
+    days_off = fatigue.get("days_off", DASH)
+    if isinstance(days_off, int) and days_off >= 1:
+        adj += 0.003
+    games_last_3    = fatigue.get("games_last_3", 0)
+    consecutive     = fatigue.get("consecutive_days", 0)
+    if isinstance(games_last_3, int) and games_last_3 >= 3:
+        adj -= 0.005
+    if isinstance(consecutive, int):
+        if consecutive >= 6:
+            adj -= 0.005
+        if consecutive >= 10:
+            adj -= 0.005
+    if fatigue.get("night_before_day") == "Yes":
+        adj -= 0.007
+    jet_lag  = fatigue.get("jet_lag", "None")
+    tz_change = fatigue.get("tz_change", "0h")
+    tz_delta  = 0.0
+    if tz_change not in (DASH, "0h", None):
+        try:
+            tz_delta = abs(float(str(tz_change).replace("h", "").replace("+", "")))
+        except (ValueError, TypeError):
+            pass
+    if jet_lag == "East" and tz_delta >= 1:
+        adj -= 0.007
+    elif jet_lag in ("East", "West") and tz_delta >= 2:
+        adj -= 0.005
+    dist_str = fatigue.get("travel_distance", DASH)
+    if dist_str not in (DASH, None):
+        try:
+            dist = float(str(dist_str).replace(" km", "").replace(",", ""))
+            if dist >= 2000:
+                adj -= 0.005
+        except (ValueError, TypeError):
+            pass
+    return _prob_clamp(adj, -0.020, 0.010)
+
+
+def _calc_hit_probability(
+    batter_split: dict,
+    pitcher_split: dict,
+    batter_recent: dict,
+    pitcher_recent: dict,
+    projected_pa: float,
+    park_hit_adj: float,
+    weather_hit_adj: float,
+    fatigue_adj: float,
+) -> float:
+    bh  = batter_split.get("hit_rate",  _LEAGUE_AVG_HIT_RATE)
+    ph  = pitcher_split.get("hit_rate", _LEAGUE_AVG_HIT_RATE)
+    brh = batter_recent.get("hit_rate", bh)
+    prh = pitcher_recent.get("hit_rate", ph)
+    per_pa = bh * 0.40 + ph * 0.30 + brh * 0.15 + prh * 0.15
+    per_pa = _prob_clamp(per_pa + park_hit_adj + weather_hit_adj + fatigue_adj, 0.05, 0.45)
+    return _prob_at_least_one(per_pa, projected_pa)
+
+
+def _calc_k_probability(
+    batter_split: dict,
+    pitcher_split: dict,
+    batter_recent: dict,
+    pitcher_recent: dict,
+    projected_pa: float,
+) -> float:
+    bk  = batter_split.get("k_rate",  _LEAGUE_AVG_K_RATE)
+    pk  = pitcher_split.get("k_rate", _LEAGUE_AVG_K_RATE)
+    brk = batter_recent.get("k_rate", bk)
+    prk = pitcher_recent.get("k_rate", pk)
+    per_pa = bk * 0.40 + pk * 0.35 + brk * 0.15 + prk * 0.10
+    per_pa = _prob_clamp(per_pa, 0.08, 0.45)
+    return _prob_at_least_one(per_pa, projected_pa)
+
+
+def _calc_bb_probability(
+    batter_split: dict,
+    pitcher_split: dict,
+    pitcher_recent: dict,
+    projected_pa: float,
+) -> float:
+    bb  = batter_split.get("bb_rate",  _LEAGUE_AVG_BB_RATE)
+    pb  = pitcher_split.get("bb_rate", _LEAGUE_AVG_BB_RATE)
+    prb = pitcher_recent.get("bb_rate", pb)
+    per_pa = bb * 0.40 + pb * 0.40 + prb * 0.10
+    per_pa = _prob_clamp(per_pa, 0.02, 0.22)
+    return _prob_at_least_one(per_pa, projected_pa)
+
+
+def _calc_hr_probability(
+    batter_split: dict,
+    pitcher_split: dict,
+    pitcher_recent: dict,
+    projected_pa: float,
+    park_hr_adj: float,
+    weather_hr_adj: float,
+    fatigue_adj: float,
+) -> float:
+    bhr  = batter_split.get("hr_rate",  _LEAGUE_AVG_HR_RATE)
+    phr  = pitcher_split.get("hr_rate", _LEAGUE_AVG_HR_RATE)
+    prhr = pitcher_recent.get("hr_rate", phr)
+    # Contact power (barrel%, hardhit%) is not fetched per-batter yet so we
+    # omit the contact_power term and redistribute its weight to the HR-rate
+    # inputs, keeping batter HR rate as the dominant signal.
+    per_pa = (
+        bhr  * 0.50
+        + phr  * 0.35
+        + prhr * 0.15
+        + park_hr_adj
+        + weather_hr_adj
+        + fatigue_adj * 0.5
+    )
+    per_pa = _prob_clamp(per_pa, 0.002, 0.08)
+    return _prob_at_least_one(per_pa, projected_pa)
+
+
+def _calc_tb15_probability(
+    batter_split: dict,
+    pitcher_split: dict,
+    hit_prob: float,
+    projected_pa: float,
+    park_hit_adj: float,
+    weather_hit_adj: float,
+    fatigue_adj: float,
+) -> float:
+    xbh  = batter_split.get("xbh_rate",  _LEAGUE_AVG_XBH_RATE)
+    pxbh = pitcher_split.get("xbh_rate", _LEAGUE_AVG_XBH_RATE)
+    iso  = batter_split.get("iso",        _LEAGUE_AVG_ISO)
+    per_pa = (
+        xbh  * 0.35
+        + pxbh * 0.25
+        + iso  * 0.15
+        + _LEAGUE_AVG_BARREL   * 0.15
+        + _LEAGUE_AVG_HARDHIT  * 0.05
+        + park_hit_adj
+        + weather_hit_adj
+        + fatigue_adj
+    )
+    per_pa   = _prob_clamp(per_pa, 0.02, 0.22)
+    xbh_prob = _prob_at_least_one(per_pa, projected_pa)
+    multi    = max(0.0, hit_prob - 0.45) * 0.35
+    return _prob_clamp(xbh_prob + multi, 0.05, 0.65)
+
+
+def _get_confidence(
+    batter_split: dict,
+    pitcher_split: dict,
+    has_confirmed_lineup: bool,
+    prob_type: str = "normal",
+) -> str:
+    if not has_confirmed_lineup or not batter_split or not pitcher_split:
+        return "Low"
+    bpa = batter_split.get("pa", 0)
+    ppa = pitcher_split.get("pa", 0)
+    if prob_type == "HR":
+        return "Medium" if bpa >= 100 and ppa >= 100 else "Low"
+    if bpa >= 100 and ppa >= 100:
+        return "High"
+    if bpa >= 50 and ppa >= 50:
+        return "Medium"
+    return "Low"
+
+
+def _get_lean(probability: float, prob_type: str, confidence: str) -> str:
+    if confidence == "Low":
+        if prob_type == "HR":
+            return "Avoid"
+        if probability >= 0.70:
+            return "Slight Over"
+        if probability <= 0.35:
+            return "Slight Under"
+        return "Neutral"
+    if prob_type == "HIT":
+        if probability >= 0.70: return "Strong Over"
+        if probability >= 0.62: return "Slight Over"
+        if probability >= 0.50: return "Neutral"
+        if probability >= 0.42: return "Slight Under"
+        return "Strong Under"
+    if prob_type == "K":
+        if probability >= 0.70: return "Strong Over"
+        if probability >= 0.60: return "Slight Over"
+        if probability >= 0.45: return "Neutral"
+        if probability >= 0.35: return "Slight Under"
+        return "Strong Under"
+    if prob_type == "BB":
+        if probability >= 0.35: return "Strong Over"
+        if probability >= 0.25: return "Slight Over"
+        if probability >= 0.15: return "Neutral"
+        return "Slight Under"
+    if prob_type == "HR":
+        if probability >= 0.09: return "HR Sprinkle"
+        if probability >= 0.06: return "Interesting"
+        if probability >= 0.03: return "Neutral"
+        return "Avoid"
+    if prob_type == "TB15":
+        if probability >= 0.45: return "Strong Over"
+        if probability >= 0.35: return "Slight Over"
+        if probability >= 0.25: return "Neutral"
+        return "Avoid"
+    return "Neutral"
+
+
+def _generate_prob_note(
+    bat_side: str,
+    pitcher_hand: str,
+    hit_prob: float,
+    k_prob: float,
+    hr_prob: float,
+    confidence: str,
+    batter_split: dict,
+    pitcher_split: dict,
+) -> str:
+    parts = []
+    bat_label = {"R": "RHB", "L": "LHB", "S": "switch"}.get(bat_side, bat_side)
+    hand_label = pitcher_hand if pitcher_hand in ("RHP", "LHP") else "SP"
+    parts.append(f"{bat_label} vs {hand_label}")
+    bpa = batter_split.get("pa", 0)
+    ppa = pitcher_split.get("pa", 0)
+    if bpa < 30:
+        parts.append("small batter split sample")
+    if ppa < 30:
+        parts.append("small pitcher split sample")
+    if hit_prob >= 0.68:
+        parts.append("strong hit profile")
+    elif hit_prob <= 0.45:
+        parts.append("suppressed hit outlook")
+    if k_prob >= 0.70:
+        parts.append("elevated K risk")
+    elif k_prob <= 0.35:
+        parts.append("low K risk")
+    if hr_prob >= 0.09:
+        parts.append("HR sprinkle worth noting")
+    elif hr_prob <= 0.03:
+        parts.append("HR unlikely")
+    if confidence == "Low":
+        parts.append("low confidence — data limited")
+    return "; ".join(parts) if parts else "Matchup-based projection"
+
+
+def _prob_table_header() -> str:
+    return """
+      <thead>
+        <tr class="group-header">
+          <th colspan="6">Matchup Context</th>
+          <th colspan="5">Core Probabilities</th>
+          <th colspan="3">Context Adjustments</th>
+          <th colspan="3">Assessment</th>
+        </tr>
+        <tr>
+          <th data-tip="Blue Jays hitter name">Player</th>
+          <th data-tip="Batter handedness: L, R, or S (switch hitter)">Bat</th>
+          <th data-tip="Lineup spot — affects projected plate appearances">Spot</th>
+          <th data-tip="Opposing starting pitcher">Opp SP</th>
+          <th data-tip="Opposing starting pitcher handedness: RHP or LHP">SP Hand</th>
+          <th data-tip="Estimated plate appearances based on lineup spot. Spot 1 = 4.7, spot 9 = 3.7.">Proj PA</th>
+          <th data-tip="P(1+ hit) — probability of recording at least one hit. Weighted: batter vs pitcher hand 40%, pitcher vs batter hand 30%, batter last 3 games 15%, pitcher last 3 starts 15%.">Hit %</th>
+          <th data-tip="P(1+ strikeout) — probability of being struck out at least once. K%, not Strike%, because we mean batter strikeout, not pitch-level strikes.">K %</th>
+          <th data-tip="P(1+ walk) — probability of drawing at least one walk.">BB %</th>
+          <th data-tip="P(home run) — conservative estimate. HR is volatile; low confidence by default.">HR %</th>
+          <th data-tip="P(over 1.5 total bases) — captures extra-base hit and multi-hit upside beyond a single.">TB 1.5%</th>
+          <th data-tip="Park factor hit adjustment. Positive = hitter-friendly park, negative = pitcher-friendly park.">Park Adj</th>
+          <th data-tip="Weather adjustment based on temperature and precipitation probability.">Wthr Adj</th>
+          <th data-tip="Fatigue adjustment based on rest days, travel, consecutive games, night-before-day, and time zone change.">Ftg Adj</th>
+          <th data-tip="Confidence in this projection: High, Medium, or Low. Reflects data quality and sample size. Not outcome certainty.">Conf</th>
+          <th data-tip="Probability lean based on Hit %. Not a betting recommendation.">Lean</th>
+          <th data-tip="Short explanation of the projection basis and any notable signals.">Notes</th>
+        </tr>
+      </thead>
+    """
+
+
+def _prob_row_html(
+    player: str,
+    bat_side: str,
+    spot: int,
+    opp_sp: str,
+    sp_hand: str,
+    proj_pa: float,
+    hit_prob: float,
+    k_prob: float,
+    bb_prob: float,
+    hr_prob: float,
+    tb15_prob: float,
+    park_adj: float,
+    weather_adj: float,
+    fatigue_adj: float,
+    confidence: str,
+    lean: str,
+    notes: str,
+) -> str:
+    conf_class = {
+        "High":   "confidence-high",
+        "Medium": "confidence-medium",
+        "Low":    "confidence-low",
+    }.get(confidence, "confidence-low")
+    lean_class = {
+        "Strong Over":  "lean-strong-over",
+        "Slight Over":  "lean-slight-over",
+        "Neutral":      "lean-neutral",
+        "Slight Under": "lean-slight-under",
+        "Strong Under": "lean-strong-under",
+        "HR Sprinkle":  "lean-strong-over",
+        "Interesting":  "lean-slight-over",
+        "Avoid":        "lean-avoid",
+    }.get(lean, "lean-neutral")
+    return (
+        '<tr class="hitter-row">'
+        f'<td class="identity">{html(player)}</td>'
+        f'<td>{html(bat_side)}</td>'
+        f'<td>{html(spot)}</td>'
+        f'<td class="identity">{html(opp_sp)}</td>'
+        f'<td>{html(sp_hand)}</td>'
+        f'<td>{proj_pa:.1f}</td>'
+        f'<td class="prob-cell">{_fmt_pct(hit_prob)}</td>'
+        f'<td class="prob-cell">{_fmt_pct(k_prob)}</td>'
+        f'<td class="prob-cell">{_fmt_pct(bb_prob)}</td>'
+        f'<td class="prob-cell">{_fmt_pct(hr_prob)}</td>'
+        f'<td class="prob-cell">{_fmt_pct(tb15_prob)}</td>'
+        f'<td class="adj-cell">{_fmt_adj(park_adj)}</td>'
+        f'<td class="adj-cell">{_fmt_adj(weather_adj)}</td>'
+        f'<td class="adj-cell">{_fmt_adj(fatigue_adj)}</td>'
+        f'<td><span class="confidence-badge {conf_class}">{html(confidence)}</span></td>'
+        f'<td><span class="lean-badge {lean_class}">{html(lean)}</span></td>'
+        f'<td class="notes-cell">{html(notes)}</td>'
+        '</tr>'
+    )
+
+
+def _prob_table_shell(
+    team_label: str,
+    pitcher_name: str,
+    pitcher_hand: str,
+    body_html: str,
+    is_opponent: bool = False,
+) -> str:
+    card_class = (
+        "game-header probability-card opponent-probability-card"
+        if is_opponent
+        else "game-header probability-card"
+    )
+    return f"""
+    <div class="{card_class}">
+      <div class="hitter-header-line">{html(team_label)} Hitter Probability Model</div>
+      <div class="prob-subtitle">Matchup probabilities vs {html(pitcher_name or 'TBD')} ({html(pitcher_hand)})</div>
+    </div>
+    <h3>{html(team_label)} Hitters — Probability vs {html(pitcher_name or 'TBD')}</h3>
+    <div class="table-scroll">
+      <table class="hitters-table prob-table">
+        {_prob_table_header()}
+        <tbody>
+          {body_html}
+        </tbody>
+      </table>
+    </div>
+    <p class="prob-disclaimer">
+      Projections are model estimates only. Not predictions or betting advice.
+      Confidence reflects data quality and sample size, not outcome certainty.
+    </p>
+    """
+
+
+def build_probability_section(
+    team_id: int,
+    team_label: str,
+    batting_side: str,
+    sp_id: int | None,
+    sp_name: str,
+    sp_hand: str,
+    report_date: str,
+    boxscore: dict | None,
+    venue_id: int | None,
+    weather_str: str,
+    fatigue: dict,
+    sp_recent_starts: list[dict],
+    is_opponent: bool = False,
+) -> str:
+    lineup = _lineup_players(boxscore, batting_side, 9)
+    has_confirmed = len(lineup) >= 1
+
+    card_class = (
+        "game-header probability-card opponent-probability-card"
+        if is_opponent
+        else "game-header probability-card"
+    )
+
+    if not has_confirmed:
+        msg = f"{team_label} lineup not confirmed yet. Probability table will populate after lineup announcement."
+        return f"""
+        <div class="{card_class}">
+          <div class="hitter-header-line">{html(team_label)} Hitter Probability Model</div>
+          <div class="prob-subtitle">Matchup probabilities vs {html(sp_name or 'TBD')} ({html(sp_hand)})</div>
+        </div>
+        <div class="prob-empty-state">{html(msg)}</div>
+        """
+
+    if not sp_id:
+        no_data = '<tr><td colspan="17" class="na">Starting pitcher matchup data is incomplete.</td></tr>'
+        return _prob_table_shell(team_label, sp_name, sp_hand, no_data, is_opponent)
+
+    season         = date.fromisoformat(report_date).year
+    pitcher_splits = _get_pitcher_season_splits(sp_id, season)
+    pitcher_recent = _pitcher_recent_rates(sp_recent_starts)
+    park           = _get_park_factors(venue_id)
+    weather        = _parse_weather_adjustment(weather_str)
+    fatigue_adj    = _calc_fatigue_adjustment(fatigue)
+
+    rows = []
+    for item in lineup:
+        spot      = item["lineup_spot"]
+        player    = item["player"]
+        player_id = player.get("person", {}).get("id")
+        name      = player.get("person", {}).get("fullName", "TBD")
+        bat_side  = _bat_side(player_id)
+        proj_pa   = _projected_pa(spot)
+
+        batter_all = _get_batter_season_splits(player_id, season) if player_id else {}
+        b_key      = _batter_split_key(sp_hand)
+        p_key      = _pitcher_split_key_for_batter(bat_side, sp_hand)
+        b_split    = batter_all.get(b_key, {})
+        p_split    = pitcher_splits.get(p_key, {})
+
+        recent_rows   = _last_hitter_games(team_id, team_id, player_id, report_date, sp_hand) if player_id else []
+        batter_recent = _batter_recent_rates(recent_rows)
+
+        confidence = _get_confidence(b_split, p_split, has_confirmed)
+
+        hit_p  = _calc_hit_probability(b_split, p_split, batter_recent, pitcher_recent,
+                                        proj_pa, park["hit"], weather["hit"], fatigue_adj)
+        k_p    = _calc_k_probability(b_split, p_split, batter_recent, pitcher_recent, proj_pa)
+        bb_p   = _calc_bb_probability(b_split, p_split, pitcher_recent, proj_pa)
+        hr_p   = _calc_hr_probability(b_split, p_split, pitcher_recent,
+                                       proj_pa, park["hr"], weather["hr"], fatigue_adj)
+        tb15_p = _calc_tb15_probability(b_split, p_split, hit_p,
+                                         proj_pa, park["hit"], weather["hit"], fatigue_adj)
+
+        lean  = _get_lean(hit_p, "HIT", confidence)
+        notes = _generate_prob_note(bat_side, sp_hand, hit_p, k_p, hr_p,
+                                     confidence, b_split, p_split)
+
+        rows.append(_prob_row_html(
+            name, bat_side, spot, sp_name, sp_hand, proj_pa,
+            hit_p, k_p, bb_p, hr_p, tb15_p,
+            park["hit"], weather["hit"], fatigue_adj,
+            confidence, lean, notes,
+        ))
+
+    return _prob_table_shell(team_label, sp_name, sp_hand, "".join(rows), is_opponent)
+
+
 # ── Template renderer ─────────────────────────────────────────────────────────
 
 def render(tmpl: str, data: dict) -> str:
@@ -1231,6 +1929,40 @@ def build_report_html(game: dict, report_date: str) -> str:
         opp_prev_date = split["date"]
     for i in range(len(opp_starts), 3):
         ctx.update(empty_row(i + 1, key_prefix="OP_"))
+
+    jays_fatigue = _fatigue_metrics(TEAM_ID, "Blue Jays", report_date, game, venue_id)
+    opp_fatigue  = _fatigue_metrics(opp_team_id, opponent_name, report_date, game, venue_id)
+
+    jays_prob = build_probability_section(
+        team_id      = TEAM_ID,
+        team_label   = "Blue Jays",
+        batting_side = jays_side,
+        sp_id        = opp_pitcher_id,
+        sp_name      = opp_pitcher_name,
+        sp_hand      = opp_pitch_hand,
+        report_date  = report_date,
+        boxscore     = boxscore,
+        venue_id     = venue_id,
+        weather_str  = weather,
+        fatigue      = jays_fatigue,
+        sp_recent_starts = opp_starts,
+    )
+    opp_prob = build_probability_section(
+        team_id      = opp_team_id,
+        team_label   = opponent_name,
+        batting_side = opp_side,
+        sp_id        = pitcher_id,
+        sp_name      = pitcher_name,
+        sp_hand      = pitch_hand,
+        report_date  = report_date,
+        boxscore     = boxscore,
+        venue_id     = venue_id,
+        weather_str  = weather,
+        fatigue      = opp_fatigue,
+        sp_recent_starts = jays_starts,
+        is_opponent  = True,
+    )
+    ctx["PROBABILITY_CONTENT"] = jays_prob + opp_prob
 
     return render(TEMPLATE.read_text(), ctx)
 
