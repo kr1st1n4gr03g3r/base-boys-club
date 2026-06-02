@@ -161,6 +161,11 @@ def safe_get(dictionary, *keys, default=None):
 
     return current if current is not None else default
 
+def get_team_logo_url(team_id):
+    if not team_id:
+        return ""
+
+    return f"https://www.mlbstatic.com/team-logos/{team_id}.svg"
 
 def format_count(balls, strikes):
     if balls is None or strikes is None:
@@ -266,6 +271,81 @@ def get_wall_asymmetry(field_info):
 
     return "; ".join(notes)
 
+def get_lineup(feed, side):
+    """
+    side should be "home" or "away".
+
+    Returns lineup grouped by batting order slot.
+    Pinch hitters and substitutes stay inside the original lineup slot.
+    """
+    team = safe_get(feed, "liveData", "boxscore", "teams", side, default={})
+    players = team.get("players", {})
+    game_players = safe_get(feed, "gameData", "players", default={})
+
+    lineup = {}
+
+    for player_key, player_data in players.items():
+        batting_order = player_data.get("battingOrder")
+
+        if not batting_order:
+            continue
+
+        batting_order_text = str(batting_order)
+
+        try:
+            slot = int(batting_order_text[0])
+            order_within_slot = int(batting_order_text)
+        except ValueError:
+            continue
+
+        person = player_data.get("person", {})
+        position = player_data.get("position", {})
+        player_id = person.get("id")
+
+        game_player_key = f"ID{player_id}" if player_id else None
+        game_player_data = game_players.get(game_player_key, {})
+
+        player = {
+            "id": player_id,
+            "name": person.get("fullName"),
+            "position": position.get("abbreviation"),
+            "bats": safe_get(game_player_data, "batSide", "code", default="?"),
+            "throws": safe_get(game_player_data, "pitchHand", "code", default="?"),
+            "batting_order": batting_order_text,
+            "order_within_slot": order_within_slot,
+        }
+
+        if slot not in lineup:
+            lineup[slot] = []
+
+        lineup[slot].append(player)
+
+    for slot in lineup:
+        lineup[slot].sort(key=lambda player: player["order_within_slot"])
+
+    return lineup
+
+def get_lineup_lines(feed, side):
+    lineup = get_lineup(feed, side)
+    lines = []
+
+    for slot in sorted(lineup):
+        players = lineup[slot]
+
+        for index, player in enumerate(players):
+            name = player.get("name", "Unknown player")
+            position = player.get("position") or "Unknown position"
+            bats = player.get("bats") or "?"
+            throws = player.get("throws") or "?"
+
+            handedness = f"Bats: {bats} / Throws: {throws}"
+
+            if index == 0:
+                lines.append(f"{slot}. {name} ({position}) - {handedness}")
+            else:
+                lines.append(f"PH/SUB: {name} ({position}) - {handedness}")
+
+    return lines
 
 def get_ballpark_lines(feed, venue_details=None):
     if venue_details is None:
@@ -292,6 +372,7 @@ def get_ballpark_lines(feed, venue_details=None):
 
     lines.append("<details>")
     lines.append("<summary>Park Info</summary>")
+    lines.append("")
     lines.append(f"Park: {venue_name}")
     lines.append(
         "Outfield dimensions: "
@@ -421,16 +502,46 @@ def generate_pitch_by_pitch_report(feed, venue_details=None):
     home_team = safe_get(game_data, "teams", "home", "name", default="Unknown home team")
     away_team = safe_get(game_data, "teams", "away", "name", default="Unknown away team")
 
+    home_team_id = safe_get(game_data, "teams", "home", "id")
+    away_team_id = safe_get(game_data, "teams", "away", "id")
+    home_logo_url = get_team_logo_url(home_team_id)
+    away_logo_url = get_team_logo_url(away_team_id)
+
     batting_orders = derive_batting_orders(feed)
 
     lines = []
-    lines.append(f"Game Date: {game_date}")
-    lines.append(f"Game Time (ET): {game_time_et}")
-    lines.append(f"Game Timezone: {game_timezone}")
-    lines.append(f"Home: {home_team}")
-    lines.append(f"Away: {away_team}")
+    lines.append(
+        f'# {away_team} @ {home_team} <br> <br>'
+        f'<img src="{home_logo_url}" alt="{home_team} logo" width="100">'
+        f'<img src="{away_logo_url}" alt="{away_team} logo" width="100">'
+    )
+
+    lines.append(f"**Game Date**: {game_date}")
+    lines.append(f"**Time (ET)**: {game_time_et}")
+    lines.append(f"**Timezone**: {game_timezone}")
+
     lines.append(get_game_weather(feed))
     lines.extend(get_ballpark_lines(feed, venue_details))
+    away_lineup = get_lineup_lines(feed, "away")
+    home_lineup = get_lineup_lines(feed, "home")
+
+    lines.append("")
+    lines.append("## Lineups")
+    lines.append("")
+    lines.append("<table>")
+    lines.append("  <tr>")
+    lines.append("    <th>Away Lineup</th>")
+    lines.append("    <th>Home Lineup</th>")
+    lines.append("  </tr>")
+    lines.append("  <tr>")
+    lines.append("    <td>")
+    lines.extend([f"{line}<br>" for line in away_lineup])
+    lines.append("    </td>")
+    lines.append("    <td>")
+    lines.extend([f"{line}<br>" for line in home_lineup])
+    lines.append("    </td>")
+    lines.append("  </tr>")
+    lines.append("</table>")
     lines.append("")
 
     current_half = None

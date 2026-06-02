@@ -1,11 +1,11 @@
-Game Date: 2026-05-31
-Game Time (ET): 12:15 PM EDT
-Game Timezone: America/New_York
-Home: Baltimore Orioles
-Away: Toronto Blue Jays
+# Toronto Blue Jays @ Baltimore Orioles <br> <br><img src="https://www.mlbstatic.com/team-logos/110.svg" alt="Baltimore Orioles logo" width="100"><img src="https://www.mlbstatic.com/team-logos/141.svg" alt="Toronto Blue Jays logo" width="100">
+**Game Date**: 2026-05-31
+**Time (ET)**: 12:15 PM EDT
+**Timezone**: America/New_York
 Weather: Sunny, 21°C / 69°F, Wind: 10 kph / 6 mph, R To L
 <details>
 <summary>Park Info</summary>
+
 Park: Oriole Park at Camden Yards
 Outfield dimensions: LF Line 101 m / 333 ft, LF 111 m / 363 ft, LC 115 m / 376 ft, CF 125 m / 410 ft, RC 114 m / 373 ft, RF Not available, RF Line 97 m / 318 ft
 Left Fence: 101 m / 333 ft
@@ -24,6 +24,41 @@ right: Not available
 rightLine: 97 m / 318 ft
 
 </details>
+
+## Lineups
+
+<table>
+  <tr>
+    <th>Away Lineup</th>
+    <th>Home Lineup</th>
+  </tr>
+  <tr>
+    <td>
+1. Nathan Lukes (LF) - Bats: L / Throws: R<br>
+2. Vladimir Guerrero Jr. (DH) - Bats: R / Throws: R<br>
+3. Daulton Varsho (CF) - Bats: L / Throws: R<br>
+PH/SUB: Myles Straw (CF) - Bats: R / Throws: R<br>
+4. Kazuma Okamoto (3B) - Bats: R / Throws: R<br>
+5. Ernie Clement (2B) - Bats: R / Throws: R<br>
+6. Jesús Sánchez (RF) - Bats: L / Throws: R<br>
+PH/SUB: Yohendrick Piñango (RF) - Bats: L / Throws: L<br>
+7. Charles McAdoo (1B) - Bats: R / Throws: R<br>
+8. Andrés Giménez (SS) - Bats: L / Throws: R<br>
+9. Brandon Valenzuela (C) - Bats: S / Throws: R<br>
+    </td>
+    <td>
+1. Taylor Ward (LF) - Bats: R / Throws: R<br>
+2. Gunnar Henderson (SS) - Bats: L / Throws: R<br>
+3. Adley Rutschman (DH) - Bats: S / Throws: R<br>
+4. Pete Alonso (1B) - Bats: R / Throws: R<br>
+5. Samuel Basallo (C) - Bats: L / Throws: R<br>
+6. Leody Taveras (CF) - Bats: S / Throws: R<br>
+7. Colton Cowser (RF) - Bats: L / Throws: R<br>
+8. Blaze Alexander (3B) - Bats: R / Throws: R<br>
+9. Jackson Holliday (2B) - Bats: L / Throws: R<br>
+    </td>
+  </tr>
+</table>
 
 
 === Top 1 ===
