@@ -161,11 +161,13 @@ def safe_get(dictionary, *keys, default=None):
 
     return current if current is not None else default
 
+
 def get_team_logo_url(team_id):
     if not team_id:
         return ""
 
     return f"https://www.mlbstatic.com/team-logos/{team_id}.svg"
+
 
 def format_count(balls, strikes):
     if balls is None or strikes is None:
@@ -271,6 +273,7 @@ def get_wall_asymmetry(field_info):
 
     return "; ".join(notes)
 
+
 def get_lineup(feed, side):
     """
     side should be "home" or "away".
@@ -325,6 +328,7 @@ def get_lineup(feed, side):
 
     return lineup
 
+
 def get_lineup_lines(feed, side):
     lineup = get_lineup(feed, side)
     lines = []
@@ -346,6 +350,125 @@ def get_lineup_lines(feed, side):
                 lines.append(f"PH/SUB: {name} ({position}) - {handedness}")
 
     return lines
+
+
+def get_pitching_lines(feed, side):
+    """
+    side should be "home" or "away".
+
+    Returns HTML table rows for pitchers used in the game.
+    Uses game totals from liveData.boxscore.
+    """
+    team = safe_get(feed, "liveData", "boxscore", "teams", side, default={})
+    players = team.get("players", {})
+    pitcher_ids = team.get("pitchers", [])
+    game_players = safe_get(feed, "gameData", "players", default={})
+
+    lines = []
+
+    for pitcher_id in pitcher_ids:
+        player_key = f"ID{pitcher_id}"
+        player_data = players.get(player_key, {})
+        game_player_data = game_players.get(player_key, {})
+
+        person = player_data.get("person", {})
+        stats = safe_get(player_data, "stats", "pitching", default={})
+
+        name = person.get("fullName", "Unknown pitcher")
+        throws = safe_get(game_player_data, "pitchHand", "code", default="?")
+
+        innings_pitched = stats.get("inningsPitched", "")
+        hits = stats.get("hits", "")
+        runs = stats.get("runs", "")
+        earned_runs = stats.get("earnedRuns", "")
+        walks = stats.get("baseOnBalls", "")
+        strikeouts = stats.get("strikeOuts", "")
+        home_runs = stats.get("homeRuns", "")
+        era = stats.get("era", "")
+
+        lines.append(
+            "      <tr>"
+            f"<td><strong>{name}</strong></td>"
+            f"<td>{throws}</td>"
+            f"<td>{innings_pitched}</td>"
+            f"<td>{hits}</td>"
+            f"<td>{runs}</td>"
+            f"<td>{earned_runs}</td>"
+            f"<td>{walks}</td>"
+            f"<td>{strikeouts}</td>"
+            f"<td>{home_runs}</td>"
+            f"<td>{era}</td>"
+            "</tr>"
+        )
+
+    totals = safe_get(team, "teamStats", "pitching", default={})
+
+    lines.append(
+        "      <tr>"
+        "<td><strong>Totals</strong></td>"
+        "<td></td>"
+        f"<td><strong>{totals.get('inningsPitched', '')}</strong></td>"
+        f"<td><strong>{totals.get('hits', '')}</strong></td>"
+        f"<td><strong>{totals.get('runs', '')}</strong></td>"
+        f"<td><strong>{totals.get('earnedRuns', '')}</strong></td>"
+        f"<td><strong>{totals.get('baseOnBalls', '')}</strong></td>"
+        f"<td><strong>{totals.get('strikeOuts', '')}</strong></td>"
+        f"<td><strong>{totals.get('homeRuns', '')}</strong></td>"
+        "<td></td>"
+        "</tr>"
+    )
+
+    return lines
+
+
+def get_pitching_table_lines(feed, side, team_abbreviation):
+    pitching_lines = get_pitching_lines(feed, side)
+
+    lines = []
+
+    lines.append("  <table>")
+    lines.append(f"    <tr><th colspan=\"10\">Pitchers - {team_abbreviation}</th></tr>")
+    lines.append("    <tr>")
+    lines.append("      <th>Pitcher</th>")
+    lines.append("      <th>Throws</th>")
+    lines.append("      <th>IP</th>")
+    lines.append("      <th>H</th>")
+    lines.append("      <th>R</th>")
+    lines.append("      <th>ER</th>")
+    lines.append("      <th>BB</th>")
+    lines.append("      <th>K</th>")
+    lines.append("      <th>HR</th>")
+    lines.append("      <th>ERA</th>")
+    lines.append("    </tr>")
+    lines.extend(pitching_lines)
+    lines.append("  </table>")
+
+    return lines
+
+
+def get_pitching_decision_lines(feed):
+    decisions = safe_get(feed, "liveData", "decisions", default={})
+
+    winner = safe_get(decisions, "winner", "fullName")
+    loser = safe_get(decisions, "loser", "fullName")
+    save = safe_get(decisions, "save", "fullName")
+
+    parts = []
+
+    if winner:
+        parts.append(f"W: {winner}")
+
+    if loser:
+        parts.append(f"L: {loser}")
+
+    if save:
+        parts.append(f"S: {save}")
+
+    if not parts:
+        return ["**Decisions**: Not available"]
+
+    return [f"**Decisions**: {' | '.join(parts)}"]
+
 
 def get_ballpark_lines(feed, venue_details=None):
     if venue_details is None:
@@ -511,9 +634,9 @@ def generate_pitch_by_pitch_report(feed, venue_details=None):
 
     lines = []
     lines.append(
-        f'# {away_team} @ {home_team} <br> <br>'
-        f'<img src="{home_logo_url}" alt="{home_team} logo" width="100">'
+        f'# {away_team} @ {home_team} <br><br>'
         f'<img src="{away_logo_url}" alt="{away_team} logo" width="100">'
+        f'<img src="{home_logo_url}" alt="{home_team} logo" width="100">'
     )
 
     lines.append(f"**Game Date**: {game_date}")
@@ -522,6 +645,7 @@ def generate_pitch_by_pitch_report(feed, venue_details=None):
 
     lines.append(get_game_weather(feed))
     lines.extend(get_ballpark_lines(feed, venue_details))
+
     away_lineup = get_lineup_lines(feed, "away")
     home_lineup = get_lineup_lines(feed, "home")
 
@@ -542,6 +666,26 @@ def generate_pitch_by_pitch_report(feed, venue_details=None):
     lines.append("    </td>")
     lines.append("  </tr>")
     lines.append("</table>")
+    lines.append("")
+
+    away_abbreviation = safe_get(game_data, "teams", "away", "abbreviation", default="AWAY")
+    home_abbreviation = safe_get(game_data, "teams", "home", "abbreviation", default="HOME")
+
+    lines.append("")
+    lines.append("## Pitching")
+    lines.append("")
+    lines.append("<table>")
+    lines.append("  <tr>")
+    lines.append("    <td style=\"vertical-align: top;\">")
+    lines.extend(get_pitching_table_lines(feed, "away", away_abbreviation))
+    lines.append("    </td>")
+    lines.append("    <td style=\"vertical-align: top;\">")
+    lines.extend(get_pitching_table_lines(feed, "home", home_abbreviation))
+    lines.append("    </td>")
+    lines.append("  </tr>")
+    lines.append("</table>")
+    lines.append("")
+    lines.extend(get_pitching_decision_lines(feed))
     lines.append("")
 
     current_half = None
@@ -667,7 +811,6 @@ def main():
 
     report = generate_pitch_by_pitch_report(feed, venue_details)
 
-    output_file = f"pitch_by_pitch_{game['gamePk']}.txt"
     output_file = f"pitch_by_pitch_{game['gamePk']}.md"
 
     with open(output_file, "w", encoding="utf-8") as file:

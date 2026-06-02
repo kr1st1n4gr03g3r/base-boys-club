@@ -1,4 +1,4 @@
-# Toronto Blue Jays @ Baltimore Orioles <br> <br><img src="https://www.mlbstatic.com/team-logos/110.svg" alt="Baltimore Orioles logo" width="100"><img src="https://www.mlbstatic.com/team-logos/141.svg" alt="Toronto Blue Jays logo" width="100">
+# Toronto Blue Jays @ Baltimore Orioles <br><br><img src="https://www.mlbstatic.com/team-logos/141.svg" alt="Toronto Blue Jays logo" width="100"><img src="https://www.mlbstatic.com/team-logos/110.svg" alt="Baltimore Orioles logo" width="100">
 **Game Date**: 2026-05-31
 **Time (ET)**: 12:15 PM EDT
 **Timezone**: America/New_York
@@ -59,6 +59,60 @@ PH/SUB: Yohendrick Piñango (RF) - Bats: L / Throws: L<br>
     </td>
   </tr>
 </table>
+
+
+## Pitching
+
+<table>
+  <tr>
+    <td style="vertical-align: top;">
+  <table>
+    <tr><th colspan="10">Pitchers - TOR</th></tr>
+    <tr>
+      <th>Pitcher</th>
+      <th>Throws</th>
+      <th>IP</th>
+      <th>H</th>
+      <th>R</th>
+      <th>ER</th>
+      <th>BB</th>
+      <th>K</th>
+      <th>HR</th>
+      <th>ERA</th>
+    </tr>
+      <tr><td><strong>Spencer Miles</strong></td><td>R</td><td>3.0</td><td>5</td><td>6</td><td>6</td><td>3</td><td>2</td><td>1</td><td></td></tr>
+      <tr><td><strong>Adam Macko</strong></td><td>L</td><td>2.0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td></td></tr>
+      <tr><td><strong>Hayden Juenger</strong></td><td>R</td><td>1.0</td><td>2</td><td>3</td><td>3</td><td>2</td><td>0</td><td>0</td><td></td></tr>
+      <tr><td><strong>Yariel Rodríguez</strong></td><td>R</td><td>1.0</td><td>2</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td></td></tr>
+      <tr><td><strong>Mason Fluharty</strong></td><td>L</td><td>1.0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>3</td><td>0</td><td></td></tr>
+      <tr><td><strong>Totals</strong></td><td></td><td><strong>8.0</strong></td><td><strong>10</strong></td><td><strong>9</strong></td><td><strong>9</strong></td><td><strong>5</strong></td><td><strong>6</strong></td><td><strong>1</strong></td><td></td></tr>
+  </table>
+    </td>
+    <td style="vertical-align: top;">
+  <table>
+    <tr><th colspan="10">Pitchers - BAL</th></tr>
+    <tr>
+      <th>Pitcher</th>
+      <th>Throws</th>
+      <th>IP</th>
+      <th>H</th>
+      <th>R</th>
+      <th>ER</th>
+      <th>BB</th>
+      <th>K</th>
+      <th>HR</th>
+      <th>ERA</th>
+    </tr>
+      <tr><td><strong>Kyle Bradish</strong></td><td>R</td><td>7.0</td><td>4</td><td>1</td><td>0</td><td>3</td><td>4</td><td>0</td><td></td></tr>
+      <tr><td><strong>Tyler Wells</strong></td><td>R</td><td>1.0</td><td>4</td><td>4</td><td>4</td><td>1</td><td>0</td><td>1</td><td></td></tr>
+      <tr><td><strong>Rico Garcia</strong></td><td>R</td><td>1.0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td></td></tr>
+      <tr><td><strong>Totals</strong></td><td></td><td><strong>9.0</strong></td><td><strong>8</strong></td><td><strong>5</strong></td><td><strong>4</strong></td><td><strong>4</strong></td><td><strong>4</strong></td><td><strong>1</strong></td><td></td></tr>
+  </table>
+    </td>
+  </tr>
+</table>
+
+**Decisions**: W: Kyle Bradish | L: Spencer Miles
 
 
 === Top 1 ===
