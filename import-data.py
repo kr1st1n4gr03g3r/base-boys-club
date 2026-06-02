@@ -48,10 +48,55 @@ def get_schedule(date, home_team_name=None, away_team_name=None):
     return games
 
 
+def fahrenheit_to_celsius(temp_f):
+    return round((temp_f - 32) * 5 / 9)
+
+
+def mph_to_kph(mph):
+    return round(mph * 1.60934)
+
+
+def parse_wind(wind_text):
+    """
+    Converts MLB wind text like:
+      '6 mph, R To L'
+      '6 mph, Out To RF'
+    into:
+      '10 kph / 6 mph, R To L'
+    """
+    if not wind_text:
+        return None
+
+    parts = wind_text.split(",", 1)
+    speed_part = parts[0].strip()
+    direction_part = parts[1].strip() if len(parts) > 1 else ""
+
+    speed_number = None
+
+    for token in speed_part.split():
+        try:
+            speed_number = float(token)
+            break
+        except ValueError:
+            continue
+
+    if speed_number is None:
+        return wind_text
+
+    mph = round(speed_number)
+    kph = mph_to_kph(speed_number)
+
+    if direction_part:
+        return f"{kph} kph / {mph} mph, {direction_part}"
+
+    return f"{kph} kph / {mph} mph"
+
+
 def get_game_weather(feed):
     """
     Pulls weather from the MLB game feed when available.
-    Historical games often include this under gameData.weather.
+    Outputs:
+      Weather: Sunny, 21°C / 69°F, Wind: 10 kph / 6 mph, R To L
     """
     weather = safe_get(feed, "gameData", "weather", default={})
 
@@ -68,10 +113,17 @@ def get_game_weather(feed):
         parts.append(condition)
 
     if temp:
-        parts.append(f"{temp}°F")
+        try:
+            temp_f = int(temp)
+            temp_c = fahrenheit_to_celsius(temp_f)
+            parts.append(f"{temp_c}°C / {temp_f}°F")
+        except ValueError:
+            parts.append(f"{temp}°F")
 
-    if wind:
-        parts.append(f"Wind: {wind}")
+    formatted_wind = parse_wind(wind)
+
+    if formatted_wind:
+        parts.append(f"Wind: {formatted_wind}")
 
     if not parts:
         return "Weather: Not available in MLB feed"
