@@ -384,7 +384,11 @@ def get_pitching_lines(feed, side):
         walks = stats.get("baseOnBalls", "")
         strikeouts = stats.get("strikeOuts", "")
         home_runs = stats.get("homeRuns", "")
-        era = stats.get("era", "")
+        era = stats.get("era")
+
+        if era is None:
+
+            era = safe_get(player_data, "seasonStats", "pitching", "era", default="")
 
         lines.append(
             "      <tr>"
