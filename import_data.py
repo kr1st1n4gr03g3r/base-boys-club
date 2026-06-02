@@ -2,6 +2,14 @@ import requests
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
+from unit_formatters import (
+    format_temperature,
+    format_speed,
+    format_wind_speed,
+    format_distance,
+    format_distance_difference,
+)
+
 
 MLB_API_BASE = "https://statsapi.mlb.com/api"
 
@@ -49,18 +57,6 @@ def get_schedule(date, home_team_name=None, away_team_name=None):
     return games
 
 
-def fahrenheit_to_celsius(temp_f):
-    return round((temp_f - 32) * 5 / 9)
-
-
-def mph_to_kph(mph):
-    return round(mph * 1.60934)
-
-
-def feet_to_metres(feet):
-    return round(feet * 0.3048)
-
-
 def parse_wind(wind_text):
     """
     Converts MLB wind text like:
@@ -88,13 +84,12 @@ def parse_wind(wind_text):
     if speed_number is None:
         return wind_text
 
-    mph = round(speed_number)
-    kph = mph_to_kph(speed_number)
+    speed_text = format_wind_speed(speed_number)
 
     if direction_part:
-        return f"{kph} kph / {mph} mph, {direction_part}"
+        return f"{speed_text}, {direction_part}"
 
-    return f"{kph} kph / {mph} mph"
+    return speed_text
 
 
 def get_game_weather(feed):
@@ -118,12 +113,7 @@ def get_game_weather(feed):
         parts.append(condition)
 
     if temp:
-        try:
-            temp_f = int(temp)
-            temp_c = fahrenheit_to_celsius(temp_f)
-            parts.append(f"{temp_c}°C / {temp_f}°F")
-        except ValueError:
-            parts.append(f"{temp}°F")
+        parts.append(format_temperature(temp))
 
     formatted_wind = parse_wind(wind)
 
@@ -172,33 +162,14 @@ def safe_get(dictionary, *keys, default=None):
     return current if current is not None else default
 
 
-def format_speed(value):
-    if value is None:
-        return ""
-    return f"{value:.1f} mph"
-
-
 def format_count(balls, strikes):
     if balls is None or strikes is None:
         return ""
     return f"{balls}-{strikes}"
 
 
-def format_distance_feet_metres(value):
-    if value is None:
-        return "Not available"
-
-    try:
-        feet = int(value)
-    except (TypeError, ValueError):
-        return str(value)
-
-    metres = feet_to_metres(feet)
-    return f"{metres} m / {feet} ft"
-
-
 def format_dimension_line(label, value):
-    return f"{label}: {format_distance_feet_metres(value)}"
+    return f"{label}: {format_distance(value)}"
 
 
 def normalize_roof_type(roof_type):
@@ -229,7 +200,7 @@ def format_game_time_et(feed):
         cleaned_game_date = game_date.replace("Z", "+00:00")
         utc_datetime = datetime.fromisoformat(cleaned_game_date)
         eastern_datetime = utc_datetime.astimezone(ZoneInfo("America/Toronto"))
-        return eastern_datetime.strftime("%-I:%M %p %Z")
+        return eastern_datetime.strftime("%I:%M %p %Z").lstrip("0")
     except ValueError:
         return game_date
 
@@ -275,7 +246,7 @@ def get_wall_asymmetry(field_info):
                 notes.append("Left and right field lines are symmetrical")
             else:
                 shorter_side = "left-field line" if left_line_number < right_line_number else "right-field line"
-                notes.append(f"{shorter_side} is shorter by {difference} ft")
+                notes.append(f"{shorter_side} is shorter by {format_distance_difference(difference)}")
 
         if left_center is not None and right_center is not None:
             left_center_number = int(left_center)
@@ -286,7 +257,7 @@ def get_wall_asymmetry(field_info):
                 notes.append("Left-centre and right-centre are symmetrical")
             else:
                 deeper_gap = "left-centre" if left_center_number > right_center_number else "right-centre"
-                notes.append(f"{deeper_gap} is deeper by {difference} ft")
+                notes.append(f"{deeper_gap} is deeper by {format_distance_difference(difference)}")
     except (TypeError, ValueError):
         return "Not available"
 
@@ -323,13 +294,13 @@ def get_ballpark_lines(feed, venue_details=None):
     lines.append(f"Park: {venue_name}")
     lines.append(
         "Outfield dimensions: "
-        f"LF Line {format_distance_feet_metres(left_line)}, "
-        f"LF {format_distance_feet_metres(left)}, "
-        f"LC {format_distance_feet_metres(left_center)}, "
-        f"CF {format_distance_feet_metres(center)}, "
-        f"RC {format_distance_feet_metres(right_center)}, "
-        f"RF {format_distance_feet_metres(right)}, "
-        f"RF Line {format_distance_feet_metres(right_line)}"
+        f"LF Line {format_distance(left_line)}, "
+        f"LF {format_distance(left)}, "
+        f"LC {format_distance(left_center)}, "
+        f"CF {format_distance(center)}, "
+        f"RC {format_distance(right_center)}, "
+        f"RF {format_distance(right)}, "
+        f"RF Line {format_distance(right_line)}"
     )
     lines.append(format_dimension_line("Left Fence", left_line))
     lines.append(format_dimension_line("Center Fence", center))
@@ -510,10 +481,10 @@ def generate_pitch_by_pitch_report(feed, venue_details=None):
             trajectory = batted_ball.get("trajectory")
 
             if ev is not None:
-                lines.append(f"Exit velocity: {ev:.1f} mph")
+                lines.append(f"Exit velocity: {format_speed(ev)}")
 
             if distance is not None:
-                lines.append(f"Distance: {distance} ft")
+                lines.append(f"Distance: {format_distance(distance)}")
 
             if angle is not None:
                 lines.append(f"Launch angle: {angle}°")
