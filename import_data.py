@@ -290,7 +290,8 @@ def get_ballpark_lines(feed, venue_details=None):
 
     lines = []
 
-    lines.append("---")
+    lines.append("<details>")
+    lines.append("<summary>Park Info</summary>")
     lines.append(f"Park: {venue_name}")
     lines.append(
         "Outfield dimensions: "
@@ -316,6 +317,9 @@ def get_ballpark_lines(feed, venue_details=None):
     lines.append(format_dimension_line("rightCenter", right_center))
     lines.append(format_dimension_line("right", right))
     lines.append(format_dimension_line("rightLine", right_line))
+
+    lines.append("")
+    lines.append("</details>")
 
     return lines
 

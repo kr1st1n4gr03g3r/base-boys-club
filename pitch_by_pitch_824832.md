@@ -4,7 +4,8 @@ Game Timezone: America/New_York
 Home: Baltimore Orioles
 Away: Toronto Blue Jays
 Weather: Sunny, 21°C / 69°F, Wind: 10 kph / 6 mph, R To L
----
+<details>
+<summary>Park Info</summary>
 Park: Oriole Park at Camden Yards
 Outfield dimensions: LF Line 101 m / 333 ft, LF 111 m / 363 ft, LC 115 m / 376 ft, CF 125 m / 410 ft, RC 114 m / 373 ft, RF Not available, RF Line 97 m / 318 ft
 Left Fence: 101 m / 333 ft
@@ -21,6 +22,8 @@ center: 125 m / 410 ft
 rightCenter: 114 m / 373 ft
 right: Not available
 rightLine: 97 m / 318 ft
+
+</details>
 
 
 === Top 1 ===
