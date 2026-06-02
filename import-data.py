@@ -48,6 +48,36 @@ def get_schedule(date, home_team_name=None, away_team_name=None):
     return games
 
 
+def get_game_weather(feed):
+    """
+    Pulls weather from the MLB game feed when available.
+    Historical games often include this under gameData.weather.
+    """
+    weather = safe_get(feed, "gameData", "weather", default={})
+
+    if not weather:
+        return "Weather: Not available in MLB feed"
+
+    condition = weather.get("condition")
+    temp = weather.get("temp")
+    wind = weather.get("wind")
+
+    parts = []
+
+    if condition:
+        parts.append(condition)
+
+    if temp:
+        parts.append(f"{temp}°F")
+
+    if wind:
+        parts.append(f"Wind: {wind}")
+
+    if not parts:
+        return "Weather: Not available in MLB feed"
+
+    return "Weather: " + ", ".join(parts)
+
 def get_game_feed(game_pk):
     url = f"{MLB_API_BASE}/v1.1/game/{game_pk}/feed/live"
     response = requests.get(url, timeout=30)
@@ -180,6 +210,7 @@ def generate_pitch_by_pitch_report(feed):
     lines.append(f"Home: {home_team}")
     lines.append(f"Away: {away_team}")
     lines.append(f"Park: {venue}")
+    lines.append(get_game_weather(feed))
     lines.append("")
 
     current_half = None
