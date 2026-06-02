@@ -553,6 +553,7 @@ def main():
     report = generate_pitch_by_pitch_report(feed, venue_details)
 
     output_file = f"pitch_by_pitch_{game['gamePk']}.txt"
+    output_file = f"pitch_by_pitch_{game['gamePk']}.md"
 
     with open(output_file, "w", encoding="utf-8") as file:
         file.write(report)
