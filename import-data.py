@@ -1,6 +1,6 @@
 import requests
-import json
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 
 MLB_API_BASE = "https://statsapi.mlb.com/api"
@@ -55,6 +55,10 @@ def fahrenheit_to_celsius(temp_f):
 
 def mph_to_kph(mph):
     return round(mph * 1.60934)
+
+
+def feet_to_metres(feet):
+    return round(feet * 0.3048)
 
 
 def parse_wind(wind_text):
@@ -131,11 +135,30 @@ def get_game_weather(feed):
 
     return "Weather: " + ", ".join(parts)
 
+
 def get_game_feed(game_pk):
     url = f"{MLB_API_BASE}/v1.1/game/{game_pk}/feed/live"
     response = requests.get(url, timeout=30)
     response.raise_for_status()
     return response.json()
+
+
+def get_venue_details(venue_id):
+    url = f"{MLB_API_BASE}/v1/venues/{venue_id}"
+    params = {
+        "hydrate": "location,fieldInfo,timezone"
+    }
+
+    response = requests.get(url, params=params, timeout=30)
+    response.raise_for_status()
+    data = response.json()
+
+    venues = data.get("venues", [])
+
+    if not venues:
+        return {}
+
+    return venues[0]
 
 
 def safe_get(dictionary, *keys, default=None):
@@ -159,6 +182,171 @@ def format_count(balls, strikes):
     if balls is None or strikes is None:
         return ""
     return f"{balls}-{strikes}"
+
+
+def format_distance_feet_metres(value):
+    if value is None:
+        return "Not available"
+
+    try:
+        feet = int(value)
+    except (TypeError, ValueError):
+        return str(value)
+
+    metres = feet_to_metres(feet)
+    return f"{metres} m / {feet} ft"
+
+
+def format_dimension_line(label, value):
+    return f"{label}: {format_distance_feet_metres(value)}"
+
+
+def normalize_roof_type(roof_type):
+    if not roof_type:
+        return "Not available"
+
+    roof = str(roof_type).strip().lower()
+
+    if roof in ["open", "outdoor", "no roof", "none"]:
+        return "No Roof"
+
+    if "retract" in roof:
+        return "Retractable Roof"
+
+    if roof in ["dome", "fixed", "closed", "permanent", "perm. roof"]:
+        return "Perm. Roof"
+
+    return str(roof_type)
+
+
+def format_game_time_et(feed):
+    game_date = safe_get(feed, "gameData", "datetime", "dateTime")
+
+    if not game_date:
+        return "Not available"
+
+    try:
+        cleaned_game_date = game_date.replace("Z", "+00:00")
+        utc_datetime = datetime.fromisoformat(cleaned_game_date)
+        eastern_datetime = utc_datetime.astimezone(ZoneInfo("America/Toronto"))
+        return eastern_datetime.strftime("%-I:%M %p %Z")
+    except ValueError:
+        return game_date
+
+
+def get_game_timezone(feed, venue_details=None):
+    if venue_details is None:
+        venue_details = {}
+
+    venue_timezone = safe_get(venue_details, "timeZone", "id")
+    if venue_timezone:
+        return venue_timezone
+
+    venue_timezone = safe_get(venue_details, "timezone", "id")
+    if venue_timezone:
+        return venue_timezone
+
+    game_timezone = safe_get(feed, "gameData", "venue", "timeZone", "id")
+    if game_timezone:
+        return game_timezone
+
+    game_timezone = safe_get(feed, "gameData", "venue", "timezone", "id")
+    if game_timezone:
+        return game_timezone
+
+    return "Not available"
+
+
+def get_wall_asymmetry(field_info):
+    left_line = safe_get(field_info, "leftLine")
+    right_line = safe_get(field_info, "rightLine")
+    left_center = safe_get(field_info, "leftCenter")
+    right_center = safe_get(field_info, "rightCenter")
+
+    notes = []
+
+    try:
+        if left_line is not None and right_line is not None:
+            left_line_number = int(left_line)
+            right_line_number = int(right_line)
+            difference = abs(left_line_number - right_line_number)
+
+            if difference == 0:
+                notes.append("Left and right field lines are symmetrical")
+            else:
+                shorter_side = "left-field line" if left_line_number < right_line_number else "right-field line"
+                notes.append(f"{shorter_side} is shorter by {difference} ft")
+
+        if left_center is not None and right_center is not None:
+            left_center_number = int(left_center)
+            right_center_number = int(right_center)
+            difference = abs(left_center_number - right_center_number)
+
+            if difference == 0:
+                notes.append("Left-centre and right-centre are symmetrical")
+            else:
+                deeper_gap = "left-centre" if left_center_number > right_center_number else "right-centre"
+                notes.append(f"{deeper_gap} is deeper by {difference} ft")
+    except (TypeError, ValueError):
+        return "Not available"
+
+    if not notes:
+        return "Not available"
+
+    return "; ".join(notes)
+
+
+def get_ballpark_lines(feed, venue_details=None):
+    if venue_details is None:
+        venue_details = {}
+
+    venue_name = safe_get(venue_details, "name")
+    if not venue_name:
+        venue_name = safe_get(feed, "gameData", "venue", "name", default="Unknown park")
+
+    field_info = venue_details.get("fieldInfo", {})
+
+    roof_type = normalize_roof_type(field_info.get("roofType"))
+    turf_type = field_info.get("turfType", "Not available")
+
+    left_line = field_info.get("leftLine")
+    left = field_info.get("left")
+    left_center = field_info.get("leftCenter")
+    center = field_info.get("center")
+    right_center = field_info.get("rightCenter")
+    right = field_info.get("right")
+    right_line = field_info.get("rightLine")
+
+    lines = []
+
+    lines.append("---")
+    lines.append(f"Park: {venue_name}")
+    lines.append(
+        "Outfield dimensions: "
+        f"LF Line {format_distance_feet_metres(left_line)}, "
+        f"LF {format_distance_feet_metres(left)}, "
+        f"LC {format_distance_feet_metres(left_center)}, "
+        f"CF {format_distance_feet_metres(center)}, "
+        f"RC {format_distance_feet_metres(right_center)}, "
+        f"RF {format_distance_feet_metres(right)}, "
+        f"RF Line {format_distance_feet_metres(right_line)}"
+    )
+    lines.append(format_dimension_line("Left Fence", left_line))
+    lines.append(format_dimension_line("Center Fence", center))
+    lines.append(format_dimension_line("Right Fence", right_line))
+    lines.append(f"Wall Asymmetry: {get_wall_asymmetry(field_info)}")
+    lines.append(f"Roof Type: {roof_type}")
+    lines.append(f"Turf Type: {turf_type}")
+    lines.append("")
+    lines.append(format_dimension_line("leftLine", left_line))
+    lines.append(format_dimension_line("left", left))
+    lines.append(format_dimension_line("leftCenter", left_center))
+    lines.append(format_dimension_line("center", center))
+    lines.append(format_dimension_line("rightCenter", right_center))
+    lines.append(format_dimension_line("right", right))
+    lines.append(format_dimension_line("rightLine", right_line))
+
+    return lines
 
 
 def get_pitch_line(event):
@@ -247,23 +435,27 @@ def derive_batting_orders(feed):
     return orders
 
 
-def generate_pitch_by_pitch_report(feed):
+def generate_pitch_by_pitch_report(feed, venue_details=None):
     game_data = feed.get("gameData", {})
     live_data = feed.get("liveData", {})
 
     game_date = safe_get(game_data, "datetime", "officialDate", default="Unknown date")
+    game_time_et = format_game_time_et(feed)
+    game_timezone = get_game_timezone(feed, venue_details)
+
     home_team = safe_get(game_data, "teams", "home", "name", default="Unknown home team")
     away_team = safe_get(game_data, "teams", "away", "name", default="Unknown away team")
-    venue = safe_get(game_data, "venue", "name", default="Unknown park")
 
     batting_orders = derive_batting_orders(feed)
 
     lines = []
     lines.append(f"Game Date: {game_date}")
+    lines.append(f"Game Time (ET): {game_time_et}")
+    lines.append(f"Game Timezone: {game_timezone}")
     lines.append(f"Home: {home_team}")
     lines.append(f"Away: {away_team}")
-    lines.append(f"Park: {venue}")
     lines.append(get_game_weather(feed))
+    lines.extend(get_ballpark_lines(feed, venue_details))
     lines.append("")
 
     current_half = None
@@ -380,7 +572,14 @@ def main():
     print("")
 
     feed = get_game_feed(game["gamePk"])
-    report = generate_pitch_by_pitch_report(feed)
+
+    venue_id = safe_get(feed, "gameData", "venue", "id")
+    venue_details = {}
+
+    if venue_id:
+        venue_details = get_venue_details(venue_id)
+
+    report = generate_pitch_by_pitch_report(feed, venue_details)
 
     output_file = f"pitch_by_pitch_{game['gamePk']}.txt"
 

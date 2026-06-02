@@ -1,8 +1,26 @@
 Game Date: 2026-05-31
+Game Time (ET): 12:15 PM EDT
+Game Timezone: America/New_York
 Home: Baltimore Orioles
 Away: Toronto Blue Jays
-Park: Oriole Park at Camden Yards
 Weather: Sunny, 21°C / 69°F, Wind: 10 kph / 6 mph, R To L
+---
+Park: Oriole Park at Camden Yards
+Outfield dimensions: LF Line 101 m / 333 ft, LF 111 m / 363 ft, LC 115 m / 376 ft, CF 125 m / 410 ft, RC 114 m / 373 ft, RF Not available, RF Line 97 m / 318 ft
+Left Fence: 101 m / 333 ft
+Center Fence: 125 m / 410 ft
+Right Fence: 97 m / 318 ft
+Wall Asymmetry: right-field line is shorter by 15 ft; left-centre is deeper by 3 ft
+Roof Type: No Roof
+Turf Type: Grass
+
+leftLine: 101 m / 333 ft
+left: 111 m / 363 ft
+leftCenter: 115 m / 376 ft
+center: 125 m / 410 ft
+rightCenter: 114 m / 373 ft
+right: Not available
+rightLine: 97 m / 318 ft
 
 
 === Top 1 ===
