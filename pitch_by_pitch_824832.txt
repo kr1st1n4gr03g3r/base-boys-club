@@ -1,0 +1,1099 @@
+Game Date: 2026-05-31
+Home: Baltimore Orioles
+Away: Toronto Blue Jays
+Park: Oriole Park at Camden Yards
+
+
+=== Top 1 ===
+
+Batter: Nathan Lukes (#1)
+Pitcher: Kyle Bradish
+Batter result: Single
+Description: Nathan Lukes singles on a line drive to left fielder Taylor Ward.
+Final count: 1-1
+Exit velocity: 74.4 mph
+Distance: 203.0 ft
+Launch angle: 21.0°
+Trajectory: line_drive
+Pitches:
+  1. 0-1: Foul 95.3 mph Sinker
+  2. 1-1: Ball 94.7 mph Sinker
+  3. 1-1: In play, no out 94.5 mph Four-Seam Fastball
+
+Batter: Vladimir Guerrero Jr. (#2)
+Pitcher: Kyle Bradish
+Batter result: Pop Out
+Description: Vladimir Guerrero Jr. pops out to first baseman Pete Alonso in foul territory.
+Final count: 1-1
+Exit velocity: 71.1 mph
+Distance: 62.0 ft
+Launch angle: 79.0°
+Trajectory: popup
+Pitches:
+  1. 1-0: Ball 94.6 mph Sinker
+  2. 1-1: Called Strike 86.4 mph Slider
+  3. 1-1: In play, out(s) 85.5 mph Slider
+
+Batter: Daulton Varsho (#3)
+Pitcher: Kyle Bradish
+Batter result: Flyout
+Description: Daulton Varsho flies out to left fielder Taylor Ward.
+Final count: 0-0
+Exit velocity: 80.3 mph
+Distance: 244.0 ft
+Launch angle: 46.0°
+Trajectory: fly_ball
+Pitches:
+  1. 0-0: In play, out(s) 84.2 mph Curveball
+
+Batter: Kazuma Okamoto (#4)
+Pitcher: Kyle Bradish
+Batter result: Strikeout
+Description: Kazuma Okamoto strikes out swinging.
+Final count: 0-3
+Pitches:
+  1. 0-1: Swinging Strike 87.4 mph Slider
+  2. 0-2: Swinging Strike 86.5 mph Slider
+  3. 0-3: Swinging Strike 87.0 mph Slider
+
+
+=== Bottom 1 ===
+
+Batter: Taylor Ward (#1)
+Pitcher: Spencer Miles
+Batter result: Groundout
+Description: Taylor Ward grounds out, second baseman Ernie Clement to first baseman Charles McAdoo.
+Final count: 1-2
+Exit velocity: 83.7 mph
+Distance: 33.0 ft
+Launch angle: -2.0°
+Trajectory: ground_ball
+Pitches:
+  1. 0-1: Called Strike 92.7 mph Sinker
+  2. 1-1: Ball 87.5 mph Slider
+  3. 1-2: Called Strike 95.0 mph Sinker
+  4. 1-2: In play, out(s) 95.1 mph Sinker
+
+Batter: Gunnar Henderson (#2)
+Pitcher: Spencer Miles
+Batter result: Groundout
+Description: Gunnar Henderson grounds out, third baseman Kazuma Okamoto to first baseman Charles McAdoo.
+Final count: 0-2
+Exit velocity: 72.6 mph
+Distance: 21.0 ft
+Launch angle: -8.0°
+Trajectory: ground_ball
+Pitches:
+  1. 0-1: Foul 79.3 mph Curveball
+  2. 0-2: Foul 95.6 mph Sinker
+  3. 0-2: In play, out(s) 95.9 mph Four-Seam Fastball
+
+Batter: Adley Rutschman (#3)
+Pitcher: Spencer Miles
+Batter result: Flyout
+Description: Adley Rutschman flies out to center fielder Daulton Varsho.
+Final count: 3-1
+Exit velocity: 102.4 mph
+Distance: 384.0 ft
+Launch angle: 26.0°
+Trajectory: fly_ball
+Pitches:
+  1. 1-0: Ball 95.5 mph Sinker
+  2. 2-0: Ball 94.5 mph Four-Seam Fastball
+  3. 3-0: Ball 80.3 mph Curveball
+  4. 3-1: Called Strike 95.0 mph Sinker
+  5. 3-1: In play, out(s) 96.7 mph Sinker
+
+
+=== Top 2 ===
+
+Batter: Ernie Clement (#5)
+Pitcher: Kyle Bradish
+Batter result: Groundout
+Description: Ernie Clement grounds out, shortstop Gunnar Henderson to first baseman Pete Alonso.
+Final count: 0-1
+Exit velocity: 82.7 mph
+Distance: 8.0 ft
+Launch angle: -22.0°
+Trajectory: ground_ball
+Pitches:
+  1. 0-1: Foul 93.2 mph Sinker
+  2. 0-1: In play, out(s) 94.5 mph Sinker
+
+Batter: Jesús Sánchez (#6)
+Pitcher: Kyle Bradish
+Batter result: Single
+Description: Jesús Sánchez singles on a ground ball to right fielder Colton Cowser.
+Final count: 2-1
+Exit velocity: 102.6 mph
+Distance: 33.0 ft
+Launch angle: -2.0°
+Trajectory: ground_ball
+Pitches:
+  1. 0-1: Swinging Strike 84.2 mph Curveball
+  2. 1-1: Ball 82.8 mph Curveball
+  3. 2-1: Ball 95.9 mph Sinker
+  4. 2-1: In play, no out 85.2 mph Curveball
+
+Batter: Charles McAdoo (#7)
+Pitcher: Kyle Bradish
+Batter result: Grounded Into DP
+Description: Charles McAdoo grounds into a double play, second baseman Jackson Holliday to shortstop Gunnar Henderson to first baseman Pete Alonso. Jesús Sánchez out at 2nd. Charles McAdoo out at 1st.
+Final count: 1-2
+Exit velocity: 80.1 mph
+Distance: 93.0 ft
+Launch angle: 7.0°
+Trajectory: ground_ball
+Pitches:
+  1. 0-1: Called Strike 86.6 mph Slider
+  2. 0-2: Swinging Strike 84.0 mph Curveball
+  3. 1-2: Ball In Dirt 85.4 mph Curveball
+  4. 1-2: In play, out(s) 96.1 mph Sinker
+
+
+=== Bottom 2 ===
+
+Batter: Pete Alonso (#4)
+Pitcher: Spencer Miles
+Batter result: Single
+Description: Pete Alonso singles on a ground ball to center fielder Daulton Varsho.
+Final count: 2-1
+Exit velocity: 91.6 mph
+Distance: 94.0 ft
+Launch angle: 5.0°
+Trajectory: ground_ball
+Pitches:
+  1. 1-0: Ball 86.7 mph Slider
+  2. 1-1: Called Strike 93.1 mph Sinker
+  3. 2-1: Ball 94.4 mph Sinker
+  4. 2-1: In play, no out 94.0 mph Sinker
+
+Batter: Samuel Basallo (#5)
+Pitcher: Spencer Miles
+Batter result: Walk
+Description: Samuel Basallo walks. Pete Alonso to 2nd.
+Final count: 4-2
+Pitches:
+  1. 0-1: Called Strike 94.8 mph Sinker
+  2. 0-2: Foul 77.5 mph Curveball
+  3. 1-2: Ball 76.4 mph Curveball
+  4. 1-2: Foul 94.4 mph Four-Seam Fastball
+  5. 2-2: Ball 85.9 mph Slider
+  6. 3-2: Ball In Dirt 79.2 mph Curveball
+  7. 4-2: Ball 96.0 mph Sinker
+
+Batter: Leody Taveras (#6)
+Pitcher: Spencer Miles
+Batter result: Sac Bunt
+Description: Leody Taveras out on a sacrifice bunt, catcher Brandon Valenzuela to first baseman Charles McAdoo. Pete Alonso to 3rd. Samuel Basallo to 2nd.
+Final count: 0-0
+Exit velocity: 35.1 mph
+Distance: 3.0 ft
+Launch angle: -69.0°
+Trajectory: bunt_grounder
+Pitches:
+  1. 0-0: In play, out(s) 78.9 mph Curveball
+
+Batter: Colton Cowser (#7)
+Pitcher: Spencer Miles
+Batter result: Groundout
+Description: Colton Cowser grounds out, second baseman Ernie Clement to first baseman Charles McAdoo. Pete Alonso scores. Samuel Basallo to 3rd.
+Final count: 2-2
+Exit velocity: 81.3 mph
+Distance: 23.0 ft
+Launch angle: -7.0°
+Trajectory: ground_ball
+Pitches:
+  1. 0-1: Called Strike 79.8 mph Curveball
+  2. 0-2: Swinging Strike (Blocked) 85.5 mph Slider
+  3. 0-2: Foul 87.7 mph Slider
+  4. 1-2: Ball 96.4 mph Sinker
+  5. 2-2: Ball In Dirt 80.2 mph Curveball
+  6. 2-2: In play, run(s) 96.0 mph Four-Seam Fastball
+
+Batter: Blaze Alexander (#8)
+Pitcher: Spencer Miles
+Batter result: Walk
+Description: Blaze Alexander walks.
+Final count: 4-2
+Pitches:
+  1. 1-0: Ball 87.5 mph Slider
+  2. 1-1: Foul 95.7 mph Sinker
+  3. 2-1: Ball 95.5 mph Sinker
+  4. 2-2: Called Strike 88.0 mph Slider
+  5. 3-2: Ball 86.7 mph Slider
+  6. 4-2: Ball 96.0 mph Sinker
+
+Batter: Jackson Holliday (#9)
+Pitcher: Spencer Miles
+Batter result: Strikeout
+Description: Jackson Holliday strikes out swinging.
+Final count: 0-3
+Pitches:
+  1. 0-1: Called Strike 78.1 mph Curveball
+  2. 0-2: Foul 94.2 mph Four-Seam Fastball
+  3. 0-3: Swinging Strike (Blocked) 79.3 mph Curveball
+
+
+=== Top 3 ===
+
+Batter: Andrés Giménez (#8)
+Pitcher: Kyle Bradish
+Batter result: Groundout
+Description: Andrés Giménez grounds out, first baseman Pete Alonso to pitcher Kyle Bradish.
+Final count: 2-1
+Exit velocity: 85.9 mph
+Distance: 6.0 ft
+Launch angle: -29.0°
+Trajectory: ground_ball
+Pitches:
+  1. 1-0: Ball 93.6 mph Four-Seam Fastball
+  2. 1-1: Called Strike 92.6 mph Sinker
+  3. 2-1: Ball 93.3 mph Four-Seam Fastball
+  4. 2-1: In play, out(s) 84.0 mph Curveball
+
+Batter: Brandon Valenzuela (#9)
+Pitcher: Kyle Bradish
+Batter result: Flyout
+Description: Brandon Valenzuela flies out to left fielder Taylor Ward.
+Final count: 2-0
+Exit velocity: 90.0 mph
+Distance: 297.0 ft
+Launch angle: 40.0°
+Trajectory: fly_ball
+Pitches:
+  1. 1-0: Ball 93.9 mph Four-Seam Fastball
+  2. 2-0: Ball 84.3 mph Curveball
+  3. 2-0: In play, out(s) 93.9 mph Sinker
+
+Batter: Nathan Lukes (#1)
+Pitcher: Kyle Bradish
+Batter result: Strikeout
+Description: Nathan Lukes strikes out swinging.
+Final count: 2-3
+Pitches:
+  1. 0-1: Called Strike 80.8 mph Curveball
+  2. 1-1: Ball 86.4 mph Slider
+  3. 1-2: Foul 82.7 mph Curveball
+  4. 2-2: Ball 88.3 mph Slider
+  5. 2-3: Swinging Strike 84.3 mph Curveball
+
+
+=== Bottom 3 ===
+
+Batter: Taylor Ward (#1)
+Pitcher: Spencer Miles
+Batter result: Flyout
+Description: Taylor Ward flies out to center fielder Daulton Varsho.
+Final count: 0-0
+Exit velocity: 96.4 mph
+Distance: 363.0 ft
+Launch angle: 29.0°
+Trajectory: fly_ball
+Pitches:
+  1. 0-0: In play, out(s) 91.2 mph Sinker
+
+Batter: Gunnar Henderson (#2)
+Pitcher: Spencer Miles
+Batter result: Single
+Description: Gunnar Henderson singles on a ground ball to center fielder Daulton Varsho.
+Final count: 0-2
+Exit velocity: 105.0 mph
+Distance: 21.0 ft
+Launch angle: -5.0°
+Trajectory: ground_ball
+Pitches:
+  1. 0-1: Called Strike 94.7 mph Sinker
+  2. 0-2: Swinging Strike 88.2 mph Slider
+  3. 0-2: In play, no out 86.8 mph Changeup
+
+Batter: Adley Rutschman (#3)
+Pitcher: Spencer Miles
+Batter result: Walk
+Description: Adley Rutschman walks. Gunnar Henderson to 2nd.
+Final count: 4-1
+Pitches:
+  1. 1-0: Ball 87.9 mph Slider
+  2. 2-0: Ball 94.5 mph Sinker
+  3. 2-1: Swinging Strike 95.3 mph Sinker
+  4. 3-1: Ball 96.3 mph Sinker
+  5. 4-1: Ball 82.7 mph Curveball
+
+Batter: Pete Alonso (#4)
+Pitcher: Spencer Miles
+Batter result: Single
+Description: Pete Alonso singles on a line drive to right fielder Jesús Sánchez. Gunnar Henderson scores. Adley Rutschman to 3rd.
+Final count: 1-1
+Exit velocity: 87.8 mph
+Distance: 283.0 ft
+Launch angle: 19.0°
+Trajectory: line_drive
+Pitches:
+  1. 0-1: Foul 94.5 mph Sinker
+  2. 1-1: Ball 94.9 mph Sinker
+  3. 1-1: In play, run(s) 85.7 mph Slider
+
+Batter: Samuel Basallo (#5)
+Pitcher: Spencer Miles
+Batter result: Double
+Description: Samuel Basallo doubles (8) on a ground ball to right fielder Jesús Sánchez. Adley Rutschman scores. Pete Alonso to 3rd.
+Final count: 0-2
+Exit velocity: 86.4 mph
+Distance: 117.0 ft
+Launch angle: 9.0°
+Trajectory: ground_ball
+Pitches:
+  1. 0-1: Foul 93.8 mph Sinker
+  2. 0-2: Foul 78.1 mph Curveball
+  3. 0-2: Foul 77.9 mph Curveball
+  4. 0-2: In play, run(s) 85.7 mph Slider
+
+Batter: Leody Taveras (#6)
+Pitcher: Spencer Miles
+Batter result: Strikeout
+Description: Leody Taveras strikes out swinging.
+Final count: 0-3
+Pitches:
+  1. 0-1: Foul 94.0 mph Four-Seam Fastball
+  2. 0-2: Foul 78.8 mph Curveball
+  3. 0-3: Swinging Strike 79.0 mph Curveball
+
+Batter: Colton Cowser (#7)
+Pitcher: Spencer Miles
+Batter result: Home Run
+Description: Colton Cowser homers (4) on a fly ball to right center field. Pete Alonso scores. Samuel Basallo scores.
+Final count: 1-1
+Exit velocity: 108.0 mph
+Distance: 424.0 ft
+Launch angle: 35.0°
+Trajectory: fly_ball
+Pitches:
+  1. 0-1: Called Strike 80.2 mph Curveball
+  2. 1-1: Ball In Dirt 79.5 mph Curveball
+  3. 1-1: In play, run(s) 94.2 mph Sinker
+
+Batter: Blaze Alexander (#8)
+Pitcher: Spencer Miles
+Batter result: Groundout
+Description: Blaze Alexander grounds out, second baseman Ernie Clement to first baseman Charles McAdoo.
+Final count: 1-2
+Exit velocity: 77.0 mph
+Distance: 36.0 ft
+Launch angle: -0.0°
+Trajectory: ground_ball
+Pitches:
+  1. 0-1: Called Strike 86.5 mph Slider
+  2. 0-2: Called Strike 79.3 mph Curveball
+  3. 0-2: Foul 86.7 mph Slider
+  4. 1-2: Ball 94.5 mph Sinker
+  5. 1-2: Foul 80.1 mph Curveball
+  6. 1-2: Foul 86.9 mph Slider
+  7. 1-2: Foul 95.0 mph Sinker
+  8. 1-2: Foul 94.9 mph Sinker
+  9. 1-2: In play, out(s) 82.0 mph Curveball
+
+
+=== Top 4 ===
+
+Batter: Vladimir Guerrero Jr. (#2)
+Pitcher: Kyle Bradish
+Batter result: Groundout
+Description: Vladimir Guerrero Jr. grounds out, first baseman Pete Alonso to pitcher Kyle Bradish.
+Final count: 1-0
+Exit velocity: 107.5 mph
+Distance: 5.0 ft
+Launch angle: -26.0°
+Trajectory: ground_ball
+Pitches:
+  1. 1-0: Ball 94.1 mph Sinker
+  2. 1-0: In play, out(s) 94.8 mph Four-Seam Fastball
+
+Batter: Daulton Varsho (#3)
+Pitcher: Kyle Bradish
+Batter result: Groundout
+Description: Daulton Varsho grounds out, pitcher Kyle Bradish to first baseman Pete Alonso.
+Final count: 1-1
+Exit velocity: 68.3 mph
+Distance: 12.0 ft
+Launch angle: -12.0°
+Trajectory: ground_ball
+Pitches:
+  1. 1-0: Ball 85.1 mph Curveball
+  2. 1-1: Foul 83.0 mph Curveball
+  3. 1-1: In play, out(s) 94.4 mph Sinker
+
+Batter: Kazuma Okamoto (#4)
+Pitcher: Kyle Bradish
+Batter result: Walk
+Description: Kazuma Okamoto walks.
+Final count: 4-2
+Pitches:
+  1. 1-0: Ball 86.1 mph Slider
+  2. 2-0: Ball 94.1 mph Sinker
+  3. 2-1: Called Strike 94.4 mph Four-Seam Fastball
+  4. 2-2: Called Strike 84.1 mph Curveball
+  5. 2-2: Foul 87.2 mph Slider
+  6. 3-2: Ball 84.5 mph Curveball
+  7. 4-2: Ball 87.0 mph Slider
+
+Batter: Ernie Clement (#5)
+Pitcher: Kyle Bradish
+Batter result: Flyout
+Description: Ernie Clement flies out to right fielder Colton Cowser.
+Final count: 0-1
+Exit velocity: 89.3 mph
+Distance: 302.0 ft
+Launch angle: 36.0°
+Trajectory: fly_ball
+Pitches:
+  1. 0-1: Foul 86.5 mph Slider
+  2. 0-1: In play, out(s) 84.5 mph Curveball
+
+
+=== Bottom 4 ===
+
+Batter: Jackson Holliday (#9)
+Pitcher: Adam Macko
+Batter result: Flyout
+Description: Jackson Holliday flies out to center fielder Daulton Varsho.
+Final count: 2-2
+Exit velocity: 85.9 mph
+Distance: 233.0 ft
+Launch angle: 55.0°
+Trajectory: fly_ball
+Pitches:
+  1. 0-1: Swinging Strike 94.8 mph Four-Seam Fastball
+  2. 0-2: Called Strike 94.1 mph Four-Seam Fastball
+  3. 1-2: Ball 84.6 mph Slider
+  4. 2-2: Ball 85.0 mph Slider
+  5. 2-2: In play, out(s) 93.1 mph Four-Seam Fastball
+
+Batter: Taylor Ward (#1)
+Pitcher: Adam Macko
+Batter result: Flyout
+Description: Taylor Ward flies out to center fielder Daulton Varsho.
+Final count: 0-0
+Exit velocity: 85.5 mph
+Distance: 245.0 ft
+Launch angle: 50.0°
+Trajectory: fly_ball
+Pitches:
+  1. 0-0: In play, out(s) 92.9 mph Four-Seam Fastball
+
+Batter: Gunnar Henderson (#2)
+Pitcher: Adam Macko
+Batter result: Pop Out
+Description: Gunnar Henderson pops out to shortstop Andrés Giménez.
+Final count: 3-0
+Exit velocity: 85.0 mph
+Distance: 154.0 ft
+Launch angle: 62.0°
+Trajectory: popup
+Pitches:
+  1. 1-0: Ball 85.8 mph Slider
+  2. 2-0: Ball 93.8 mph Four-Seam Fastball
+  3. 3-0: Ball 93.3 mph Four-Seam Fastball
+  4. 3-0: In play, out(s) 92.5 mph Four-Seam Fastball
+
+
+=== Top 5 ===
+
+Batter: Jesús Sánchez (#6)
+Pitcher: Kyle Bradish
+Batter result: Groundout
+Description: Jesús Sánchez grounds out, third baseman Blaze Alexander to first baseman Pete Alonso.
+Final count: 3-2
+Exit velocity: 70.3 mph
+Distance: 3.0 ft
+Launch angle: -46.0°
+Trajectory: ground_ball
+Pitches:
+  1. 1-0: Ball 93.1 mph Four-Seam Fastball
+  2. 1-1: Called Strike 92.8 mph Four-Seam Fastball
+  3. 1-2: Foul 93.6 mph Sinker
+  4. 2-2: Ball 86.6 mph Slider
+  5. 3-2: Ball 94.8 mph Sinker
+  6. 3-2: In play, out(s) 95.2 mph Four-Seam Fastball
+
+Batter: Charles McAdoo (#7)
+Pitcher: Kyle Bradish
+Batter result: Flyout
+Description: Charles McAdoo flies out sharply to center fielder Leody Taveras.
+Final count: 0-1
+Exit velocity: 101.0 mph
+Distance: 364.0 ft
+Launch angle: 30.0°
+Trajectory: fly_ball
+Pitches:
+  1. 0-1: Called Strike 94.2 mph Four-Seam Fastball
+  2. 0-1: In play, out(s) 84.9 mph Curveball
+
+Batter: Andrés Giménez (#8)
+Pitcher: Kyle Bradish
+Batter result: Walk
+Description: Andrés Giménez walks.
+Final count: 4-1
+Pitches:
+  1. 1-0: Ball 93.2 mph Four-Seam Fastball
+  2. 2-0: Ball 82.5 mph Curveball
+  3. 3-0: Ball 92.3 mph Four-Seam Fastball
+  4. 3-1: Called Strike 90.5 mph Sinker
+  5. 4-1: Ball 85.7 mph Slider
+
+Batter: Brandon Valenzuela (#9)
+Pitcher: Kyle Bradish
+Batter result: Flyout
+Description: Brandon Valenzuela flies out to left fielder Taylor Ward.
+Final count: 0-0
+Exit velocity: 89.7 mph
+Distance: 273.0 ft
+Launch angle: 45.0°
+Trajectory: fly_ball
+Pitches:
+  1. 0-0: In play, out(s) 92.5 mph Sinker
+
+
+=== Bottom 5 ===
+
+Batter: Adley Rutschman (#3)
+Pitcher: Adam Macko
+Batter result: Flyout
+Description: Adley Rutschman flies out to right fielder Jesús Sánchez.
+Final count: 0-0
+Exit velocity: 89.3 mph
+Distance: 237.0 ft
+Launch angle: 56.0°
+Trajectory: fly_ball
+Pitches:
+  1. 0-0: In play, out(s) 93.6 mph Four-Seam Fastball
+
+Batter: Pete Alonso (#4)
+Pitcher: Adam Macko
+Batter result: Groundout
+Description: Pete Alonso grounds out, third baseman Kazuma Okamoto to first baseman Charles McAdoo.
+Final count: 0-1
+Exit velocity: 69.0 mph
+Distance: 6.0 ft
+Launch angle: -25.0°
+Trajectory: ground_ball
+Pitches:
+  1. 0-1: Called Strike 85.3 mph Slider
+  2. 0-1: In play, out(s) 86.4 mph Changeup
+
+Batter: Samuel Basallo (#5)
+Pitcher: Adam Macko
+Batter result: Single
+Description: Samuel Basallo singles on a line drive to right fielder Jesús Sánchez.
+Final count: 0-2
+Exit velocity: 75.0 mph
+Distance: 219.0 ft
+Launch angle: 20.0°
+Trajectory: line_drive
+Pitches:
+  1. 0-1: Missed Bunt 86.6 mph Slider
+  2. 0-2: Swinging Strike 79.6 mph Knuckle Curve
+  3. 0-2: In play, no out 85.7 mph Slider
+
+Batter: Leody Taveras (#6)
+Pitcher: Adam Macko
+Batter result: Strikeout
+Description: Leody Taveras called out on strikes.
+Final count: 0-3
+Pitches:
+  1. 0-1: Called Strike 85.4 mph Slider
+  2. 0-2: Foul 86.1 mph Slider
+  3. 0-3: Called Strike 79.5 mph Knuckle Curve
+
+
+=== Top 6 ===
+
+Batter: Nathan Lukes (#1)
+Pitcher: Kyle Bradish
+Batter result: Groundout
+Description: Nathan Lukes grounds out, shortstop Gunnar Henderson to first baseman Pete Alonso.
+Final count: 2-2
+Exit velocity: 83.0 mph
+Distance: 12.0 ft
+Launch angle: -8.0°
+Trajectory: ground_ball
+Pitches:
+  1. 0-1: Called Strike 92.8 mph Sinker
+  2. 1-1: Ball 94.4 mph Sinker
+  3. 2-1: Ball 83.4 mph Curveball
+  4. 2-2: Called Strike 93.3 mph Sinker
+  5. 2-2: In play, out(s) 94.6 mph Sinker
+
+Batter: Vladimir Guerrero Jr. (#2)
+Pitcher: Kyle Bradish
+Batter result: Lineout
+Description: Vladimir Guerrero Jr. lines out sharply to center fielder Leody Taveras.
+Final count: 1-0
+Exit velocity: 105.3 mph
+Distance: 315.0 ft
+Launch angle: 13.0°
+Trajectory: line_drive
+Pitches:
+  1. 1-0: Ball 95.3 mph Sinker
+  2. 1-0: In play, out(s) 94.0 mph Four-Seam Fastball
+
+Batter: Daulton Varsho (#3)
+Pitcher: Kyle Bradish
+Batter result: Groundout
+Description: Daulton Varsho grounds out, first baseman Pete Alonso to pitcher Kyle Bradish.
+Final count: 3-1
+Exit velocity: 83.2 mph
+Distance: 4.0 ft
+Launch angle: -38.0°
+Trajectory: ground_ball
+Pitches:
+  1. 1-0: Ball 94.3 mph Sinker
+  2. 2-0: Ball 84.3 mph Curveball
+  3. 2-1: Called Strike 92.5 mph Four-Seam Fastball
+  4. 3-1: Ball 92.2 mph Sinker
+  5. 3-1: In play, out(s) 93.1 mph Four-Seam Fastball
+
+
+=== Bottom 6 ===
+
+Batter: Colton Cowser (#7)
+Pitcher: Hayden Juenger
+Batter result: Walk
+Description: Colton Cowser walks.
+Final count: 4-0
+Pitches:
+  1. 1-0: Ball 93.8 mph Four-Seam Fastball
+  2. 2-0: Ball 87.4 mph Changeup
+  3. 3-0: Ball 88.0 mph Changeup
+  4. 4-0: Ball 93.8 mph Four-Seam Fastball
+
+Batter: Blaze Alexander (#8)
+Pitcher: Hayden Juenger
+Batter result: Single
+Description: Blaze Alexander singles on a sharp line drive to center fielder Daulton Varsho. Colton Cowser to 2nd.
+Final count: 2-2
+Exit velocity: 101.2 mph
+Distance: 172.0 ft
+Launch angle: 10.0°
+Trajectory: line_drive
+Pitches:
+  1. 1-0: Ball 87.0 mph Slider
+  2. 2-0: Ball 88.1 mph Slider
+  3. 2-1: Foul 94.7 mph Four-Seam Fastball
+  4. 2-2: Foul 94.2 mph Four-Seam Fastball
+  5. 2-2: Foul 94.7 mph Four-Seam Fastball
+  6. 2-2: Foul 89.8 mph Slider
+  7. 2-2: In play, no out 95.2 mph Four-Seam Fastball
+
+Batter: Jackson Holliday (#9)
+Pitcher: Hayden Juenger
+Batter result: Walk
+Description: Jackson Holliday walks. Colton Cowser to 3rd. Blaze Alexander to 2nd.
+Final count: 4-2
+Pitches:
+  1. 1-0: Ball 94.8 mph Four-Seam Fastball
+  2. 2-0: Ball 89.1 mph Changeup
+  3. 2-1: Called Strike 94.0 mph Four-Seam Fastball
+  4. 3-1: Ball 89.0 mph Changeup
+  5. 3-2: Called Strike 94.3 mph Four-Seam Fastball
+  6. 3-2: Foul 90.0 mph Slider
+  7. 3-2: Foul 94.6 mph Four-Seam Fastball
+  8. 4-2: Ball 95.6 mph Four-Seam Fastball
+
+Batter: Taylor Ward (#1)
+Pitcher: Hayden Juenger
+Batter result: Forceout
+Description: Orioles challenged (play at 1st), call on the field was overturned: Taylor Ward grounds into a force out, fielded by second baseman Ernie Clement. Colton Cowser scores. Blaze Alexander to 3rd. Jackson Holliday out at 2nd. Taylor Ward to 1st.
+Final count: 0-2
+Exit velocity: 57.0 mph
+Distance: 8.0 ft
+Launch angle: -11.0°
+Trajectory: ground_ball
+Pitches:
+  1. 0-1: Called Strike 85.9 mph Slider
+  2. 0-2: Foul 87.6 mph Slider
+  3. 0-2: Foul 94.5 mph Four-Seam Fastball
+  4. 0-2: In play, run(s) 89.4 mph Slider
+
+Batter: Gunnar Henderson (#2)
+Pitcher: Hayden Juenger
+Batter result: Double
+Description: Gunnar Henderson doubles (11) on a line drive to center fielder Daulton Varsho. Blaze Alexander scores. Taylor Ward to 3rd.
+Final count: 0-0
+Exit velocity: 102.8 mph
+Distance: 384.0 ft
+Launch angle: 21.0°
+Trajectory: line_drive
+Pitches:
+  1. 0-0: In play, run(s) 88.9 mph Slider
+
+Batter: Adley Rutschman (#3)
+Pitcher: Hayden Juenger
+Batter result: Sac Fly
+Description: Adley Rutschman out on a sacrifice fly to center fielder Daulton Varsho. Taylor Ward scores. Gunnar Henderson to 3rd.
+Final count: 2-2
+Exit velocity: 102.6 mph
+Distance: 348.0 ft
+Launch angle: 41.0°
+Trajectory: fly_ball
+Pitches:
+  1. 0-1: Swinging Strike 93.1 mph Four-Seam Fastball
+  2. 0-2: Called Strike 95.0 mph Four-Seam Fastball
+  3. 1-2: Ball 94.1 mph Four-Seam Fastball
+  4. 1-2: Foul 88.6 mph Changeup
+  5. 2-2: Ball 88.5 mph Changeup
+  6. 2-2: In play, run(s) 94.3 mph Four-Seam Fastball
+
+Batter: Pete Alonso (#4)
+Pitcher: Hayden Juenger
+Batter result: Pop Out
+Description: Pete Alonso pops out to second baseman Ernie Clement.
+Final count: 3-2
+Exit velocity: 89.5 mph
+Distance: 166.0 ft
+Launch angle: 66.0°
+Trajectory: popup
+Pitches:
+  1. 1-0: Ball 87.4 mph Slider
+  2. 1-1: Called Strike 87.4 mph Slider
+  3. 2-1: Ball 86.5 mph Slider
+  4. 2-2: Foul 86.3 mph Slider
+  5. 3-2: Ball 95.3 mph Four-Seam Fastball
+  6. 3-2: In play, out(s) 93.4 mph Four-Seam Fastball
+
+
+=== Top 7 ===
+
+Batter: Kazuma Okamoto (#4)
+Pitcher: Kyle Bradish
+Batter result: Strikeout
+Description: Kazuma Okamoto strikes out swinging.
+Final count: 1-3
+Pitches:
+  1. 0-1: Called Strike 92.7 mph Sinker
+  2. 1-1: Ball 84.3 mph Slider
+  3. 1-2: Swinging Strike 82.9 mph Slider
+  4. 1-2: Foul 83.1 mph Curveball
+  5. 1-3: Swinging Strike 86.5 mph Slider
+
+Batter: Ernie Clement (#5)
+Pitcher: Kyle Bradish
+Batter result: Single
+Description: Ernie Clement singles on a ground ball to shortstop Gunnar Henderson.
+Final count: 1-2
+Exit velocity: 93.0 mph
+Distance: 3.0 ft
+Launch angle: -49.0°
+Trajectory: ground_ball
+Pitches:
+  1. 0-1: Foul 93.2 mph Four-Seam Fastball
+  2. 0-2: Called Strike 93.9 mph Sinker
+  3. 1-2: Ball 85.0 mph Slider
+  4. 1-2: In play, no out 94.3 mph Sinker
+
+Batter: Yohendrick Piñango (#6)
+Pitcher: Kyle Bradish
+Batter result: Single
+Description: Yohendrick Piñango singles on a ground ball to center fielder Leody Taveras. Ernie Clement to 2nd.
+Final count: 0-0
+Exit velocity: 76.6 mph
+Distance: 116.0 ft
+Launch angle: 8.0°
+Trajectory: ground_ball
+Pitches:
+  1. 0-0: In play, no out 93.1 mph Four-Seam Fastball
+
+Batter: Charles McAdoo (#7)
+Pitcher: Kyle Bradish
+Batter result: Forceout
+Description: Charles McAdoo grounds into a force out, shortstop Gunnar Henderson to second baseman Jackson Holliday. Ernie Clement scores. Yohendrick Piñango out at 2nd. Charles McAdoo to 1st. Throwing error by second baseman Jackson Holliday.
+Final count: 1-0
+Exit velocity: 96.3 mph
+Distance: 21.0 ft
+Launch angle: -4.0°
+Trajectory: ground_ball
+Pitches:
+  1. 1-0: Ball 87.4 mph Slider
+  2. 1-0: In play, run(s) 93.5 mph Sinker
+
+Batter: Andrés Giménez (#8)
+Pitcher: Kyle Bradish
+Batter result: Walk
+Description: Andrés Giménez challenged (pitch result), call on the field was overturned: Andrés Giménez walks. Charles McAdoo to 2nd.
+Final count: 4-2
+Pitches:
+  1. 0-1: Swinging Strike (Blocked) 84.1 mph Curveball
+  2. 1-1: Ball 83.5 mph Curveball
+  3. 2-1: Ball In Dirt 94.1 mph Sinker
+  4. 2-2: Foul 93.2 mph Four-Seam Fastball
+  5. 3-2: Ball 94.3 mph Sinker
+  6. 4-2: Ball 93.2 mph Four-Seam Fastball
+
+Batter: Brandon Valenzuela (#9)
+Pitcher: Kyle Bradish
+Batter result: Strikeout
+Description: Brandon Valenzuela strikes out swinging.
+Final count: 1-3
+Pitches:
+  1. 0-1: Called Strike 95.2 mph Sinker
+  2. 1-1: Ball In Dirt 85.6 mph Curveball
+  3. 1-2: Swinging Strike 87.8 mph Slider
+  4. 1-3: Swinging Strike (Blocked) 83.8 mph Curveball
+
+
+=== Bottom 7 ===
+
+Batter: Samuel Basallo (#5)
+Pitcher: Yariel Rodríguez
+Batter result: Lineout
+Description: Samuel Basallo lines out sharply to right fielder Yohendrick Piñango.
+Final count: 1-0
+Exit velocity: 110.1 mph
+Distance: 296.0 ft
+Launch angle: 17.0°
+Trajectory: line_drive
+Pitches:
+  1. 1-0: Ball 96.0 mph Four-Seam Fastball
+  2. 1-0: In play, out(s) 84.7 mph Slider
+
+Batter: Leody Taveras (#6)
+Pitcher: Yariel Rodríguez
+Batter result: Pop Out
+Description: Leody Taveras pops out to first baseman Charles McAdoo.
+Final count: 3-2
+Exit velocity: 89.4 mph
+Distance: 65.0 ft
+Launch angle: 75.0°
+Trajectory: popup
+Pitches:
+  1. 0-1: Foul 95.2 mph Four-Seam Fastball
+  2. 0-2: Foul 95.5 mph Four-Seam Fastball
+  3. 1-2: Ball 86.7 mph Splitter
+  4. 2-2: Ball 87.1 mph Splitter
+  5. 3-2: Ball 94.8 mph Four-Seam Fastball
+  6. 3-2: In play, out(s) 85.8 mph Slider
+
+Batter: Colton Cowser (#7)
+Pitcher: Yariel Rodríguez
+Batter result: Single
+Description: Colton Cowser singles on a line drive to center fielder Myles Straw.
+Final count: 1-1
+Exit velocity: 75.7 mph
+Distance: 172.0 ft
+Launch angle: 15.0°
+Trajectory: line_drive
+Pitches:
+  1. 1-0: Ball 85.6 mph Slider
+  2. 1-1: Foul 94.9 mph Four-Seam Fastball
+  3. 1-1: In play, no out 94.3 mph Four-Seam Fastball
+
+Batter: Blaze Alexander (#8)
+Pitcher: Yariel Rodríguez
+Batter result: Single
+Description: Blaze Alexander singles on a line drive to right fielder Yohendrick Piñango. Colton Cowser out at home on the throw, right fielder Yohendrick Piñango to shortstop Andrés Giménez to catcher Brandon Valenzuela.
+Final count: 3-2
+Exit velocity: 86.5 mph
+Distance: 269.0 ft
+Launch angle: 23.0°
+Trajectory: line_drive
+Pitches:
+  1. 1-0: Ball 95.2 mph Sinker
+  2. 1-1: Called Strike 85.4 mph Slider
+  3. 1-2: Foul 86.6 mph Slider
+  4. 2-2: Ball 86.8 mph Splitter
+  5. 3-2: Ball 86.3 mph Slider
+  6. 3-2: In play, out(s) 84.5 mph Slider
+
+
+=== Top 8 ===
+
+Batter: Nathan Lukes (#1)
+Pitcher: Tyler Wells
+Batter result: Single
+Description: Nathan Lukes singles on a line drive to right fielder Colton Cowser.
+Final count: 1-2
+Exit velocity: 98.1 mph
+Distance: 223.0 ft
+Launch angle: 12.0°
+Trajectory: line_drive
+Pitches:
+  1. 0-1: Called Strike 91.0 mph Cutter
+  2. 0-2: Called Strike 91.4 mph Cutter
+  3. 1-2: Ball 91.5 mph Cutter
+  4. 1-2: In play, no out 78.4 mph Curveball
+
+Batter: Vladimir Guerrero Jr. (#2)
+Pitcher: Tyler Wells
+Batter result: Flyout
+Description: Vladimir Guerrero Jr. flies out to right fielder Colton Cowser.
+Final count: 2-2
+Exit velocity: 84.4 mph
+Distance: 256.0 ft
+Launch angle: 43.0°
+Trajectory: fly_ball
+Pitches:
+  1. 0-1: Swinging Strike 91.0 mph Cutter
+  2. 0-2: Called Strike 91.6 mph Cutter
+  3. 1-2: Ball 91.7 mph Cutter
+  4. 2-2: Ball 90.8 mph Cutter
+  5. 2-2: In play, out(s) 93.9 mph Four-Seam Fastball
+
+Batter: Myles Straw (#3)
+Pitcher: Tyler Wells
+Batter result: Flyout
+Description: Myles Straw flies out to left fielder Taylor Ward.
+Final count: 2-1
+Exit velocity: 73.5 mph
+Distance: 250.0 ft
+Launch angle: 41.0°
+Trajectory: fly_ball
+Pitches:
+  1. 1-0: Ball 91.5 mph Cutter
+  2. 1-1: Called Strike 85.2 mph Slider
+  3. 2-1: Ball 92.6 mph Four-Seam Fastball
+  4. 2-1: In play, out(s) 89.4 mph Cutter
+
+Batter: Kazuma Okamoto (#4)
+Pitcher: Tyler Wells
+Batter result: Walk
+Description: Kazuma Okamoto walks. Nathan Lukes to 2nd.
+Final count: 4-0
+Pitches:
+  1. 1-0: Ball 94.0 mph Four-Seam Fastball
+  2. 2-0: Ball 90.8 mph Cutter
+  3. 3-0: Ball 88.3 mph Cutter
+  4. 4-0: Ball 92.8 mph Four-Seam Fastball
+
+Batter: Ernie Clement (#5)
+Pitcher: Tyler Wells
+Batter result: Double
+Description: Ernie Clement doubles (19) on a line drive to left fielder Taylor Ward. Nathan Lukes scores. Kazuma Okamoto to 3rd.
+Final count: 1-2
+Exit velocity: 86.6 mph
+Distance: 236.0 ft
+Launch angle: 18.0°
+Trajectory: line_drive
+Pitches:
+  1. 0-1: Foul 91.5 mph Four-Seam Fastball
+  2. 0-2: Foul 86.4 mph Slider
+  3. 0-2: Foul 93.3 mph Four-Seam Fastball
+  4. 1-2: Ball 89.0 mph Cutter
+  5. 1-2: Foul 86.0 mph Slider
+  6. 1-2: Foul 88.2 mph Slider
+  7. 1-2: In play, run(s) 94.7 mph Four-Seam Fastball
+
+Batter: Yohendrick Piñango (#6)
+Pitcher: Tyler Wells
+Batter result: Home Run
+Description: Yohendrick Piñango homers (3) on a fly ball to right field. Kazuma Okamoto scores. Ernie Clement scores.
+Final count: 0-1
+Exit velocity: 107.8 mph
+Distance: 421.0 ft
+Launch angle: 26.0°
+Trajectory: fly_ball
+Pitches:
+  1. 0-1: Swinging Strike 86.8 mph Changeup
+  2. 0-1: In play, run(s) 90.9 mph Cutter
+
+Batter: Charles McAdoo (#7)
+Pitcher: Tyler Wells
+Batter result: Single
+Description: Charles McAdoo singles on a line drive to left fielder Taylor Ward.
+Final count: 2-0
+Exit velocity: 96.3 mph
+Distance: 191.0 ft
+Launch angle: 12.0°
+Trajectory: line_drive
+Pitches:
+  1. 1-0: Ball 86.4 mph Slider
+  2. 2-0: Ball 90.2 mph Cutter
+  3. 2-0: In play, no out 90.2 mph Cutter
+
+Batter: Andrés Giménez (#8)
+Pitcher: Tyler Wells
+Batter result: Pop Out
+Description: Andrés Giménez pops out to third baseman Blaze Alexander in foul territory.
+Final count: 0-0
+Exit velocity: 67.4 mph
+Distance: 142.0 ft
+Launch angle: 65.0°
+Trajectory: popup
+Pitches:
+  1. 0-0: In play, out(s) 92.6 mph Four-Seam Fastball
+
+
+=== Bottom 8 ===
+
+Batter: Jackson Holliday (#9)
+Pitcher: Mason Fluharty
+Batter result: Strikeout
+Description: Jackson Holliday strikes out swinging.
+Final count: 2-3
+Pitches:
+  1. 1-0: Ball 90.1 mph Cutter
+  2. 2-0: Ball 80.1 mph Sweeper
+  3. 2-1: Called Strike 80.3 mph Sweeper
+  4. 2-2: Foul 81.2 mph Sweeper
+  5. 2-3: Swinging Strike 82.1 mph Sweeper
+
+Batter: Taylor Ward (#1)
+Pitcher: Mason Fluharty
+Batter result: Strikeout
+Description: Taylor Ward called out on strikes.
+Final count: 1-3
+Pitches:
+  1. 0-1: Called Strike 91.2 mph Cutter
+  2. 1-1: Ball 88.4 mph Changeup
+  3. 1-2: Called Strike 90.4 mph Cutter
+  4. 1-3: Called Strike 82.3 mph Sweeper
+
+Batter: Gunnar Henderson (#2)
+Pitcher: Mason Fluharty
+Batter result: Strikeout
+Description: Gunnar Henderson strikes out swinging.
+Final count: 0-3
+Pitches:
+  1. 0-1: Foul 81.2 mph Sweeper
+  2. 0-2: Foul 91.8 mph Cutter
+  3. 0-3: Swinging Strike 82.3 mph Sweeper
+
+
+=== Top 9 ===
+
+Batter: Brandon Valenzuela (#9)
+Pitcher: Rico Garcia
+Batter result: Groundout
+Description: Brandon Valenzuela grounds out, first baseman Pete Alonso to pitcher Rico Garcia.
+Final count: 0-0
+Exit velocity: 90.1 mph
+Distance: 55.0 ft
+Launch angle: 2.0°
+Trajectory: ground_ball
+Pitches:
+  1. 0-0: In play, out(s) 95.1 mph Four-Seam Fastball
+
+Batter: Nathan Lukes (#1)
+Pitcher: Rico Garcia
+Batter result: Pop Out
+Description: Nathan Lukes pops out to third baseman Blaze Alexander in foul territory.
+Final count: 0-1
+Exit velocity: 83.4 mph
+Distance: 80.0 ft
+Launch angle: 76.0°
+Trajectory: popup
+Pitches:
+  1. 0-1: Called Strike 84.4 mph Changeup
+  2. 0-1: In play, out(s) 85.2 mph Changeup
+
+Batter: Vladimir Guerrero Jr. (#2)
+Pitcher: Rico Garcia
+Batter result: Groundout
+Description: Vladimir Guerrero Jr. grounds out to first baseman Pete Alonso.
+Final count: 0-2
+Exit velocity: 59.8 mph
+Distance: 10.0 ft
+Launch angle: -10.0°
+Trajectory: ground_ball
+Pitches:
+  1. 0-1: Swinging Strike 90.3 mph Slider
+  2. 0-2: Foul 90.6 mph Slider
+  3. 0-2: In play, out(s) 89.9 mph Slider
