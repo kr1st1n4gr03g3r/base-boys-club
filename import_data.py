@@ -18,31 +18,31 @@ MLB_API_BASE = "https://statsapi.mlb.com/api"
 OUTPUT_DIR = Path("output")
 
 POSITION_NUMBERS = {
-    "P": "1",
-    "C": "2",
-    "1B": "3",
-    "2B": "4",
-    "3B": "5",
-    "SS": "6",
-    "LF": "7",
-    "CF": "8",
-    "RF": "9",
-    "DH": "DH",
-    "PH": "PH",
-    "PR": "PR"
+    "P": " 1",
+    "C": " 2",
+    "1B": " 3",
+    "2B": " 4",
+    "3B": " 5",
+    "SS": " 6",
+    "LF": " 7",
+    "CF": " 8",
+    "RF": " 9",
+    "DH": " DH",
+    "PH": " PH",
+    "PR": " PR"
 }
 
 
 POSITION_DESCRIPTION_TO_ABBREVIATION = {
-    "pitcher": "P",
-    "catcher": "C",
-    "first baseman": "1B",
-    "second baseman": "2B",
-    "third baseman": "3B",
-    "shortstop": "SS",
-    "left fielder": "LF",
-    "center fielder": "CF",
-    "right fielder": "RF"
+    "pitcher": " P",
+    "catcher": " C",
+    "first baseman": " 1B",
+    "second baseman": " 2B",
+    "third baseman": " 3B",
+    "shortstop": " SS",
+    "left fielder": " LF",
+    "center fielder": " CF",
+    "right fielder": " RF"
 }
 
 
@@ -750,6 +750,44 @@ def get_batted_ball_data(play):
 
     return None
 
+def get_extra_result_lines(play):
+    runners = play.get("runners", [])
+    lines = []
+
+    for runner in runners:
+        runner_name = safe_get(runner, "details", "runner", "fullName", default="Unknown runner")
+        event = safe_get(runner, "details", "event", default="")
+        start = safe_get(runner, "movement", "start", default="")
+        end = safe_get(runner, "movement", "end", default="")
+        is_out = safe_get(runner, "movement", "isOut", default=False)
+        rbi = safe_get(runner, "details", "rbi", default=False)
+
+        if not event and not start and not end:
+            continue
+
+        movement_parts = []
+
+        if start:
+            movement_parts.append(f"from {start}")
+
+        if end:
+            movement_parts.append(f"to {end}")
+
+        if is_out:
+            movement_parts.append("out")
+
+        if rbi:
+            movement_parts.append("RBI")
+
+        movement_text = ", ".join(movement_parts)
+
+        if movement_text:
+            lines.append(f"Extra result: {runner_name} - {event} ({movement_text})")
+        else:
+            lines.append(f"Extra result: {runner_name} - {event}")
+
+    return lines
+
 
 def derive_batting_orders(feed):
     """
@@ -895,10 +933,18 @@ def generate_pitch_by_pitch_report(feed, venue_details=None):
         if description:
             lines.append(f"Description: {description}")
 
+        extra_result_lines = get_extra_result_lines(play)
+
+        for extra_line in extra_result_lines:
+
+            lines.append(extra_line)
+
         if final_count:
             lines.append(f"Final count: {final_count}")
 
         batted_ball = get_batted_ball_data(play)
+
+        
 
         if batted_ball:
             ev = batted_ball.get("exit_velocity")
@@ -925,6 +971,7 @@ def generate_pitch_by_pitch_report(feed, venue_details=None):
                 continue
 
             lines.append(f"  {get_pitch_line(event_item)}")
+
 
         lines.append("")
 
