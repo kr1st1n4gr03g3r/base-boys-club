@@ -1,2 +1,0 @@
-pandas==3.0.2
-pybaseball==2.2.7

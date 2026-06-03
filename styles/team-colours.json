@@ -1,0 +1,272 @@
+[
+  {
+    "id": "arizona_diamondbacks",
+    "name": "Arizona Diamondbacks",
+    "league": "mlb",
+    "apiNumber": 109,
+    "colors": {
+      "hex": ["A71930", "000000", "E3D4AD"]
+    }
+  },
+  {
+    "id": "atlanta_braves",
+    "name": "Atlanta Braves",
+    "league": "mlb",
+    "apiNumber": 144,
+    "colors": {
+      "hex": ["CE1141", "13274F"]
+    }
+  },
+  {
+    "id": "baltimore_orioles",
+    "name": "Baltimore Orioles",
+    "league": "mlb",
+    "apiNumber": 110,
+    "colors": {
+      "hex": ["DF4601", "000000"]
+    }
+  },
+  {
+    "id": "boston_red_sox",
+    "name": "Boston Red Sox",
+    "league": "mlb",
+    "apiNumber": 111,
+    "colors": {
+      "hex": ["BD3039", "0D2B56"]
+    }
+  },
+  {
+    "id": "chicago_cubs",
+    "name": "Chicago Cubs",
+    "league": "mlb",
+    "apiNumber": 112,
+    "colors": {
+      "hex": ["CC3433", "0E3386"]
+    }
+  },
+  {
+    "id": "chicago_white_sox",
+    "name": "Chicago White Sox",
+    "league": "mlb",
+    "apiNumber": 145,
+    "colors": {
+      "hex": ["000000", "C4CED4"]
+    }
+  },
+  {
+    "id": "cincinnati_reds",
+    "name": "Cincinnati Reds",
+    "league": "mlb",
+    "apiNumber": 113,
+    "colors": {
+      "hex": ["C6011F", "000000"]
+    }
+  },
+  {
+    "id": "colorado_rockies",
+    "name": "Colorado Rockies",
+    "league": "mlb",
+    "apiNumber": 115,
+    "colors": {
+      "hex": ["333366", "231F20", "C4CED4"]
+    }
+  },
+  {
+    "id": "cleveland_indians",
+    "name": "Cleveland Indians",
+    "league": "mlb",
+    "apiNumber": 114,
+    "colors": {
+      "hex": ["E31937", "002B5C"]
+    }
+  },
+  {
+    "id": "detroit_tigers",
+    "name": "Detroit Tigers",
+    "league": "mlb",
+    "apiNumber": 116,
+    "colors": {
+      "hex": ["0C2C56"]
+    }
+  },
+  {
+    "id": "houston_astros",
+    "name": "Houston Astros",
+    "league": "mlb",
+    "apiNumber": 117,
+    "colors": {
+      "hex": ["002D62", "EB6E1F"]
+    }
+  },
+  {
+    "id": "kansas_city_royals",
+    "name": "Kansas City Royals",
+    "league": "mlb",
+    "apiNumber": 118,
+    "colors": {
+      "hex": ["004687", "C09A5B"]
+    }
+  },
+  {
+    "id": "los_angeles_angels_of_anaheim",
+    "name": "Los Angeles Angels of Anaheim",
+    "league": "mlb",
+    "apiNumber": 108,
+    "colors": {
+      "hex": ["BA0021", "003263"]
+    }
+  },
+  {
+    "id": "los_angeles_dodgers",
+    "name": "Los Angeles Dodgers",
+    "league": "mlb",
+    "apiNumber": 119,
+    "colors": {
+      "hex": ["EF3E42", "005A9C"]
+    }
+  },
+  {
+    "id": "miami_marlins",
+    "name": "Miami Marlins",
+    "league": "mlb",
+    "apiNumber": 146,
+    "colors": {
+      "hex": ["FF6600", "0077C8", "FFD100", "000000"]
+    }
+  },
+  {
+    "id": "milwaukee_brewers",
+    "name": "Milwaukee Brewers",
+    "league": "mlb",
+    "apiNumber": 158,
+    "colors": {
+      "hex": ["0A2351", "B6922E"]
+    }
+  },
+  {
+    "id": "minnesota_twins",
+    "name": "Minnesota Twins",
+    "league": "mlb",
+    "apiNumber": 142,
+    "colors": {
+      "hex": ["002B5C", "D31145"]
+    }
+  },
+  {
+    "id": "new_york_mets",
+    "name": "New York Mets",
+    "league": "mlb",
+    "apiNumber": 121,
+    "colors": {
+      "hex": ["FF5910", "002D72"]
+    }
+  },
+  {
+    "id": "new_york_yankees",
+    "name": "New York Yankees",
+    "league": "mlb",
+    "apiNumber": 147,
+    "colors": {
+      "hex": ["E4002B", "003087"]
+    }
+  },
+  {
+    "id": "oakland_athletics",
+    "name": "Oakland Athletics",
+    "league": "mlb",
+    "apiNumber": 133,
+    "colors": {
+      "hex": ["003831", "EFB21E"]
+    }
+  },
+  {
+    "id": "philadelphia_phillies",
+    "name": "Philadelphia Phillies",
+    "league": "mlb",
+    "apiNumber": 143,
+    "colors": {
+      "hex": ["284898", "E81828"]
+    }
+  },
+  {
+    "id": "pittsburgh_pirates",
+    "name": "Pittsburgh Pirates",
+    "league": "mlb",
+    "apiNumber": 134,
+    "colors": {
+      "hex": ["FDB827", "000000"]
+    }
+  },
+  {
+    "id": "san_diego_padres",
+    "name": "San Diego Padres",
+    "league": "mlb",
+    "apiNumber": 135,
+    "colors": {
+      "hex": ["002D62", "FEC325", "7F411C", "A0AAB2"]
+    }
+  },
+  {
+    "id": "san_francisco_giants",
+    "name": "San Francisco Giants",
+    "league": "mlb",
+    "apiNumber": 137,
+    "colors": {
+      "hex": ["FD5A1E", "000000", "8B6F4E"]
+    }
+  },
+  {
+    "id": "seattle_mariners",
+    "name": "Seattle Mariners",
+    "league": "mlb",
+    "apiNumber": 136,
+    "colors": {
+      "hex": ["0C2C56", "005C5C", "C4CED4"]
+    }
+  },
+  {
+    "id": "st_louis_cardinals",
+    "name": "St Louis Cardinals",
+    "league": "mlb",
+    "apiNumber": 138,
+    "colors": {
+      "hex": ["C41E3A", "000066", "FEDB00"]
+    }
+  },
+  {
+    "id": "tampa_bay_rays",
+    "name": "Tampa Bay Rays",
+    "league": "mlb",
+    "apiNumber": 139,
+    "colors": {
+      "hex": ["092C5C", "8FBCE6", "F5D130"]
+    }
+  },
+  {
+    "id": "texas_rangers",
+    "name": "Texas Rangers",
+    "league": "mlb",
+    "apiNumber": 140,
+    "colors": {
+      "hex": ["C0111F", "003278"]
+    }
+  },
+  {
+    "id": "toronto_blue_jays",
+    "name": "Toronto Blue Jays",
+    "league": "mlb",
+    "apiNumber": 141,
+    "colors": {
+      "hex": ["134A8E", "1D2D5C", "E8291C"]
+    }
+  },
+  {
+    "id": "washington_nationals",
+    "name": "Washington Nationals",
+    "league": "mlb",
+    "apiNumber": 120,
+    "colors": {
+      "hex": ["AB0003", "11225B"]
+    }
+  }
+]
