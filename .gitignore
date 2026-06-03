@@ -6,3 +6,7 @@ output/
 __pycache__/
 *.pyc
 .vscode/
+.venv/
+.ruff_cache/
+__pycache__/
+*.pyc
