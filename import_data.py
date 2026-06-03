@@ -1,17 +1,17 @@
-import requests
+import webbrowser
 from datetime import datetime
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from pathlib import Path
+import requests
 
 from unit_formatters import (
-    format_temperature,
-    format_speed,
-    format_wind_speed,
     format_distance,
     format_distance_difference,
+    format_speed,
+    format_temperature,
+    format_wind_speed,
 )
-
 
 MLB_API_BASE = "https://statsapi.mlb.com/api"
 
@@ -29,7 +29,7 @@ POSITION_NUMBERS = {
     "RF": "9",
     "DH": "DH",
     "PH": "PH",
-    "PR": "PR"
+    "PR": "PR",
 }
 
 
@@ -42,7 +42,7 @@ POSITION_DESCRIPTION_TO_ABBREVIATION = {
     "shortstop": "SS",
     "left fielder": "LF",
     "center fielder": "CF",
-    "right fielder": "RF"
+    "right fielder": "RF",
 }
 
 
@@ -77,7 +77,10 @@ def get_result_type_shorthand(event, description):
         return "HR"
 
     if "strikeout" in event_lower:
-        if "strikes out looking" in description_lower or "called out on strikes" in description_lower:
+        if (
+            "strikes out looking" in description_lower
+            or "called out on strikes" in description_lower
+        ):
             return "ꓘ"
         return "K"
 
@@ -132,11 +135,7 @@ def get_schedule(date, home_team_name=None, away_team_name=None):
         get_schedule("2025-06-01", home_team_name="Orioles", away_team_name="Blue Jays")
     """
     url = f"{MLB_API_BASE}/v1/schedule"
-    params = {
-        "sportId": 1,
-        "date": date,
-        "hydrate": "team,venue"
-    }
+    params = {"sportId": 1, "date": date, "hydrate": "team,venue"}
 
     response = requests.get(url, params=params, timeout=30)
     response.raise_for_status()
@@ -156,14 +155,16 @@ def get_schedule(date, home_team_name=None, away_team_name=None):
             if away_team_name and away_team_name.lower() not in away.lower():
                 continue
 
-            games.append({
-                "gamePk": game["gamePk"],
-                "gameDate": game.get("gameDate"),
-                "home": home,
-                "away": away,
-                "venue": venue,
-                "status": game.get("status", {}).get("detailedState")
-            })
+            games.append(
+                {
+                    "gamePk": game["gamePk"],
+                    "gameDate": game.get("gameDate"),
+                    "home": home,
+                    "away": away,
+                    "venue": venue,
+                    "status": game.get("status", {}).get("detailedState"),
+                }
+            )
 
     return games
 
@@ -246,9 +247,7 @@ def get_game_feed(game_pk):
 
 def get_venue_details(venue_id):
     url = f"{MLB_API_BASE}/v1/venues/{venue_id}"
-    params = {
-        "hydrate": "location,fieldInfo,timezone"
-    }
+    params = {"hydrate": "location,fieldInfo,timezone"}
 
     response = requests.get(url, params=params, timeout=30)
     response.raise_for_status()
@@ -382,8 +381,14 @@ def get_wall_asymmetry(field_info):
             if difference == 0:
                 notes.append("Left and right field lines are symmetrical")
             else:
-                shorter_side = "left-field line" if left_line_number < right_line_number else "right-field line"
-                notes.append(f"{shorter_side} is shorter by {format_distance_difference(difference)}")
+                shorter_side = (
+                    "left-field line"
+                    if left_line_number < right_line_number
+                    else "right-field line"
+                )
+                notes.append(
+                    f"{shorter_side} is shorter by {format_distance_difference(difference)}"
+                )
 
         if left_center is not None and right_center is not None:
             left_center_number = int(left_center)
@@ -393,8 +398,14 @@ def get_wall_asymmetry(field_info):
             if difference == 0:
                 notes.append("Left-centre and right-centre are symmetrical")
             else:
-                deeper_gap = "left-centre" if left_center_number > right_center_number else "right-centre"
-                notes.append(f"{deeper_gap} is deeper by {format_distance_difference(difference)}")
+                deeper_gap = (
+                    "left-centre"
+                    if left_center_number > right_center_number
+                    else "right-centre"
+                )
+                notes.append(
+                    f"{deeper_gap} is deeper by {format_distance_difference(difference)}"
+                )
     except (TypeError, ValueError):
         return "Not available"
 
@@ -470,7 +481,7 @@ def get_lineup_table_lines(feed, side, team_label):
     lines = []
 
     lines.append("  <table>")
-    lines.append(f"    <tr><th colspan=\"6\">{team_label} Lineup</th></tr>")
+    lines.append(f'    <tr><th colspan="6">{team_label} Lineup</th></tr>')
     lines.append("    <tr>")
     lines.append("      <th>#</th>")
     lines.append("      <th>Batter</th>")
@@ -594,7 +605,7 @@ def get_pitching_table_lines(feed, side, team_abbreviation):
     lines = []
 
     lines.append("  <table>")
-    lines.append(f"    <tr><th colspan=\"10\">Pitchers - {team_abbreviation}</th></tr>")
+    lines.append(f'    <tr><th colspan="10">Pitchers - {team_abbreviation}</th></tr>')
     lines.append("    <tr>")
     lines.append("      <th>Pitcher</th>")
     lines.append("      <th>Throws</th>")
@@ -701,7 +712,9 @@ def get_pitch_line(event):
     """
     pitch_number = event.get("pitchNumber")
     description = safe_get(event, "details", "description", default="Unknown")
-    pitch_type = safe_get(event, "details", "type", "description", default="Unknown pitch")
+    pitch_type = safe_get(
+        event, "details", "type", "description", default="Unknown pitch"
+    )
     speed = safe_get(event, "pitchData", "startSpeed")
 
     balls = safe_get(event, "count", "balls")
@@ -745,10 +758,11 @@ def get_batted_ball_data(play):
             "exit_velocity": hit_data.get("launchSpeed"),
             "distance": hit_data.get("totalDistance"),
             "launch_angle": hit_data.get("launchAngle"),
-            "trajectory": hit_data.get("trajectory")
+            "trajectory": hit_data.get("trajectory"),
         }
 
     return None
+
 
 def get_extra_result_lines(play):
     runners = play.get("runners", [])
@@ -757,22 +771,27 @@ def get_extra_result_lines(play):
     batter_id = safe_get(play, "matchup", "batter", "id")
 
     for runner in runners:
-
         runner_id = safe_get(runner, "details", "runner", "id")
-        runner_name = safe_get(runner, "details", "runner", "fullName", default="Unknown runner")
+        runner_name = safe_get(
+            runner, "details", "runner", "fullName", default="Unknown runner"
+        )
         event = safe_get(runner, "details", "event", default="")
         start = safe_get(runner, "movement", "start", default="")
         end = safe_get(runner, "movement", "end", default="")
         is_out = safe_get(runner, "movement", "isOut", default=False)
         rbi = safe_get(runner, "details", "rbi", default=False)
 
-        #Skip the batter's own ordinary result as it is redundant as an "extra" result.
-        if runner_id == batter_id and event in ["Single", "Double", "Triple", "Home Run"]:
+        # Skip the batter's own ordinary result as it is redundant as an "extra" result.
+        if runner_id == batter_id and event in [
+            "Single",
+            "Double",
+            "Triple",
+            "Home Run",
+        ]:
             continue
 
         if not event and not start and not end:
             continue
-        
 
         movement_parts = []
 
@@ -836,8 +855,12 @@ def generate_pitch_by_pitch_report(feed, venue_details=None):
     game_time_et = format_game_time_et(feed)
     game_timezone = get_game_timezone(feed, venue_details)
 
-    home_team = safe_get(game_data, "teams", "home", "name", default="Unknown home team")
-    away_team = safe_get(game_data, "teams", "away", "name", default="Unknown away team")
+    home_team = safe_get(
+        game_data, "teams", "home", "name", default="Unknown home team"
+    )
+    away_team = safe_get(
+        game_data, "teams", "away", "name", default="Unknown away team"
+    )
 
     home_team_id = safe_get(game_data, "teams", "home", "id")
     away_team_id = safe_get(game_data, "teams", "away", "id")
@@ -848,7 +871,7 @@ def generate_pitch_by_pitch_report(feed, venue_details=None):
 
     lines = []
     lines.append(
-        f'# {away_team} @ {home_team} <br><br>'
+        f"# {away_team} @ {home_team} <br><br>"
         f'<img src="{away_logo_url}" alt="{away_team} logo" width="100">'
         f'<img src="{home_logo_url}" alt="{home_team} logo" width="100">'
     )
@@ -866,28 +889,32 @@ def generate_pitch_by_pitch_report(feed, venue_details=None):
     lines.append("")
     lines.append("<table>")
     lines.append("  <tr>")
-    lines.append("    <td style=\"vertical-align: top;\">")
+    lines.append('    <td style="vertical-align: top;">')
     lines.extend(get_lineup_table_lines(feed, "away", "Away"))
     lines.append("    </td>")
-    lines.append("    <td style=\"vertical-align: top;\">")
+    lines.append('    <td style="vertical-align: top;">')
     lines.extend(get_lineup_table_lines(feed, "home", "Home"))
     lines.append("    </td>")
     lines.append("  </tr>")
     lines.append("</table>")
     lines.append("")
 
-    away_abbreviation = safe_get(game_data, "teams", "away", "abbreviation", default="AWAY")
-    home_abbreviation = safe_get(game_data, "teams", "home", "abbreviation", default="HOME")
+    away_abbreviation = safe_get(
+        game_data, "teams", "away", "abbreviation", default="AWAY"
+    )
+    home_abbreviation = safe_get(
+        game_data, "teams", "home", "abbreviation", default="HOME"
+    )
 
     lines.append("")
     lines.append("## Pitching")
     lines.append("")
     lines.append("<table>")
     lines.append("  <tr>")
-    lines.append("    <td style=\"vertical-align: top;\">")
+    lines.append('    <td style="vertical-align: top;">')
     lines.extend(get_pitching_table_lines(feed, "away", away_abbreviation))
     lines.append("    </td>")
-    lines.append("    <td style=\"vertical-align: top;\">")
+    lines.append('    <td style="vertical-align: top;">')
     lines.extend(get_pitching_table_lines(feed, "home", home_abbreviation))
     lines.append("    </td>")
     lines.append("  </tr>")
@@ -915,9 +942,13 @@ def generate_pitch_by_pitch_report(feed, venue_details=None):
             lines.append(f"=== {half_label} ===")
             lines.append("")
 
-        batter = safe_get(play, "matchup", "batter", "fullName", default="Unknown batter")
+        batter = safe_get(
+            play, "matchup", "batter", "fullName", default="Unknown batter"
+        )
         batter_id = safe_get(play, "matchup", "batter", "id")
-        pitcher = safe_get(play, "matchup", "pitcher", "fullName", default="Unknown pitcher")
+        pitcher = safe_get(
+            play, "matchup", "pitcher", "fullName", default="Unknown pitcher"
+        )
 
         lineup_number = batting_orders.get(batter_id)
         lineup_text = f"#{lineup_number}" if lineup_number else "Unknown lineup slot"
@@ -945,15 +976,12 @@ def generate_pitch_by_pitch_report(feed, venue_details=None):
         extra_result_lines = get_extra_result_lines(play)
 
         for extra_line in extra_result_lines:
-
             lines.append(extra_line)
 
         if final_count:
             lines.append(f"Final count: {final_count}")
 
         batted_ball = get_batted_ball_data(play)
-
-        
 
         if batted_ball:
             ev = batted_ball.get("exit_velocity")
@@ -981,7 +1009,6 @@ def generate_pitch_by_pitch_report(feed, venue_details=None):
 
             lines.append(f"  {get_pitch_line(event_item)}")
 
-
         lines.append("")
 
     return "\n".join(lines)
@@ -998,7 +1025,9 @@ def slugify_team_name(team_name):
 
 
 def get_output_filename(feed):
-    game_date = safe_get(feed, "gameData", "datetime", "officialDate", default="unknown_date")
+    game_date = safe_get(
+        feed, "gameData", "datetime", "officialDate", default="unknown_date"
+    )
     home_team = safe_get(feed, "gameData", "teams", "home", "name", default="home")
     away_team = safe_get(feed, "gameData", "teams", "away", "name", default="away")
 
@@ -1015,6 +1044,16 @@ def main():
 
     games = get_schedule(game_date, home_team_name=home, away_team_name=away)
 
+    print("")
+    print("Would you like:")
+    print("a) 📁 A markdown file saved to the /output folder?")
+    print("b) 🌎 The browser to open the report?")
+    print("c) 🎉 Both, please")
+    output_choice = input("Choose a, b, or c: ").strip().lower()
+
+    if output_choice not in ["a", "b", "c"]:
+        print("Invalid selection. Please choose a, b, or c.")
+
     if not games:
         print("")
         print("No matching games found.")
@@ -1027,7 +1066,9 @@ def main():
         print("")
         print("Multiple matching games found:")
         for index, game in enumerate(games, start=1):
-            print(f"{index}. gamePk {game['gamePk']}: {game['away']} at {game['home']}, {game['venue']}")
+            print(
+                f"{index}. gamePk {game['gamePk']}: {game['away']} at {game['home']}, {game['venue']}"
+            )
 
         selected = input("Select game number: ").strip()
 
@@ -1062,7 +1103,12 @@ def main():
     with open(output_file, "w", encoding="utf-8") as file:
         file.write(report)
 
-    print(f"Report written to {output_file}")
+    if output_choice in ["a", "c"]:
+        print(f"Report written to {output_file}")
+
+    if output_choice in ["b", "c"]:
+        webbrowser.open(output_file.resolve().as_uri())
+        print(f"Report opened in browser: {output_file}")
 
 
 if __name__ == "__main__":
