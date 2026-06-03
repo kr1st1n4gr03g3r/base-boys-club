@@ -18,31 +18,31 @@ MLB_API_BASE = "https://statsapi.mlb.com/api"
 OUTPUT_DIR = Path("output")
 
 POSITION_NUMBERS = {
-    "P": " 1",
-    "C": " 2",
-    "1B": " 3",
-    "2B": " 4",
-    "3B": " 5",
-    "SS": " 6",
-    "LF": " 7",
-    "CF": " 8",
-    "RF": " 9",
-    "DH": " DH",
-    "PH": " PH",
-    "PR": " PR"
+    "P": "1",
+    "C": "2",
+    "1B": "3",
+    "2B": "4",
+    "3B": "5",
+    "SS": "6",
+    "LF": "7",
+    "CF": "8",
+    "RF": "9",
+    "DH": "DH",
+    "PH": "PH",
+    "PR": "PR"
 }
 
 
 POSITION_DESCRIPTION_TO_ABBREVIATION = {
-    "pitcher": " P",
-    "catcher": " C",
-    "first baseman": " 1B",
-    "second baseman": " 2B",
-    "third baseman": " 3B",
-    "shortstop": " SS",
-    "left fielder": " LF",
-    "center fielder": " CF",
-    "right fielder": " RF"
+    "pitcher": "P",
+    "catcher": "C",
+    "first baseman": "1B",
+    "second baseman": "2B",
+    "third baseman": "3B",
+    "shortstop": "SS",
+    "left fielder": "LF",
+    "center fielder": "CF",
+    "right fielder": "RF"
 }
 
 
@@ -962,16 +962,16 @@ def generate_pitch_by_pitch_report(feed, venue_details=None):
             trajectory = batted_ball.get("trajectory")
 
             if ev is not None:
-                lines.append(f"Exit velocity: {format_speed(ev)}")
+                lines.append(f"<sub>Exit velocity: {format_speed(ev)}</sub>")
 
             if distance is not None:
-                lines.append(f"Distance: {format_distance(distance)}")
+                lines.append(f"<sub>Distance: {format_distance(distance)}</sub>")
 
             if angle is not None:
-                lines.append(f"Launch angle: {angle}°")
+                lines.append(f"<sub>Launch angle: {angle}°</sub>")
 
             if trajectory:
-                lines.append(f"Trajectory: {trajectory}")
+                lines.append(f"<sub>Trajectory: {trajectory}</sub>")
 
         lines.append("Pitches:")
 
