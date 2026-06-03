@@ -5,6 +5,7 @@ from zoneinfo import ZoneInfo
 
 import requests
 
+from html_report import write_html_preview
 from unit_formatters import (
     format_distance,
     format_distance_difference,
@@ -876,7 +877,7 @@ def generate_pitch_by_pitch_report(feed, venue_details=None):
         f'<img src="{home_logo_url}" alt="{home_team} logo" width="100">'
     )
 
-    lines.append(f"**Game Date**: {game_date}")
+    lines.append(f'<div class="game-date">Game Date: {game_date}</div>')
     lines.append(f"**Time (ET)**: {game_time_et}")
     lines.append(f"**Timezone**: {game_timezone}")
 
@@ -939,7 +940,7 @@ def generate_pitch_by_pitch_report(feed, venue_details=None):
         if half_label != current_half:
             current_half = half_label
             lines.append("")
-            lines.append(f"=== {half_label} ===")
+            lines.append(f"##=== {half_label} ===")
             lines.append("")
 
         batter = safe_get(
@@ -962,11 +963,14 @@ def generate_pitch_by_pitch_report(feed, venue_details=None):
         final_strikes = safe_get(play, "count", "strikes")
         final_count = format_count(final_balls, final_strikes)
 
+        lines.append("---")
         lines.append(f"**Batter: {batter} ({lineup_text})**")
         lines.append(f"Pitcher: {pitcher}")
+        lines.append("")
 
         if result_shorthand:
-            lines.append(f"Batter result: {event} - {result_shorthand}")
+            lines.append(f"**Batter result**: {event} - {result_shorthand}")
+            lines.append("")
         else:
             lines.append(f"Batter result: {event}")
 
@@ -990,17 +994,16 @@ def generate_pitch_by_pitch_report(feed, venue_details=None):
             trajectory = batted_ball.get("trajectory")
 
             if ev is not None:
-                lines.append(f"<sub>Exit velocity: {format_speed(ev)}</sub>")
+                lines.append(f"Exit velocity: {format_speed(ev)}")
 
             if distance is not None:
-                lines.append(f"<sub>Distance: {format_distance(distance)}</sub>")
+                lines.append(f"Distance: {format_distance(distance)}")
 
             if angle is not None:
-                lines.append(f"<sub>Launch angle: {angle}°</sub>")
+                lines.append(f"Launch angle: {angle}°")
 
             if trajectory:
-                lines.append(f"<sub>Trajectory: {trajectory}</sub>")
-
+                lines.append(f"Trajectory: {trajectory}")
         lines.append("Pitches:")
 
         for event_item in play.get("playEvents", []):
@@ -1046,9 +1049,9 @@ def main():
 
     print("")
     print("Would you like:")
-    print("a) 📁 A markdown file saved to the /output folder?")
-    print("b) 🌎 The browser to open the report?")
-    print("c) 🎉 Both, please")
+    print("a) 📁 Save .md only?")
+    print("b) 🌎 Create/open .html preview only?")
+    print("c) 🎉 Save .md and create/open .html preview")
     output_choice = input("Choose a, b, or c: ").strip().lower()
 
     if output_choice not in ["a", "b", "c"]:
@@ -1107,8 +1110,9 @@ def main():
         print(f"Report written to {output_file}")
 
     if output_choice in ["b", "c"]:
-        webbrowser.open(output_file.resolve().as_uri())
-        print(f"Report opened in browser: {output_file}")
+        html_output_file = write_html_preview(output_file)
+        webbrowser.open(html_output_file.resolve().as_uri())
+        print(f"Report opened in browser: {html_output_file}")
 
 
 if __name__ == "__main__":
