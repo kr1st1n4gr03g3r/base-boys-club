@@ -949,7 +949,7 @@ def get_output_filename(feed):
     home_slug = slugify_team_name(home_team)
     away_slug = slugify_team_name(away_team)
 
-    return f"{away_slug}_at_{home_slug}_{game_date}.md"
+    return f"{game_date}_{away_slug}_at_{home_slug}.md"
 
 
 def main():
