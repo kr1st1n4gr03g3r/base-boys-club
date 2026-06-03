@@ -2,6 +2,8 @@ import requests
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
+from pathlib import Path
+
 from unit_formatters import (
     format_temperature,
     format_speed,
@@ -12,6 +14,115 @@ from unit_formatters import (
 
 
 MLB_API_BASE = "https://statsapi.mlb.com/api"
+
+OUTPUT_DIR = Path("output")
+
+POSITION_NUMBERS = {
+    "P": "1",
+    "C": "2",
+    "1B": "3",
+    "2B": "4",
+    "3B": "5",
+    "SS": "6",
+    "LF": "7",
+    "CF": "8",
+    "RF": "9",
+    "DH": "DH",
+    "PH": "PH",
+    "PR": "PR"
+}
+
+
+POSITION_DESCRIPTION_TO_ABBREVIATION = {
+    "pitcher": "P",
+    "catcher": "C",
+    "first baseman": "1B",
+    "second baseman": "2B",
+    "third baseman": "3B",
+    "shortstop": "SS",
+    "left fielder": "LF",
+    "center fielder": "CF",
+    "right fielder": "RF"
+}
+
+
+def get_position_number(position_code):
+    return POSITION_NUMBERS.get(position_code, position_code)
+
+
+def get_position_from_description(description):
+    if not description:
+        return ""
+
+    description_lower = description.lower()
+
+    for keyword, abbreviation in POSITION_DESCRIPTION_TO_ABBREVIATION.items():
+        if keyword in description_lower:
+            return get_position_number(abbreviation)
+
+    return ""
+
+
+def get_result_type_shorthand(event, description):
+    event_lower = event.lower() if event else ""
+    description_lower = description.lower() if description else ""
+
+    if "triple play" in event_lower or "triple play" in description_lower:
+        return "TP"
+
+    if "double play" in event_lower or "double play" in description_lower:
+        return "DP"
+
+    if "home run" in event_lower:
+        return "HR"
+
+    if "strikeout" in event_lower:
+        if "strikes out looking" in description_lower or "called out on strikes" in description_lower:
+            return "ꓘ"
+        return "K"
+
+    if event_lower in ["flyout", "fly out"]:
+        return "F"
+
+    if event_lower in ["pop out", "popout"]:
+        return "P"
+
+    if event_lower in ["lineout", "line out"]:
+        return "L"
+
+    if event_lower == "groundout":
+        return "G"
+
+    if event_lower == "single":
+        return "B1"
+
+    if event_lower == "double":
+        return "B2"
+
+    if event_lower == "triple":
+        return "B3"
+
+    return ""
+
+
+def get_batter_result_shorthand(play):
+    event = safe_get(play, "result", "event", default="")
+    description = safe_get(play, "result", "description", default="")
+
+    result_code = get_result_type_shorthand(event, description)
+
+    if not result_code:
+        return ""
+
+    if result_code in ["K", "ꓘ", "HR", "DP", "TP"]:
+        return result_code
+
+    position_number = get_position_from_description(description)
+
+    if position_number:
+        return f"{result_code}-{position_number}"
+
+    return result_code
 
 
 def get_schedule(date, home_team_name=None, away_team_name=None):
@@ -169,6 +280,25 @@ def get_team_logo_url(team_id):
     return f"https://www.mlbstatic.com/team-logos/{team_id}.svg"
 
 
+def get_final_score_lines(feed):
+    game_state = safe_get(feed, "gameData", "status", "abstractGameState", default="")
+    detailed_state = safe_get(feed, "gameData", "status", "detailedState", default="")
+
+    home_team = safe_get(feed, "gameData", "teams", "home", "name", default="Home")
+    away_team = safe_get(feed, "gameData", "teams", "away", "name", default="Away")
+
+    home_runs = safe_get(feed, "liveData", "linescore", "teams", "home", "runs")
+    away_runs = safe_get(feed, "liveData", "linescore", "teams", "away", "runs")
+
+    if home_runs is None or away_runs is None:
+        return ["**Final Score**: Not available"]
+
+    if game_state != "Final" and "Final" not in detailed_state:
+        return [f"**Score**: {away_team} {away_runs}, {home_team} {home_runs}"]
+
+    return [f"**Final Score**: {away_team} {away_runs}, {home_team} {home_runs}"]
+
+
 def format_count(balls, strikes):
     if balls is None or strikes is None:
         return ""
@@ -308,10 +438,15 @@ def get_lineup(feed, side):
         game_player_key = f"ID{player_id}" if player_id else None
         game_player_data = game_players.get(game_player_key, {})
 
+        jersey_number = player_data.get("jerseyNumber")
+        if not jersey_number:
+            jersey_number = game_player_data.get("primaryNumber")
+
         player = {
             "id": player_id,
-            "name": person.get("fullName"),
-            "position": position.get("abbreviation"),
+            "name": person.get("fullName", "Unknown player"),
+            "position": position.get("abbreviation") or "Unknown",
+            "jersey_number": jersey_number or "",
             "bats": safe_get(game_player_data, "batSide", "code", default="?"),
             "throws": safe_get(game_player_data, "pitchHand", "code", default="?"),
             "batting_order": batting_order_text,
@@ -329,25 +464,54 @@ def get_lineup(feed, side):
     return lineup
 
 
-def get_lineup_lines(feed, side):
+def get_lineup_table_lines(feed, side, team_label):
     lineup = get_lineup(feed, side)
+
     lines = []
+
+    lines.append("  <table>")
+    lines.append(f"    <tr><th colspan=\"6\">{team_label} Lineup</th></tr>")
+    lines.append("    <tr>")
+    lines.append("      <th>#</th>")
+    lines.append("      <th>Batter</th>")
+    lines.append("      <th>Player Number</th>")
+    lines.append("      <th>Bats</th>")
+    lines.append("      <th>Throws</th>")
+    lines.append("      <th>Pos.</th>")
+    lines.append("    </tr>")
 
     for slot in sorted(lineup):
         players = lineup[slot]
 
         for index, player in enumerate(players):
             name = player.get("name", "Unknown player")
-            position = player.get("position") or "Unknown position"
+            position = player.get("position") or "Unknown"
+            jersey_number = player.get("jersey_number")
             bats = player.get("bats") or "?"
             throws = player.get("throws") or "?"
 
-            handedness = f"Bats: {bats} / Throws: {throws}"
-
             if index == 0:
-                lines.append(f"{slot}. {name} ({position}) - {handedness}")
+                lineup_label = f"{slot}."
             else:
-                lines.append(f"PH/SUB: {name} ({position}) - {handedness}")
+                lineup_label = "PH/SUB"
+
+            if jersey_number:
+                jersey_text = f"#{jersey_number}"
+            else:
+                jersey_text = ""
+
+            lines.append(
+                "    <tr>"
+                f"<td>{lineup_label}</td>"
+                f"<td><strong>{name}</strong></td>"
+                f"<td>{jersey_text}</td>"
+                f"<td>{bats}</td>"
+                f"<td>{throws}</td>"
+                f"<td>{position}</td>"
+                "</tr>"
+            )
+
+    lines.append("  </table>")
 
     return lines
 
@@ -387,7 +551,6 @@ def get_pitching_lines(feed, side):
         era = stats.get("era")
 
         if era is None:
-
             era = safe_get(player_data, "seasonStats", "pitching", "era", default="")
 
         lines.append(
@@ -648,25 +811,19 @@ def generate_pitch_by_pitch_report(feed, venue_details=None):
     lines.append(f"**Timezone**: {game_timezone}")
 
     lines.append(get_game_weather(feed))
+    lines.extend(get_final_score_lines(feed))
     lines.extend(get_ballpark_lines(feed, venue_details))
-
-    away_lineup = get_lineup_lines(feed, "away")
-    home_lineup = get_lineup_lines(feed, "home")
 
     lines.append("")
     lines.append("## Lineups")
     lines.append("")
     lines.append("<table>")
     lines.append("  <tr>")
-    lines.append("    <th>Away Lineup</th>")
-    lines.append("    <th>Home Lineup</th>")
-    lines.append("  </tr>")
-    lines.append("  <tr>")
-    lines.append("    <td>")
-    lines.extend([f"{line}<br>" for line in away_lineup])
+    lines.append("    <td style=\"vertical-align: top;\">")
+    lines.extend(get_lineup_table_lines(feed, "away", "Away"))
     lines.append("    </td>")
-    lines.append("    <td>")
-    lines.extend([f"{line}<br>" for line in home_lineup])
+    lines.append("    <td style=\"vertical-align: top;\">")
+    lines.extend(get_lineup_table_lines(feed, "home", "Home"))
     lines.append("    </td>")
     lines.append("  </tr>")
     lines.append("</table>")
@@ -721,13 +878,19 @@ def generate_pitch_by_pitch_report(feed, venue_details=None):
         event = safe_get(play, "result", "event", default="Unknown result")
         description = safe_get(play, "result", "description", default="")
 
+        result_shorthand = get_batter_result_shorthand(play)
+
         final_balls = safe_get(play, "count", "balls")
         final_strikes = safe_get(play, "count", "strikes")
         final_count = format_count(final_balls, final_strikes)
 
-        lines.append(f"Batter: {batter} ({lineup_text})")
+        lines.append(f"**Batter: {batter} ({lineup_text})**")
         lines.append(f"Pitcher: {pitcher}")
-        lines.append(f"Batter result: {event}")
+
+        if result_shorthand:
+            lines.append(f"Batter result: {event} - {result_shorthand}")
+        else:
+            lines.append(f"Batter result: {event}")
 
         if description:
             lines.append(f"Description: {description}")
@@ -766,6 +929,27 @@ def generate_pitch_by_pitch_report(feed, venue_details=None):
         lines.append("")
 
     return "\n".join(lines)
+
+
+def slugify_team_name(team_name):
+    return (
+        team_name.lower()
+        .replace(".", "")
+        .replace(",", "")
+        .replace("'", "")
+        .replace(" ", "_")
+    )
+
+
+def get_output_filename(feed):
+    game_date = safe_get(feed, "gameData", "datetime", "officialDate", default="unknown_date")
+    home_team = safe_get(feed, "gameData", "teams", "home", "name", default="home")
+    away_team = safe_get(feed, "gameData", "teams", "away", "name", default="away")
+
+    home_slug = slugify_team_name(home_team)
+    away_slug = slugify_team_name(away_team)
+
+    return f"{away_slug}_at_{home_slug}_{game_date}.md"
 
 
 def main():
@@ -815,7 +999,9 @@ def main():
 
     report = generate_pitch_by_pitch_report(feed, venue_details)
 
-    output_file = f"pitch_by_pitch_{game['gamePk']}.md"
+    OUTPUT_DIR.mkdir(exist_ok=True)
+
+    output_file = OUTPUT_DIR / get_output_filename(feed)
 
     with open(output_file, "w", encoding="utf-8") as file:
         file.write(report)

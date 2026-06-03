@@ -21,3 +21,6 @@ Altitude
 
 Wind tunnel behaviour
 ```
+
+`python3 -m venv .venv`
+`source .venv/bin/activate`
