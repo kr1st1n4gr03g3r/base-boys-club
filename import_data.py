@@ -754,7 +754,11 @@ def get_extra_result_lines(play):
     runners = play.get("runners", [])
     lines = []
 
+    batter_id = safe_get(play, "matchup", "batter", "id")
+
     for runner in runners:
+
+        runner_id = safe_get(runner, "details", "runner", "id")
         runner_name = safe_get(runner, "details", "runner", "fullName", default="Unknown runner")
         event = safe_get(runner, "details", "event", default="")
         start = safe_get(runner, "movement", "start", default="")
@@ -762,8 +766,13 @@ def get_extra_result_lines(play):
         is_out = safe_get(runner, "movement", "isOut", default=False)
         rbi = safe_get(runner, "details", "rbi", default=False)
 
+        #Skip the batter's own ordinary result as it is redundant as an "extra" result.
+        if runner_id == batter_id and event in ["Single", "Double", "Triple", "Home Run"]:
+            continue
+
         if not event and not start and not end:
             continue
+        
 
         movement_parts = []
 
