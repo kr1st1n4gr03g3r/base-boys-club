@@ -1,3 +1,4 @@
+import re
 import webbrowser
 from datetime import datetime
 from pathlib import Path
@@ -44,6 +45,18 @@ POSITION_DESCRIPTION_TO_ABBREVIATION = {
     "left fielder": "LF",
     "center fielder": "CF",
     "right fielder": "RF",
+}
+
+POSITION_DESCRIPTION_TO_NUMBER = {
+    "pitcher": "1",
+    "catcher": "2",
+    "first baseman": "3",
+    "second baseman": "4",
+    "third baseman": "5",
+    "shortstop": "6",
+    "left fielder": "7",
+    "center fielder": "8",
+    "right fielder": "9",
 }
 
 
@@ -109,6 +122,49 @@ def get_result_type_shorthand(event, description):
     return ""
 
 
+def get_fielding_sequence_from_description(description):
+    """
+    Extracts scoring sequences from MLB descriptions.
+
+    Example:
+        'grounds out, first baseman Pete Alonso to pitcher Kyle Bradish.'
+        returns '3-1'
+    """
+    if not description:
+        return ""
+
+    description_lower = description.lower()
+
+    found_positions = []
+
+    for position_description, position_number in POSITION_DESCRIPTION_TO_NUMBER.items():
+        pattern = rf"\b{re.escape(position_description)}\b"
+
+        for match in re.finditer(pattern, description_lower):
+            found_positions.append(
+                {
+                    "start": match.start(),
+                    "number": position_number,
+                }
+            )
+
+    if not found_positions:
+        return ""
+
+    found_positions.sort(key=lambda item: item["start"])
+
+    position_numbers = []
+
+    for item in found_positions:
+        if not position_numbers or position_numbers[-1] != item["number"]:
+            position_numbers.append(item["number"])
+
+    if len(position_numbers) < 2:
+        return ""
+
+    return "-".join(position_numbers)
+
+
 def get_batter_result_shorthand(play):
     event = safe_get(play, "result", "event", default="")
     description = safe_get(play, "result", "description", default="")
@@ -121,10 +177,15 @@ def get_batter_result_shorthand(play):
     if result_code in ["K", "ꓘ", "HR", "DP", "TP"]:
         return result_code
 
+    fielding_sequence = get_fielding_sequence_from_description(description)
+
+    if fielding_sequence:
+        return f"{result_code}: {fielding_sequence}"
+
     position_number = get_position_from_description(description)
 
     if position_number:
-        return f"{result_code}-{position_number}"
+        return f"{result_code}: {position_number}"
 
     return result_code
 
