@@ -60,6 +60,10 @@ POSITION_DESCRIPTION_TO_NUMBER = {
 }
 
 
+def html_div(class_name, content):
+    return f'<div class="{class_name}">{content}</div>'
+
+
 def get_position_number(position_code):
     return POSITION_NUMBERS.get(position_code, position_code)
 
@@ -275,7 +279,7 @@ def get_game_weather(feed):
     weather = safe_get(feed, "gameData", "weather", default={})
 
     if not weather:
-        return "Weather: Not available in MLB feed"
+        return html_div("weather-not-available", "Weather: Not available in MLB feed")
 
     condition = weather.get("condition")
     temp = weather.get("temp")
@@ -295,9 +299,9 @@ def get_game_weather(feed):
         parts.append(f"Wind: {formatted_wind}")
 
     if not parts:
-        return "Weather: Not available in MLB feed"
+        return html_div("weather-not-available", "Weather: Not available in MLB feed")
 
-    return "Weather: " + ", ".join(parts)
+    return html_div("weather-condition-temp-wind", "Weather: " + ", ".join(parts))
 
 
 def get_game_feed(game_pk):
@@ -352,12 +356,27 @@ def get_final_score_lines(feed):
     away_runs = safe_get(feed, "liveData", "linescore", "teams", "away", "runs")
 
     if home_runs is None or away_runs is None:
-        return ["**Final Score**: Not available"]
+        return [
+            html_div(
+                "final-score-not-available",
+                "<strong>Final Score</strong>: Not available",
+            )
+        ]
 
     if game_state != "Final" and "Final" not in detailed_state:
-        return [f"**Score**: {away_team} {away_runs}, {home_team} {home_runs}"]
+        return [
+            html_div(
+                "score-away-team-away-runs-home-team-home-runs",
+                f"<strong>Score</strong>: {away_team} {away_runs}, {home_team} {home_runs}",
+            )
+        ]
 
-    return [f"**Final Score**: {away_team} {away_runs}, {home_team} {home_runs}"]
+    return [
+        html_div(
+            "final-score-away-team-away-runs-home-team-home-runs",
+            f"<strong>Final Score</strong>: {away_team} {away_runs}, {home_team} {home_runs}",
+        )
+    ]
 
 
 def format_count(balls, strikes):
@@ -543,7 +562,9 @@ def get_lineup_table_lines(feed, side, team_label):
     lines = []
 
     lines.append("  <table>")
-    lines.append(f'    <tr><th colspan="6">{team_label} Lineup</th></tr>')
+    lines.append(
+        f'    <tr><th colspan="6">{html_div("team-label-lineup", f"{team_label} Lineup")}</th></tr>'
+    )
     lines.append("    <tr>")
     lines.append("      <th>#</th>")
     lines.append("      <th>Batter</th>")
@@ -575,12 +596,12 @@ def get_lineup_table_lines(feed, side, team_label):
 
             lines.append(
                 "    <tr>"
-                f"<td>{lineup_label}</td>"
-                f"<td><strong>{name}</strong></td>"
-                f"<td>{jersey_text}</td>"
-                f"<td>{bats}</td>"
-                f"<td>{throws}</td>"
-                f"<td>{position}</td>"
+                f"<td>{html_div('lineup-label', lineup_label)}</td>"
+                f"<td>{html_div('lineup-player-name', f'<strong>{name}</strong>')}</td>"
+                f"<td>{html_div('jersey-text', jersey_text)}</td>"
+                f"<td>{html_div('bats', bats)}</td>"
+                f"<td>{html_div('throws', throws)}</td>"
+                f"<td>{html_div('position', position)}</td>"
                 "</tr>"
             )
 
@@ -628,32 +649,40 @@ def get_pitching_lines(feed, side):
 
         lines.append(
             "      <tr>"
-            f"<td><strong>{name}</strong></td>"
-            f"<td>{throws}</td>"
-            f"<td>{innings_pitched}</td>"
-            f"<td>{hits}</td>"
-            f"<td>{runs}</td>"
-            f"<td>{earned_runs}</td>"
-            f"<td>{walks}</td>"
-            f"<td>{strikeouts}</td>"
-            f"<td>{home_runs}</td>"
-            f"<td>{era}</td>"
+            f"<td>{html_div('pitcher-name', f'<strong>{name}</strong>')}</td>"
+            f"<td>{html_div('pitcher-throws', throws)}</td>"
+            f"<td>{html_div('innings-pitched', innings_pitched)}</td>"
+            f"<td>{html_div('pitching-hits', hits)}</td>"
+            f"<td>{html_div('pitching-runs', runs)}</td>"
+            f"<td>{html_div('earned-runs', earned_runs)}</td>"
+            f"<td>{html_div('walks', walks)}</td>"
+            f"<td>{html_div('strikeouts', strikeouts)}</td>"
+            f"<td>{html_div('home-runs', home_runs)}</td>"
+            f"<td>{html_div('era', era)}</td>"
             "</tr>"
         )
 
     totals = safe_get(team, "teamStats", "pitching", default={})
 
+    totals_innings_pitched = totals.get("inningsPitched", "")
+    totals_hits = totals.get("hits", "")
+    totals_runs = totals.get("runs", "")
+    totals_earned_runs = totals.get("earnedRuns", "")
+    totals_walks = totals.get("baseOnBalls", "")
+    totals_strikeouts = totals.get("strikeOuts", "")
+    totals_home_runs = totals.get("homeRuns", "")
+
     lines.append(
         "      <tr>"
-        "<td><strong>Totals</strong></td>"
+        f"<td>{html_div('pitching-totals-label', '<strong>Totals</strong>')}</td>"
         "<td></td>"
-        f"<td><strong>{totals.get('inningsPitched', '')}</strong></td>"
-        f"<td><strong>{totals.get('hits', '')}</strong></td>"
-        f"<td><strong>{totals.get('runs', '')}</strong></td>"
-        f"<td><strong>{totals.get('earnedRuns', '')}</strong></td>"
-        f"<td><strong>{totals.get('baseOnBalls', '')}</strong></td>"
-        f"<td><strong>{totals.get('strikeOuts', '')}</strong></td>"
-        f"<td><strong>{totals.get('homeRuns', '')}</strong></td>"
+        f"<td>{html_div('totals-innings-pitched', f'<strong>{totals_innings_pitched}</strong>')}</td>"
+        f"<td>{html_div('totals-hits', f'<strong>{totals_hits}</strong>')}</td>"
+        f"<td>{html_div('totals-runs', f'<strong>{totals_runs}</strong>')}</td>"
+        f"<td>{html_div('totals-earned-runs', f'<strong>{totals_earned_runs}</strong>')}</td>"
+        f"<td>{html_div('totals-walks', f'<strong>{totals_walks}</strong>')}</td>"
+        f"<td>{html_div('totals-strikeouts', f'<strong>{totals_strikeouts}</strong>')}</td>"
+        f"<td>{html_div('totals-home-runs', f'<strong>{totals_home_runs}</strong>')}</td>"
         "<td></td>"
         "</tr>"
     )
@@ -667,7 +696,9 @@ def get_pitching_table_lines(feed, side, team_abbreviation):
     lines = []
 
     lines.append("  <table>")
-    lines.append(f'    <tr><th colspan="10">Pitchers - {team_abbreviation}</th></tr>')
+    lines.append(
+        f'    <tr><th colspan="10">{html_div("team-abbreviation-pitchers", f"Pitchers - {team_abbreviation}")}</th></tr>'
+    )
     lines.append("    <tr>")
     lines.append("      <th>Pitcher</th>")
     lines.append("      <th>Throws</th>")
@@ -696,18 +727,28 @@ def get_pitching_decision_lines(feed):
     parts = []
 
     if winner:
-        parts.append(f"W: {winner}")
+        parts.append(html_div("winner", f"W: {winner}"))
 
     if loser:
-        parts.append(f"L: {loser}")
+        parts.append(html_div("loser", f"L: {loser}"))
 
     if save:
-        parts.append(f"S: {save}")
+        parts.append(html_div("save", f"S: {save}"))
 
     if not parts:
-        return ["**Decisions**: Not available"]
+        return [
+            html_div(
+                "decisions-not-available",
+                "<strong>Decisions</strong>: Not available",
+            )
+        ]
 
-    return [f"**Decisions**: {' | '.join(parts)}"]
+    return [
+        html_div(
+            "decisions-winner-loser-save",
+            "<strong>Decisions</strong>: " + " | ".join(parts),
+        )
+    ]
 
 
 def get_ballpark_lines(feed, venue_details=None):
@@ -736,31 +777,52 @@ def get_ballpark_lines(feed, venue_details=None):
     lines.append("<details>")
     lines.append("<summary>Park Info</summary>")
     lines.append("")
-    lines.append(f"Park: {venue_name}")
+    lines.append(html_div("venue-name", f"Park: {venue_name}"))
     lines.append(
-        "Outfield dimensions: "
-        f"LF Line {format_distance(left_line)}, "
-        f"LF {format_distance(left)}, "
-        f"LC {format_distance(left_center)}, "
-        f"CF {format_distance(center)}, "
-        f"RC {format_distance(right_center)}, "
-        f"RF {format_distance(right)}, "
-        f"RF Line {format_distance(right_line)}"
+        html_div(
+            "outfield-dimensions-left-line-left-left-center-center-right-center-right-right-line",
+            "Outfield dimensions: "
+            f"LF Line {format_distance(left_line)}, "
+            f"LF {format_distance(left)}, "
+            f"LC {format_distance(left_center)}, "
+            f"CF {format_distance(center)}, "
+            f"RC {format_distance(right_center)}, "
+            f"RF {format_distance(right)}, "
+            f"RF Line {format_distance(right_line)}",
+        )
     )
-    lines.append(format_dimension_line("Left Fence", left_line))
-    lines.append(format_dimension_line("Center Fence", center))
-    lines.append(format_dimension_line("Right Fence", right_line))
-    lines.append(f"Wall Asymmetry: {get_wall_asymmetry(field_info)}")
-    lines.append(f"Roof Type: {roof_type}")
-    lines.append(f"Turf Type: {turf_type}")
+    lines.append(
+        html_div("left-fence-left-line", format_dimension_line("Left Fence", left_line))
+    )
+    lines.append(
+        html_div("center-fence-center", format_dimension_line("Center Fence", center))
+    )
+    lines.append(
+        html_div(
+            "right-fence-right-line",
+            format_dimension_line("Right Fence", right_line),
+        )
+    )
+    lines.append(
+        html_div(
+            "wall-asymmetry-field-info",
+            f"Wall Asymmetry: {get_wall_asymmetry(field_info)}",
+        )
+    )
+    lines.append(html_div("roof-type", f"Roof Type: {roof_type}"))
+    lines.append(html_div("turf-type", f"Turf Type: {turf_type}"))
     lines.append("")
-    lines.append(format_dimension_line("leftLine", left_line))
-    lines.append(format_dimension_line("left", left))
-    lines.append(format_dimension_line("leftCenter", left_center))
-    lines.append(format_dimension_line("center", center))
-    lines.append(format_dimension_line("rightCenter", right_center))
-    lines.append(format_dimension_line("right", right))
-    lines.append(format_dimension_line("rightLine", right_line))
+    lines.append(html_div("left-line", format_dimension_line("leftLine", left_line)))
+    lines.append(html_div("left", format_dimension_line("left", left)))
+    lines.append(
+        html_div("left-center", format_dimension_line("leftCenter", left_center))
+    )
+    lines.append(html_div("center", format_dimension_line("center", center)))
+    lines.append(
+        html_div("right-center", format_dimension_line("rightCenter", right_center))
+    )
+    lines.append(html_div("right", format_dimension_line("right", right)))
+    lines.append(html_div("right-line", format_dimension_line("rightLine", right_line)))
 
     lines.append("")
     lines.append("</details>")
@@ -788,20 +850,20 @@ def get_pitch_line(event):
     pieces = []
 
     if pitch_number is not None:
-        pieces.append(f"{pitch_number}.")
+        pieces.append(html_div("pitch-number", f"{pitch_number}."))
 
     if count:
-        pieces.append(f"{count}:")
+        pieces.append(html_div("pitch-count", f"{count}:"))
 
-    pieces.append(description)
+    pieces.append(html_div("pitch-description", description))
 
     if speed_text:
-        pieces.append(speed_text)
+        pieces.append(html_div("pitch-speed", speed_text))
 
     if pitch_type:
-        pieces.append(pitch_type)
+        pieces.append(html_div("pitch-type", pitch_type))
 
-    return " ".join(pieces)
+    return html_div("pitch-line", " ".join(pieces))
 
 
 def get_batted_ball_data(play):
@@ -872,9 +934,19 @@ def get_extra_result_lines(play):
         movement_text = ", ".join(movement_parts)
 
         if movement_text:
-            lines.append(f"Extra result: {runner_name} - {event} ({movement_text})")
+            lines.append(
+                html_div(
+                    "extra-result-runner-name-event-movement-text",
+                    f"Extra result: {runner_name} - {event} ({movement_text})",
+                )
+            )
         else:
-            lines.append(f"Extra result: {runner_name} - {event}")
+            lines.append(
+                html_div(
+                    "extra-result-runner-name-event",
+                    f"Extra result: {runner_name} - {event}",
+                )
+            )
 
     return lines
 
@@ -934,13 +1006,13 @@ def generate_pitch_by_pitch_report(feed, venue_details=None):
     lines = []
     lines.append(
         f"# {away_team} @ {home_team} <br><br>"
-        f'<img src="{away_logo_url}" alt="{away_team} logo" width="100">'
-        f'<img src="{home_logo_url}" alt="{home_team} logo" width="100">'
+        f'<div class="away-logo-url-away-team"><img src="{away_logo_url}" alt="{away_team} logo" width="100"></div>'
+        f'<div class="home-logo-url-home-team"><img src="{home_logo_url}" alt="{home_team} logo" width="100"></div>'
     )
 
     lines.append(f'<div class="game-date">Game Date: {game_date}</div>')
-    lines.append(f"**Time (ET)**: {game_time_et}")
-    lines.append(f"**Timezone**: {game_timezone}")
+    lines.append(f'<div class="game-time">Time (ET): {game_time_et}</div>')
+    lines.append(f'<div class="timezone">Timezone: {game_timezone}</div>')
 
     lines.append(get_game_weather(feed))
     lines.extend(get_final_score_lines(feed))
@@ -1001,7 +1073,7 @@ def generate_pitch_by_pitch_report(feed, venue_details=None):
         if half_label != current_half:
             current_half = half_label
             lines.append("")
-            lines.append(f"##=== {half_label} ===")
+            lines.append(f'##=== <span class="half-label">{half_label}</span> ===')
             lines.append("")
 
         batter = safe_get(
@@ -1025,18 +1097,24 @@ def generate_pitch_by_pitch_report(feed, venue_details=None):
         final_count = format_count(final_balls, final_strikes)
 
         lines.append("---")
-        lines.append(f"**Batter: {batter} ({lineup_text})**")
-        lines.append(f"Pitcher: {pitcher}")
+        lines.append(
+            f'<div class="batter-lineup-text"><strong>Batter: {batter} ({lineup_text})</strong></div>'
+        )
+        lines.append(f'<div class="pitcher">Pitcher: {pitcher}</div>')
         lines.append("")
 
         if result_shorthand:
-            lines.append(f"**Batter result**: {event} - {result_shorthand}")
+            lines.append(
+                f'<div class="batter-result-event-result-shorthand"><strong>Batter result</strong>: {event} - {result_shorthand}</div>'
+            )
             lines.append("")
         else:
-            lines.append(f"Batter result: {event}")
+            lines.append(
+                f'<div class="batter-result-event">Batter result: {event}</div>'
+            )
 
         if description:
-            lines.append(f"Description: {description}")
+            lines.append(f'<div class="description">Description: {description}</div>')
 
         extra_result_lines = get_extra_result_lines(play)
 
@@ -1044,7 +1122,7 @@ def generate_pitch_by_pitch_report(feed, venue_details=None):
             lines.append(extra_line)
 
         if final_count:
-            lines.append(f"Final count: {final_count}")
+            lines.append(f'<div class="final-count">Final count: {final_count}</div>')
 
         batted_ball = get_batted_ball_data(play)
 
@@ -1055,17 +1133,22 @@ def generate_pitch_by_pitch_report(feed, venue_details=None):
             trajectory = batted_ball.get("trajectory")
 
             if ev is not None:
-                lines.append(f"Exit velocity: {format_speed(ev)}")
+                lines.append(
+                    f'<div class="exit-velocity">Exit velocity: {format_speed(ev)}</div>'
+                )
 
             if distance is not None:
-                lines.append(f"Distance: {format_distance(distance)}")
+                lines.append(
+                    f'<div class="distance">Distance: {format_distance(distance)}</div>'
+                )
 
             if angle is not None:
-                lines.append(f"Launch angle: {angle}°")
+                lines.append(f'<div class="launch-angle">Launch angle: {angle}°</div>')
 
             if trajectory:
-                lines.append(f"Trajectory: {trajectory}")
-        lines.append("Pitches:")
+                lines.append(f'<div class="trajectory">Trajectory: {trajectory}</div>')
+
+        lines.append('<div class="pitches-label">Pitches:</div>')
 
         for event_item in play.get("playEvents", []):
             if not event_item.get("isPitch"):
