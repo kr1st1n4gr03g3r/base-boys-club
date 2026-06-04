@@ -6,7 +6,7 @@ from zoneinfo import ZoneInfo
 
 import requests
 
-from html_report import write_html_preview
+from html_report import write_html_preview, write_jinja_html_report
 from unit_formatters import (
     format_distance,
     format_distance_difference,
@@ -62,6 +62,44 @@ POSITION_DESCRIPTION_TO_NUMBER = {
 
 def html_div(class_name, content):
     return f'<div class="{class_name}">{content}</div>'
+
+
+def build_game_context(feed, venue_details=None):
+    if venue_details is None:
+        venue_details = {}
+
+    game_data = feed.get("gameData", {})
+    away_name = safe_get(game_data, "teams", "away", "name", default="Away")
+    away_id = safe_get(game_data, "teams", "away", "id")
+    home_name = safe_get(game_data, "teams", "home", "name", default="Home")
+    home_id = safe_get(game_data, "teams", "home", "id")
+    game_date = safe_get(game_data, "datetime", "officialDate", default="Unknown date")
+    game_time = format_game_time_et(feed)
+    timezone = get_game_timezone(feed, venue_details)
+    home_runs = safe_get(feed, "liveData", "linescore", "teams", "home", "runs")
+    away_runs = safe_get(feed, "liveData", "linescore", "teams", "away", "runs")
+    game_state = safe_get(feed, "gameData", "status", "abstractGameState", default="")
+    weather = safe_get(feed, "gameData", "weather", default={})
+    print(game_data)  # temporary - delete after checking
+    return {
+        "title": {
+            "away_logo": get_team_logo_url(away_id),
+            "home_logo": get_team_logo_url(home_id),
+            "away_name": away_name,
+            "home_name": home_name,
+        },
+        "game": {
+            "date": game_date,
+            "time_et": game_time,
+            "timezone": timezone,
+            "final_score": f"{game_state}: {away_runs} - {home_runs}",
+        },
+        "weather": {
+            "condition": weather.get("condition"),
+            "temp": format_temperature(weather.get("temp")),
+            "wind": parse_wind(weather.get("wind")),
+        },
+    }
 
 
 def get_position_number(position_code):
@@ -1241,6 +1279,13 @@ def main():
     report = generate_pitch_by_pitch_report(feed, venue_details)
 
     OUTPUT_DIR.mkdir(exist_ok=True)
+
+    context = build_game_context(feed, venue_details)
+    jinja_html_file = OUTPUT_DIR / get_output_filename(feed).replace(
+        ".md", ".jinja.html"
+    )
+    write_jinja_html_report(context, jinja_html_file)
+    webbrowser.open(jinja_html_file.resolve().as_uri())
 
     output_file = OUTPUT_DIR / get_output_filename(feed)
 

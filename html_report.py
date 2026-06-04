@@ -1,8 +1,26 @@
+import os
 from pathlib import Path
 
 import markdown
+from jinja2 import Environment, FileSystemLoader
 
 TEMPLATE_FILE = Path("templates/report_template.html")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
+
+env = Environment(
+    loader=FileSystemLoader(TEMPLATE_DIR),
+    trim_blocks=True,  # Removes the first newline after a block
+    lstrip_blocks=True,  # Strips leading spaces/tabs from a block line
+)
+
+
+def write_jinja_html_report(context, html_file):
+    template = env.get_template("jinja_report.html")
+    html = template.render(context)
+    html_path = Path(html_file)
+    html_path.write_text(html, encoding="utf-8")
+    return html_path
 
 
 def get_html_output_file(markdown_file):
