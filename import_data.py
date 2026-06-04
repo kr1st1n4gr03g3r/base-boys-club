@@ -778,8 +778,6 @@ def get_ballpark_lines(feed, venue_details=None):
     lines.append("<summary>Park Info</summary>")
     lines.append("")
     lines.append(html_div("venue-name", f"Park: {venue_name}"))
-    lines.append(html_div("roof-type", f"Roof Type: {roof_type}"))
-    lines.append(html_div("turf-type", f"Turf Type: {turf_type}"))
     lines.append(
         html_div(
             "outfield-dimensions-left-line-left-left-center-center-right-center-right-right-line",
@@ -793,6 +791,26 @@ def get_ballpark_lines(feed, venue_details=None):
             f"RF Line {format_distance(right_line)}",
         )
     )
+    lines.append(
+        html_div("left-fence-left-line", format_dimension_line("Left Fence", left_line))
+    )
+    lines.append(
+        html_div("center-fence-center", format_dimension_line("Center Fence", center))
+    )
+    lines.append(
+        html_div(
+            "right-fence-right-line",
+            format_dimension_line("Right Fence", right_line),
+        )
+    )
+    lines.append(
+        html_div(
+            "wall-asymmetry-field-info",
+            f"Wall Asymmetry: {get_wall_asymmetry(field_info)}",
+        )
+    )
+    lines.append(html_div("roof-type", f"Roof Type: {roof_type}"))
+    lines.append(html_div("turf-type", f"Turf Type: {turf_type}"))
 
     lines.append("")
     lines.append("</details>")
