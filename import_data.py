@@ -1125,6 +1125,7 @@ def generate_pitch_by_pitch_report(feed, venue_details=None):
             lines.append(f'<div class="final-count">Final count: {final_count}</div>')
 
         batted_ball = get_batted_ball_data(play)
+        exit_velocity_lines = []
 
         if batted_ball:
             ev = batted_ball.get("exit_velocity")
@@ -1133,28 +1134,36 @@ def generate_pitch_by_pitch_report(feed, venue_details=None):
             trajectory = batted_ball.get("trajectory")
 
             if ev is not None:
-                lines.append(
-                    f'<div class="exit-velocity">Exit velocity: {format_speed(ev)}</div>'
+                exit_velocity_lines.append(
+                    f'<div class="exit-velocity-value">Exit velocity: {format_speed(ev)}</div>'
                 )
 
             if distance is not None:
-                lines.append(
+                exit_velocity_lines.append(
                     f'<div class="distance">Distance: {format_distance(distance)}</div>'
                 )
 
             if angle is not None:
-                lines.append(f'<div class="launch-angle">Launch angle: {angle}°</div>')
+                exit_velocity_lines.append(
+                    f'<div class="launch-angle">Launch angle: {angle}°</div>'
+                )
 
             if trajectory:
-                lines.append(f'<div class="trajectory">Trajectory: {trajectory}</div>')
+                exit_velocity_lines.append(
+                    f'<div class="trajectory">Trajectory: {trajectory}</div>'
+                )
 
-        lines.append('<div class="pitches-label">Pitches:</div>')
+        exit_velocity_lines.append('<div class="pitches-label">Pitches:</div>')
 
         for event_item in play.get("playEvents", []):
             if not event_item.get("isPitch"):
                 continue
 
-            lines.append(f"  {get_pitch_line(event_item)}")
+            exit_velocity_lines.append(get_pitch_line(event_item))
+
+        lines.append(
+            '<div class="pitch-details">' + "\n".join(exit_velocity_lines) + "</div>"
+        )
 
         lines.append("")
 
