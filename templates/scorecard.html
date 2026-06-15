@@ -72,13 +72,13 @@
                     <th>AVG</th>
                     <th>OPS</th>
                 </tr>
-                {% for player in scorecard.home.players %}
+                {% for slot in scorecard.home.players %}
                 <tr>
-                    <td>{{ player.bat_side }}</td>
-                    <td>{{ player.primary_number }}</td>
-                    <td>{{ player.boxscore_name }}</td>
-                    <td>{{ player.position }}</td>
-                    {% for inning in player.innings %}
+                    <td>{% for p in slot.players %}{{ p.bat_side }}<br>{% endfor %}</td>
+                    <td>{% for p in slot.players %}{{ p.primary_number }}<br>{% endfor %}</td>
+                    <td>{% for p in slot.players %}{{ p.boxscore_name }}<br>{% endfor %}</td>
+                    <td>{% for p in slot.players %}{{ p.position }}<br>{% endfor %}</td>
+                    {% for inning in slot.innings %}
                     <td>
                         <table class="balls-strikes">
                             <tr class="balls">
@@ -127,13 +127,13 @@
                     <th>AVG</th>
                     <th>OPS</th>
                 </tr>
-                {% for player in scorecard.away.players %}
+                {% for slot in scorecard.away.players %}
                 <tr>
-                    <td>{{ player.bat_side }}</td>
-                    <td>{{ player.primary_number }}</td>
-                    <td>{{ player.boxscore_name }}</td>
-                    <td>{{ player.position }}</td>
-                    {% for inning in player.innings %}
+                    <td>{% for p in slot.players %}{{ p.bat_side }}<br>{% endfor %}</td>
+                    <td>{% for p in slot.players %}{{ p.primary_number }}<br>{% endfor %}</td>
+                    <td>{% for p in slot.players %}{{ p.boxscore_name }}<br>{% endfor %}</td>
+                    <td>{% for p in slot.players %}{{ p.position }}<br>{% endfor %}</td>
+                    {% for inning in slot.innings %}
                     <td>
                         <table class="balls-strikes">
                             <tr class="balls">

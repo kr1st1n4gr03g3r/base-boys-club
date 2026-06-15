@@ -136,34 +136,53 @@ def get_count_display(balls, strikes):
 
 
 def build_team_players(team_players, game_players, at_bat_counts):
-    players = []
+    slots = {}
 
     for _, player_data in team_players.items():
         batting_order = player_data.get("battingOrder")
         if not batting_order:
             continue
 
+        batting_order_int = int(batting_order)
+        slot_number = int(str(batting_order)[0])
+
         player_id = safe_get(player_data, "person", "id")
         game_player = game_players.get(f"ID{player_id}", {})
-        player_at_bats = at_bat_counts.get(player_id, {})
 
-        players.append({
-            "lineup_number": int(str(batting_order)[0]),
+        if slot_number not in slots:
+            slots[slot_number] = {"players": []}
+
+        slots[slot_number]["players"].append({
+            "player_id": player_id,
+            "batting_order": batting_order_int,
             "bat_side": safe_get(game_player, "batSide", "code", default=""),
             "primary_number": game_player.get("primaryNumber", ""),
             "boxscore_name": game_player.get("boxscoreName", ""),
             "position": safe_get(game_player, "primaryPosition", "abbreviation", default=""),
-            "innings": [
-                get_count_display(
-                    player_at_bats.get(i, {}).get("balls", 0),
-                    player_at_bats.get(i, {}).get("strikes", 0),
-                )
-                for i in range(1, 10)
-            ],
         })
 
-    players.sort(key=lambda p: p["lineup_number"])
-    return players
+    result = []
+    for slot_number in sorted(slots.keys()):
+        slot = slots[slot_number]
+        slot["players"].sort(key=lambda p: p["batting_order"])
+
+        player_ids = [p["player_id"] for p in slot["players"]]
+        innings = []
+        for i in range(1, 10):
+            inning_data = {}
+            for player_id in player_ids:
+                if player_id in at_bat_counts and i in at_bat_counts[player_id]:
+                    inning_data = at_bat_counts[player_id][i]
+                    break
+            innings.append(get_count_display(
+                inning_data.get("balls", 0),
+                inning_data.get("strikes", 0),
+            ))
+
+        slot["innings"] = innings
+        result.append(slot)
+
+    return result
 
 
 def player_scorecard(feed):
