@@ -78,27 +78,21 @@
                     <td>{{ player.primary_number }}</td>
                     <td>{{ player.boxscore_name }}</td>
                     <td>{{ player.position }}</td>
+                    {% for inning in player.innings %}
                     <td>
                         <table class="balls-strikes">
                             <tr class="balls">
-                                <td>{{ player.count.ball_one }}</td>
-                                <td>{{ player.count.ball_two }}</td>
-                                <td>{{ player.count.ball_three }}</td>
+                                <td>{{ inning.ball_one }}</td>
+                                <td>{{ inning.ball_two }}</td>
+                                <td>{{ inning.ball_three }}</td>
                             </tr>
                             <tr class="strikes">
-                                <td>{{ player.count.strike_one }}</td>
-                                <td>{{ player.count.strike_two }}</td>
+                                <td>{{ inning.strike_one }}</td>
+                                <td>{{ inning.strike_two }}</td>
                             </tr>
                         </table>
                     </td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
+                    {% endfor %}
                     <td></td>
                     <td></td>
                     <td></td>
@@ -139,27 +133,21 @@
                     <td>{{ player.primary_number }}</td>
                     <td>{{ player.boxscore_name }}</td>
                     <td>{{ player.position }}</td>
+                    {% for inning in player.innings %}
                     <td>
                         <table class="balls-strikes">
                             <tr class="balls">
-                                <td>{{ player.count.ball_one }}</td>
-                                <td>{{ player.count.ball_two }}</td>
-                                <td>{{ player.count.ball_three }}</td>
+                                <td>{{ inning.ball_one }}</td>
+                                <td>{{ inning.ball_two }}</td>
+                                <td>{{ inning.ball_three }}</td>
                             </tr>
                             <tr class="strikes">
-                                <td>{{ player.count.strike_one }}</td>
-                                <td>{{ player.count.strike_two }}</td>
+                                <td>{{ inning.strike_one }}</td>
+                                <td>{{ inning.strike_two }}</td>
                             </tr>
                         </table>
                     </td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
+                    {% endfor %}
                     <td></td>
                     <td></td>
                     <td></td>

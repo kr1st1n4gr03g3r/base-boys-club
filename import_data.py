@@ -145,7 +145,7 @@ def build_team_players(team_players, game_players, at_bat_counts):
 
         player_id = safe_get(player_data, "person", "id")
         game_player = game_players.get(f"ID{player_id}", {})
-        inning_1 = at_bat_counts.get(player_id, {}).get(1, {})
+        player_at_bats = at_bat_counts.get(player_id, {})
 
         players.append({
             "lineup_number": int(str(batting_order)[0]),
@@ -153,7 +153,13 @@ def build_team_players(team_players, game_players, at_bat_counts):
             "primary_number": game_player.get("primaryNumber", ""),
             "boxscore_name": game_player.get("boxscoreName", ""),
             "position": safe_get(game_player, "primaryPosition", "abbreviation", default=""),
-            "count": get_count_display(inning_1.get("balls", 0), inning_1.get("strikes", 0)),
+            "innings": [
+                get_count_display(
+                    player_at_bats.get(i, {}).get("balls", 0),
+                    player_at_bats.get(i, {}).get("strikes", 0),
+                )
+                for i in range(1, 10)
+            ],
         })
 
     players.sort(key=lambda p: p["lineup_number"])

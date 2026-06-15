@@ -79,9 +79,14 @@ span.bold {
     font-weight:700;
 }
 
-#ball-one, #ball-two, #ball-three, #strike-one, #strike-two {
+.balls, .strikes {
     font-size:x-small;
-    padding: 2px;
+    padding: 0px;
+    border: 0px;
+}
+
+.balls td, .strikes td {
+    padding: 0px;
     border: 0px;
 }
 
