@@ -56,3 +56,20 @@ sub {
 body {
     background: #134A8E;
 }
+
+.final-score,
+.team-info,
+.team-home,
+.team-away {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+
+.team-logo,
+h1.at {
+    margin: 1em;
+}
