@@ -135,28 +135,8 @@ def get_count_display(balls, strikes):
     }
 
 
-def player_scorecard(feed):
+def build_team_players(team_players, game_players, at_bat_counts):
     players = []
-
-    game_players = safe_get(feed, "gameData", "players", default={})
-    team = safe_get(feed, "liveData", "boxscore", "teams", "home", default={})
-    team_players = team.get("players", {})
-
-    all_plays = safe_get(feed, "liveData", "plays", "allPlays", default=[])
-    at_bat_counts = {}
-
-    for play in all_plays:
-        batter_id = safe_get(play, "matchup", "batter", "id")
-        inning = safe_get(play, "about", "inning")
-        half = safe_get(play, "about", "halfInning")
-        balls = safe_get(play, "count", "balls", default=0)
-        strikes = safe_get(play, "count", "strikes", default=0)
-
-        if batter_id and inning and half == "bottom":
-            if batter_id not in at_bat_counts:
-                at_bat_counts[batter_id] = {}
-            if inning not in at_bat_counts[batter_id]:
-                at_bat_counts[batter_id][inning] = {"balls": balls, "strikes": strikes}
 
     for _, player_data in team_players.items():
         batting_order = player_data.get("battingOrder")
@@ -165,7 +145,6 @@ def player_scorecard(feed):
 
         player_id = safe_get(player_data, "person", "id")
         game_player = game_players.get(f"ID{player_id}", {})
-
         inning_1 = at_bat_counts.get(player_id, {}).get(1, {})
 
         players.append({
@@ -178,9 +157,37 @@ def player_scorecard(feed):
         })
 
     players.sort(key=lambda p: p["lineup_number"])
+    return players
+
+
+def player_scorecard(feed):
+    game_players = safe_get(feed, "gameData", "players", default={})
+
+    all_plays = safe_get(feed, "liveData", "plays", "allPlays", default=[])
+    at_bat_counts = {}
+
+    for play in all_plays:
+        batter_id = safe_get(play, "matchup", "batter", "id")
+        inning = safe_get(play, "about", "inning")
+        balls = safe_get(play, "count", "balls", default=0)
+        strikes = safe_get(play, "count", "strikes", default=0)
+
+        if batter_id and inning:
+            if batter_id not in at_bat_counts:
+                at_bat_counts[batter_id] = {}
+            if inning not in at_bat_counts[batter_id]:
+                at_bat_counts[batter_id][inning] = {"balls": balls, "strikes": strikes}
+
+    home_team_players = safe_get(feed, "liveData", "boxscore", "teams", "home", "players", default={})
+    away_team_players = safe_get(feed, "liveData", "boxscore", "teams", "away", "players", default={})
 
     return {
-        "players": players,
+        "home": {
+            "players": build_team_players(home_team_players, game_players, at_bat_counts),
+        },
+        "away": {
+            "players": build_team_players(away_team_players, game_players, at_bat_counts),
+        },
         # "innings": {},
         # "player_stats": {},
     }

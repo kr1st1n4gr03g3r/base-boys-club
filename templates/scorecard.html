@@ -47,18 +47,15 @@
                 </tr>
             </table>
         </section>
-        <section id="scorecard">
+        <button id="toggle-btn" onclick="toggleTeam()">Switch to Away</button>
+
+        <section id="home-scorecard">
             <table>
                 <tr>
-                    <!-- batSide, code-->
                     <th>✋🏻</th>
-                    <!-- primaryNumber -->
                     <th>#</th>
-                    <!-- boxscoreName -->
                     <th>Line Up</th>
-                    <!-- primaryPosition, name -->
                     <th>Pos</th>
-                    <!-- Hard coded Innings -->
                     <th>1</th>
                     <th>2</th>
                     <th>3</th>
@@ -68,20 +65,14 @@
                     <th>7</th>
                     <th>8</th>
                     <th>9</th>
-                    <!-- atBats -->
                     <th>AB</th>
-                    <!-- total runs -->
                     <th>R</th>
-                    <!-- total hits -->
                     <th>H</th>
-                    <!-- RBI -->
                     <th>RBI</th>
-                    <!-- Average -->
                     <th>AVG</th>
-                    <!-- On Base Plus Slugging -->
                     <th>OPS</th>
                 </tr>
-                {% for player in scorecard.players %}
+                {% for player in scorecard.home.players %}
                 <tr>
                     <td>{{ player.bat_side }}</td>
                     <td>{{ player.primary_number }}</td>
@@ -90,40 +81,112 @@
                     <td>
                         <table class="balls-strikes">
                             <tr class="balls">
-                                <td id="ball-one">{{ player.count.ball_one }}</td>
-                                <td id="ball-two">{{ player.count.ball_two }}</td>
-                                <td id="ball-three">{{ player.count.ball_three }}</td>
+                                <td>{{ player.count.ball_one }}</td>
+                                <td>{{ player.count.ball_two }}</td>
+                                <td>{{ player.count.ball_three }}</td>
                             </tr>
                             <tr class="strikes">
-                                <td id="strike-one">{{ player.count.strike_one }}</td>
-                                <td id="strike-two">{{ player.count.strike_two }}</td>
+                                <td>{{ player.count.strike_one }}</td>
+                                <td>{{ player.count.strike_two }}</td>
                             </tr>
                         </table>
                     </td>
-                    <td>Clement</td>
-                    <td>Clement</td>
-                    <td>Clement</td>
-                    <td>Clement</td>
-                    <td>Clement</td>
-                    <td>Clement</td>
-                    <td>Clement</td>
-                    <td>Clement</td>
-                    <!-- atBats -->
-                    <td>5</td>
-                    <!-- total runs -->
-                    <td>1</td>
-                    <!-- total hits -->
-                    <td>2</td>
-                    <!-- RBI -->
-                    <td>1</td>
-                    <!-- AVG -->
-                    <td>.306</td>
-                    <!-- On Base Plus Slugging -->
-                    <td>.792</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
                 </tr>
                 {% endfor %}
             </table>
         </section>
+
+        <section id="away-scorecard" style="display:none">
+            <table>
+                <tr>
+                    <th>✋🏻</th>
+                    <th>#</th>
+                    <th>Line Up</th>
+                    <th>Pos</th>
+                    <th>1</th>
+                    <th>2</th>
+                    <th>3</th>
+                    <th>4</th>
+                    <th>5</th>
+                    <th>6</th>
+                    <th>7</th>
+                    <th>8</th>
+                    <th>9</th>
+                    <th>AB</th>
+                    <th>R</th>
+                    <th>H</th>
+                    <th>RBI</th>
+                    <th>AVG</th>
+                    <th>OPS</th>
+                </tr>
+                {% for player in scorecard.away.players %}
+                <tr>
+                    <td>{{ player.bat_side }}</td>
+                    <td>{{ player.primary_number }}</td>
+                    <td>{{ player.boxscore_name }}</td>
+                    <td>{{ player.position }}</td>
+                    <td>
+                        <table class="balls-strikes">
+                            <tr class="balls">
+                                <td>{{ player.count.ball_one }}</td>
+                                <td>{{ player.count.ball_two }}</td>
+                                <td>{{ player.count.ball_three }}</td>
+                            </tr>
+                            <tr class="strikes">
+                                <td>{{ player.count.strike_one }}</td>
+                                <td>{{ player.count.strike_two }}</td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                {% endfor %}
+            </table>
+        </section>
+
+        <script>
+            function toggleTeam() {
+                const home = document.getElementById('home-scorecard');
+                const away = document.getElementById('away-scorecard');
+                const btn = document.getElementById('toggle-btn');
+                if (away.style.display === 'none') {
+                    away.style.display = 'block';
+                    home.style.display = 'none';
+                    btn.textContent = 'Switch to Home';
+                } else {
+                    home.style.display = 'block';
+                    away.style.display = 'none';
+                    btn.textContent = 'Switch to Away';
+                }
+            }
+        </script>
     </main>
 </body>
 
