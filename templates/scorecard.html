@@ -47,6 +47,83 @@
                 </tr>
             </table>
         </section>
+        <section id="scorecard">
+            <table>
+                <tr>
+                    <!-- batSide, code-->
+                    <th>✋🏻</th>
+                    <!-- primaryNumber -->
+                    <th>#</th>
+                    <!-- boxscoreName -->
+                    <th>Line Up</th>
+                    <!-- primaryPosition, name -->
+                    <th>Pos</th>
+                    <!-- Hard coded Innings -->
+                    <th>1</th>
+                    <th>2</th>
+                    <th>3</th>
+                    <th>4</th>
+                    <th>5</th>
+                    <th>6</th>
+                    <th>7</th>
+                    <th>8</th>
+                    <th>9</th>
+                    <!-- atBats -->
+                    <th>AB</th>
+                    <!-- total runs -->
+                    <th>R</th>
+                    <!-- total hits -->
+                    <th>H</th>
+                    <!-- RBI -->
+                    <th>RBI</th>
+                    <!-- Average -->
+                    <th>AVG</th>
+                    <!-- On Base Plus Slugging -->
+                    <th>OPS</th>
+                </tr>
+                {% for player in scorecard.players %}
+                <tr>
+                    <td>{{ player.bat_side }}</td>
+                    <td>{{ player.primary_number }}</td>
+                    <td>{{ player.boxscore_name }}</td>
+                    <td>{{ player.position }}</td>
+                    <td>
+                        <table class="balls-strikes">
+                            <tr class="balls">
+                                <td id="ball-one">{{ player.count.ball_one }}</td>
+                                <td id="ball-two">{{ player.count.ball_two }}</td>
+                                <td id="ball-three">{{ player.count.ball_three }}</td>
+                            </tr>
+                            <tr class="strikes">
+                                <td id="strike-one">{{ player.count.strike_one }}</td>
+                                <td id="strike-two">{{ player.count.strike_two }}</td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td>Clement</td>
+                    <td>Clement</td>
+                    <td>Clement</td>
+                    <td>Clement</td>
+                    <td>Clement</td>
+                    <td>Clement</td>
+                    <td>Clement</td>
+                    <td>Clement</td>
+                    <!-- atBats -->
+                    <td>5</td>
+                    <!-- total runs -->
+                    <td>1</td>
+                    <!-- total hits -->
+                    <td>2</td>
+                    <!-- RBI -->
+                    <td>1</td>
+                    <!-- AVG -->
+                    <td>.306</td>
+                    <!-- On Base Plus Slugging -->
+                    <td>.792</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </section>
     </main>
 </body>
 

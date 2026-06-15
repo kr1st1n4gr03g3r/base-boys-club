@@ -4,6 +4,7 @@ body {
     margin: 0;
     padding: 24px;
     font-family: "IBM Plex Sans", sans-serif;
+    font-size: small;
     background: #f6f6f6;
     color: #222;
 }
@@ -76,4 +77,14 @@ h1.at {
 
 span.bold {
     font-weight:700;
+}
+
+#ball-one, #ball-two, #ball-three, #strike-one, #strike-two {
+    font-size:x-small;
+    padding: 2px;
+    border: 0px;
+}
+
+table.balls-strikes {
+    margin: 0px;
 }
