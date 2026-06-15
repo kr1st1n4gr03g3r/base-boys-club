@@ -73,3 +73,7 @@ body {
 h1.at {
     margin: 1em;
 }
+
+span.bold {
+    font-weight:700;
+}

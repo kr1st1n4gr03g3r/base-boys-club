@@ -16,7 +16,7 @@ env = Environment(
 
 
 def write_jinja_html_report(context, html_file):
-    template = env.get_template("jinja_report.html")
+    template = env.get_template("scorecard.html")
     html = template.render(context)
     html_path = Path(html_file)
     html_path.write_text(html, encoding="utf-8")

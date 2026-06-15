@@ -1,6 +1,6 @@
 import re
 import webbrowser
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -74,12 +74,38 @@ def build_game_context(feed, venue_details=None):
     home_name = safe_get(game_data, "teams", "home", "name", default="Home")
     home_id = safe_get(game_data, "teams", "home", "id")
     game_date = safe_get(game_data, "datetime", "officialDate", default="Unknown date")
-    game_time = format_game_time_et(feed)
+    game_first_pitch = safe_get(feed, "gameData", "gameInfo", "firstPitch")
     timezone = get_game_timezone(feed, venue_details)
     home_runs = safe_get(feed, "liveData", "linescore", "teams", "home", "runs")
     away_runs = safe_get(feed, "liveData", "linescore", "teams", "away", "runs")
     game_state = safe_get(feed, "gameData", "status", "abstractGameState", default="")
     weather = safe_get(feed, "gameData", "weather", default={})
+    attendance = safe_get(feed, "gameData", "gameInfo", "attendance")
+    game_end_time = safe_get(feed, "gameData", "gameInfo", "endDateTime")
+    game_duration = safe_get(feed, "gameData", "gameInfo", "gameDurationMinutes")
+
+    # Formatting for header
+    if game_first_pitch and game_duration:
+        start = datetime.fromisoformat(game_first_pitch.replace("Z", "+00:00"))
+        end = start + timedelta(minutes=int(game_duration))
+        eastern_start = start.astimezone(ZoneInfo("America/Toronto"))
+        eastern_end = end.astimezone(ZoneInfo("America/Toronto"))
+        game_first_pitch = eastern_start.strftime("%I:%M %p %Z").lstrip("0")
+        game_end_time = eastern_end.strftime("%I:%M %p %Z").lstrip("0")
+        hours, mins = divmod(int(game_duration), 60)
+        game_duration = f"{hours}h {mins}m"
+
+    # Win / Lose
+    if away_runs > home_runs:
+        away_runs = f"{away_runs} WIN"
+
+    if home_runs > away_runs:
+        home_runs = f"{home_runs} WIN"
+
+    # Add a comma for attendance number
+    if attendance:
+        attendance = f"{attendance:,}"
+
     print(game_data)  # temporary - delete after checking
     return {
         "title": {
@@ -90,9 +116,12 @@ def build_game_context(feed, venue_details=None):
         },
         "game": {
             "date": game_date,
-            "time_et": game_time,
+            "game_first_pitch": game_first_pitch,
+            "game_end_time": game_end_time,
+            "game_duration": game_duration,
             "timezone": timezone,
             "final_score": f"{game_state}: {away_runs} - {home_runs}",
+            "attendance": attendance,
         },
         "weather": {
             "condition": weather.get("condition"),
