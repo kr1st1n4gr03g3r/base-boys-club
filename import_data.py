@@ -1,3 +1,6 @@
+import csv
+import io
+import json
 import re
 import webbrowser
 from datetime import datetime, timedelta
@@ -15,6 +18,7 @@ from unit_formatters import (
 )
 
 MLB_API_BASE = "https://statsapi.mlb.com/api"
+BASEBALL_SAVANT_BASE = "https://baseballsavant.mlb.com"
 
 OUTPUT_DIR = Path("output")
 
@@ -447,6 +451,160 @@ def get_venue_details(venue_id):
     return venues[0]
 
 
+def parse_float(value):
+    if value in (None, ""):
+        return None
+
+    try:
+        return float(value)
+    except ValueError:
+        return None
+
+
+def fetch_savant_csv(path, params):
+    response = requests.get(f"{BASEBALL_SAVANT_BASE}{path}", params=params, timeout=30)
+    response.raise_for_status()
+    text = response.text.lstrip("﻿")
+    return list(csv.DictReader(io.StringIO(text)))
+
+
+def get_batting_expected_stats(season):
+    """xBA, xSLG, xwOBA for qualified batters in a season."""
+    rows = fetch_savant_csv(
+        "/leaderboard/expected_statistics",
+        {"type": "batter", "year": season, "position": "", "team": "", "min": "1", "csv": "true"},
+    )
+
+    return {
+        int(row["player_id"]): {
+            "xba": parse_float(row.get("est_ba")),
+            "xslg": parse_float(row.get("est_slg")),
+            "xwoba": parse_float(row.get("est_woba")),
+        }
+        for row in rows
+    }
+
+
+def get_pitching_expected_stats(season):
+    """xERA for pitchers in a season."""
+    rows = fetch_savant_csv(
+        "/leaderboard/expected_statistics",
+        {"type": "pitcher", "year": season, "position": "", "team": "", "min": "1", "csv": "true"},
+    )
+
+    return {
+        int(row["player_id"]): {"xera": parse_float(row.get("xera"))}
+        for row in rows
+    }
+
+
+def get_batted_ball_metrics(season):
+    """Barrel%, hard-hit%, and average exit velocity for a season."""
+    rows = fetch_savant_csv(
+        "/leaderboard/custom",
+        {
+            "year": season,
+            "type": "batter",
+            "min": "1",
+            "selections": "barrel_batted_rate,hard_hit_percent,exit_velocity_avg",
+            "chart": "false",
+            "x": "barrel_batted_rate",
+            "y": "barrel_batted_rate",
+            "r": "no",
+            "chartType": "beeswarm",
+            "csv": "true",
+        },
+    )
+
+    return {
+        int(row["player_id"]): {
+            "barrel_pct": parse_float(row.get("barrel_batted_rate")),
+            "hard_hit_pct": parse_float(row.get("hard_hit_percent")),
+            "avg_ev": parse_float(row.get("exit_velocity_avg")),
+        }
+        for row in rows
+    }
+
+
+def get_sprint_speed_metrics(season):
+    """Sprint speed (ft/sec) for a season."""
+    rows = fetch_savant_csv(
+        "/leaderboard/sprint_speed",
+        {"year": season, "position": "", "team": "", "min": "0", "csv": "true"},
+    )
+
+    return {
+        int(row["player_id"]): {"sprint_speed": parse_float(row.get("sprint_speed"))}
+        for row in rows
+    }
+
+
+def get_plate_discipline_metrics(season):
+    """Whiff%, chase%, and other swing-decision/plate-discipline rates for batters."""
+    rows = fetch_savant_csv(
+        "/leaderboard/custom",
+        {
+            "year": season,
+            "type": "batter",
+            "min": "1",
+            "selections": "whiff_percent,oz_swing_percent,z_swing_percent,swing_percent,iz_contact_percent,oz_swing_miss_percent,z_swing_miss_percent",
+            "chart": "false",
+            "x": "whiff_percent",
+            "y": "whiff_percent",
+            "r": "no",
+            "chartType": "beeswarm",
+            "csv": "true",
+        },
+    )
+
+    return {
+        int(row["player_id"]): {
+            "whiff_pct": parse_float(row.get("whiff_percent")),
+            "chase_pct": parse_float(row.get("oz_swing_percent")),
+            "zone_swing_pct": parse_float(row.get("z_swing_percent")),
+            "swing_pct": parse_float(row.get("swing_percent")),
+            "zone_contact_pct": parse_float(row.get("iz_contact_percent")),
+            "chase_whiff_pct": parse_float(row.get("oz_swing_miss_percent")),
+            "zone_whiff_pct": parse_float(row.get("z_swing_miss_percent")),
+        }
+        for row in rows
+    }
+
+
+def get_statcast_metrics(season):
+    """
+    Combines xBA, xSLG, xwOBA, xERA, barrel%, hard-hit%, avg EV, sprint
+    speed, and plate-discipline rates into a single dict keyed by player_id.
+    """
+    metrics = {}
+
+    sources = [
+        get_batting_expected_stats(season),
+        get_pitching_expected_stats(season),
+        get_batted_ball_metrics(season),
+        get_sprint_speed_metrics(season),
+        get_plate_discipline_metrics(season),
+    ]
+
+    for source in sources:
+        for player_id, values in source.items():
+            metrics.setdefault(player_id, {}).update(values)
+
+    return metrics
+
+
+def attach_statcast_metrics(feed):
+    """Adds a 'statcast' dict to every player in feed['gameData']['players']."""
+    season = safe_get(feed, "gameData", "game", "season")
+    statcast_by_player_id = get_statcast_metrics(season) if season else {}
+
+    players = safe_get(feed, "gameData", "players", default={})
+
+    for player_data in players.values():
+        player_id = player_data.get("id")
+        player_data["statcast"] = statcast_by_player_id.get(player_id, {})
+
+
 def safe_get(dictionary, *keys, default=None):
     current = dictionary
 
@@ -636,11 +794,16 @@ def get_output_filename(feed):
 
 
 def main():
-    game_date = input("Game date (YYYY-MM-DD): ").strip()
-    home = input("Home team, e.g. Orioles: ").strip()
-    away = input("Away team, e.g. Blue Jays: ").strip()
+    date_or_game_pk = input(
+        "Game date (YYYY-MM-DD) or baseball game number: "
+    ).strip()
 
-    games = get_schedule(game_date, home_team_name=home, away_team_name=away)
+    games = []
+
+    if not date_or_game_pk.isdigit():
+        home = input("Home team, e.g. Orioles: ").strip()
+        away = input("Away team, e.g. Blue Jays: ").strip()
+        games = get_schedule(date_or_game_pk, home_team_name=home, away_team_name=away)
 
     print("")
     print("Would you like:")
@@ -652,39 +815,44 @@ def main():
     if output_choice not in ["a", "b", "c"]:
         print("Invalid selection. Please choose a, b, or c.")
 
-    if not games:
-        print("")
-        print("No matching games found.")
-        print("Try using full team names, for example:")
-        print("  Home: Baltimore Orioles")
-        print("  Away: Toronto Blue Jays")
-        return
-
-    if len(games) > 1:
-        print("")
-        print("Multiple matching games found:")
-        for index, game in enumerate(games, start=1):
-            print(
-                f"{index}. gamePk {game['gamePk']}: {game['away']} at {game['home']}, {game['venue']}"
-            )
-
-        selected = input("Select game number: ").strip()
-
-        try:
-            selected_index = int(selected) - 1
-            game = games[selected_index]
-        except (ValueError, IndexError):
-            print("Invalid selection.")
-            return
+    if date_or_game_pk.isdigit():
+        game_pk = int(date_or_game_pk)
     else:
-        game = games[0]
+        if not games:
+            print("")
+            print("No matching games found.")
+            print("Try using full team names, for example:")
+            print("  Home: Baltimore Orioles")
+            print("  Away: Toronto Blue Jays")
+            return
 
-    print("")
-    print(f"Found gamePk: {game['gamePk']}")
-    print(f"{game['away']} at {game['home']}, {game['venue']}")
-    print("")
+        if len(games) > 1:
+            print("")
+            print("Multiple matching games found:")
+            for index, game in enumerate(games, start=1):
+                print(
+                    f"{index}. gamePk {game['gamePk']}: {game['away']} at {game['home']}, {game['venue']}"
+                )
 
-    feed = get_game_feed(game["gamePk"])
+            selected = input("Select game number: ").strip()
+
+            try:
+                selected_index = int(selected) - 1
+                game = games[selected_index]
+            except (ValueError, IndexError):
+                print("Invalid selection.")
+                return
+        else:
+            game = games[0]
+
+        print("")
+        print(f"Found gamePk: {game['gamePk']}")
+        print(f"{game['away']} at {game['home']}, {game['venue']}")
+        print("")
+
+        game_pk = game["gamePk"]
+
+    feed = get_game_feed(game_pk)
 
     venue_id = safe_get(feed, "gameData", "venue", "id")
     venue_details = {}
@@ -692,7 +860,14 @@ def main():
     if venue_id:
         venue_details = get_venue_details(venue_id)
 
+    attach_statcast_metrics(feed)
+
     OUTPUT_DIR.mkdir(exist_ok=True)
+
+    json_output_file = OUTPUT_DIR / get_output_filename(feed).replace(".md", ".json")
+    with open(json_output_file, "w", encoding="utf-8") as file:
+        json.dump(feed, file, indent=2)
+    print(f"Full game JSON written to {json_output_file}")
 
     context = build_game_context(feed, venue_details)
     context["scorecard"] = player_scorecard(feed)
