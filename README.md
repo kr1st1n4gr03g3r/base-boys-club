@@ -1,18 +1,20 @@
 # ⚾ Base Boys Club
 
-A Python project that pulls completed MLB game data from the MLB Stats API and generates baseball game reports for analysis.
-
-The project creates:
-
-- 📄 Markdown reports for saving, archiving, and feeding into AI tools later
-- 🌎 HTML previews for easier browser-based visual review
-- 📊 Pitch-by-pitch breakdowns, lineups, pitching totals, weather, park info, scoring plays, and more
+A Python project that pulls completed MLB game data from various MLB Stats APIs and generates various baseball game dashboards for analysis.
 
 ## What This Project Does
 
-`base-boys-club` uses the public MLB Stats API to fetch completed game data and generate a detailed report.
+`base-boys-club` pulls completed game data from three public APIs and stores it as JSON. That JSON is then used to power dashboards and analysis tools.
 
-The report currently includes:
+- **MLB Stats API** (`statsapi.mlb.com`) — game feed, lineups, pitching, play-by-play
+- **Baseball Savant / Statcast** (`baseballsavant.mlb.com`) — pitch-level Statcast data and season metrics (exit velocity, launch angle, spin rate, plate location, and more)
+- **MLB Static** (`mlbstatic.com`) — team logos
+
+**First iteration:** a per-game player scorecard dashboard.
+
+**Second feature:** additional analysis and views built from the same JSON source — one data pull, multiple uses.
+
+The data currently includes:
 
 - Game date and time
 - Teams and final score
@@ -26,6 +28,7 @@ The report currently includes:
 - Extra runner results
 - Pitch-by-pitch plate appearance data
 - Batted-ball data such as exit velocity, distance, launch angle, and trajectory
+- Statcast metrics
 
 ## Project Structure
 
@@ -33,15 +36,14 @@ The report currently includes:
 base-boys-club/
 ├── import_data.py
 ├── unit_formatters.py
-├── html_report.py
+├── scorecard.py
 ├── templates/
-│   └── report_template.html
+│   └── scorecard.html
 ├── styles/
 │   └── report.css
 ├── output/
 ├── requirements.txt
 ├── requirements-dev.txt
-├── .gitignore
 └── README.md
 ```
 
@@ -77,7 +79,6 @@ Recommended `requirements.txt`:
 
 ```txt
 requests
-markdown
 ```
 
 Recommended `requirements-dev.txt`:
@@ -97,75 +98,34 @@ python3 import_data.py
 You will be prompted for:
 
 ```text
-Game date (YYYY-MM-DD):
 Home team, e.g. Orioles:
 Away team, e.g. Blue Jays:
+```
+
+A second option is to also provide a game date:
+
+```text
+Home team, e.g. Orioles:
+Away team, e.g. Blue Jays:
+Game date (YYYY-MM-DD):
 ```
 
 Example:
 
 ```text
-Game date (YYYY-MM-DD): 2026-05-31
 Home team, e.g. Orioles: orioles
 Away team, e.g. Blue Jays: jays
+Game date (YYYY-MM-DD): 2026-05-31
 ```
-
-The program then generates a report in the `output/` folder.
-
-## Output Options
-
-The CLI can ask what kind of output you want:
-
-```text
-Would you like:
-a) 📁 A markdown file saved to the /output folder?
-b) 🌎 The browser to open the report?
-c) 🎉 Both, please
-```
-
-Recommended use:
-
-- Choose `a` when you want to save a Markdown report for later AI analysis
-- Choose `b` when you are testing the browser preview
-- Choose `c` when you want both
-
-## Markdown vs HTML
-
-The project separates the report into two useful formats.
-
-### 📄 Markdown
-
-The Markdown report is the main archive format.
-
-It is useful for:
-
-- Saving completed game reports
-- Reading the raw report text
-- Feeding the report into AI later
-- Keeping the data portable and simple
-
-### 🌎 HTML
-
-The HTML report is for visual inspection.
-
-It is useful for:
-
-- Browser preview
-- Styling with CSS
-- Better readability while analyzing games
-- Testing layout ideas
-
-The HTML preview is generated from the Markdown report using `html_report.py`.
 
 ## Useful Testing Shortcut
 
 You can create a file called `test_input.txt`:
 
 ```text
-2026-05-31
 orioles
 jays
-b
+2026-05-31
 ```
 
 Then run:
@@ -190,21 +150,3 @@ To check for Python syntax errors:
 ```bash
 python3 -m py_compile import_data.py
 ```
-
-## Git Ignore Suggestions
-
-The project should ignore generated files, local environment files, and Python clutter:
-
-```gitignore
-output/
-.DS_Store
-__pycache__/
-*.pyc
-.venv/
-```
-
-## Notes
-
-This project is designed for completed MLB games, not live games.
-
-The Markdown output is intended to remain useful for analysis, while the HTML output can become more visual and styled over time.
