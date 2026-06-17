@@ -9,6 +9,7 @@ from zoneinfo import ZoneInfo
 
 import requests
 
+from enrichment import run_enrichment
 from html_report import write_html_preview, write_jinja_html_report
 from unit_formatters import (
     format_distance,
@@ -862,12 +863,17 @@ def main():
 
     attach_statcast_metrics(feed)
 
+    print("Running enrichment blocks A, B, C, F, I...")
+    counter = run_enrichment(feed)
+
     OUTPUT_DIR.mkdir(exist_ok=True)
 
     json_output_file = OUTPUT_DIR / get_output_filename(feed).replace(".md", ".json")
     with open(json_output_file, "w", encoding="utf-8") as file:
         json.dump(feed, file, indent=2)
     print(f"Full game JSON written to {json_output_file}")
+
+    counter.print_summary()
 
     context = build_game_context(feed, venue_details)
     context["scorecard"] = player_scorecard(feed)
