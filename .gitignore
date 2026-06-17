@@ -16,3 +16,6 @@ __pycache__/
 /output/*.md
 /output/*.json
 .cache/
+notes.md
+/.cache/*
+/.cache/

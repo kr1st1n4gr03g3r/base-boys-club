@@ -18,30 +18,31 @@ The data currently includes:
 
 - Game date and time
 - Teams and final score
-- Weather
-- Ballpark information
+- Weather and ballpark information
 - Team logos
-- Lineups
-- Pitching totals
-- Pitching decisions
-- At-bat results
-- Extra runner results
-- Pitch-by-pitch plate appearance data
-- Batted-ball data such as exit velocity, distance, launch angle, and trajectory
-- Statcast metrics
+- Lineups and batting order
+- Statcast metrics: xBA, xSLG, xwOBA, xERA, barrel%, hard-hit%, avg exit velocity, sprint speed
+- Plate discipline: whiff%, chase%, zone swing%, zone contact%, and more
+- Platoon splits (vs RHP / vs LHP) for hitters and pitchers
+- Recent form (last 15 and last 30 days)
+- Batter-vs-pitcher history (career and current season)
+- Pitcher workload: last 5 starts, pitch counts, days rest, IL context
+- Bullpen usage: recent appearances, pitches per day, back-to-back flags
 
 ## Project Structure
 
 ```text
 base-boys-club/
-├── import_data.py
+├── import_data.py      # main entry point
+├── enrichment.py       # per-game enrichment (MLB Stats API blocks)
+├── html_report.py      # Jinja2 HTML scorecard renderer
 ├── unit_formatters.py
-├── scorecard.py
 ├── templates/
 │   └── scorecard.html
 ├── styles/
 │   └── report.css
-├── output/
+├── output/             # generated .json and .html files
+├── .cache/             # disk cache for API responses (gitignored)
 ├── requirements.txt
 ├── requirements-dev.txt
 └── README.md
@@ -75,13 +76,15 @@ python3 -m pip install -r requirements-dev.txt
 
 ## Dependencies
 
-Recommended `requirements.txt`:
+`requirements.txt`:
 
 ```txt
 requests
+jinja2
+pybaseball
 ```
 
-Recommended `requirements-dev.txt`:
+`requirements-dev.txt`:
 
 ```txt
 ruff
@@ -95,46 +98,40 @@ From the project root:
 python3 import_data.py
 ```
 
-You will be prompted for:
+You will be prompted for a game date or a direct MLB game number (gamePk):
 
 ```text
-Home team, e.g. Orioles:
-Away team, e.g. Blue Jays:
+Game date (YYYY-MM-DD) or baseball game number:
 ```
 
-A second option is to also provide a game date:
+**By game number** (fastest):
 
 ```text
-Home team, e.g. Orioles:
-Away team, e.g. Blue Jays:
-Game date (YYYY-MM-DD):
+Game date (YYYY-MM-DD) or baseball game number: 824750
 ```
 
-Example:
+**By date** (prompts for home and away team):
 
 ```text
-Home team, e.g. Orioles: orioles
-Away team, e.g. Blue Jays: jays
-Game date (YYYY-MM-DD): 2026-05-31
+Game date (YYYY-MM-DD) or baseball game number: 2026-05-31
+Home team, e.g. Orioles: Orioles
+Away team, e.g. Blue Jays: Blue Jays
 ```
+
+The program writes two files to `output/`:
+
+- `<date>_<away>_at_<home>.json` — full enriched game data
+- `<date>_<away>_at_<home>.html` — Jinja2 scorecard, opened automatically in the browser
+
+API responses are cached in `.cache/` for one hour so re-runs are fast.
 
 ## Useful Testing Shortcut
 
-You can create a file called `test_input.txt`:
-
-```text
-orioles
-jays
-2026-05-31
-```
-
-Then run:
+You can pipe input to skip the prompts:
 
 ```bash
-python3 import_data.py < test_input.txt
+echo "824750" | python3 import_data.py
 ```
-
-This feeds the prompts automatically while testing.
 
 ## Development Tools
 

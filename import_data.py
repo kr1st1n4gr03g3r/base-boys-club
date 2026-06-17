@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfo
 import requests
 
 from enrichment import run_enrichment
-from html_report import write_html_preview, write_jinja_html_report
+from html_report import write_jinja_html_report
 from unit_formatters import (
     format_distance,
     format_distance_difference,
@@ -791,7 +791,7 @@ def get_output_filename(feed):
     home_slug = slugify_team_name(home_team)
     away_slug = slugify_team_name(away_team)
 
-    return f"{game_date}_{away_slug}_at_{home_slug}.md"
+    return f"{game_date}_{away_slug}_at_{home_slug}"
 
 
 def main():
@@ -805,16 +805,6 @@ def main():
         home = input("Home team, e.g. Orioles: ").strip()
         away = input("Away team, e.g. Blue Jays: ").strip()
         games = get_schedule(date_or_game_pk, home_team_name=home, away_team_name=away)
-
-    print("")
-    print("Would you like:")
-    print("a) 📁 Save .md only?")
-    print("b) 🌎 Create/open .html preview only?")
-    print("c) 🎉 Save .md and create/open .html preview")
-    output_choice = input("Choose a, b, or c: ").strip().lower()
-
-    if output_choice not in ["a", "b", "c"]:
-        print("Invalid selection. Please choose a, b, or c.")
 
     if date_or_game_pk.isdigit():
         game_pk = int(date_or_game_pk)
@@ -868,7 +858,8 @@ def main():
 
     OUTPUT_DIR.mkdir(exist_ok=True)
 
-    json_output_file = OUTPUT_DIR / get_output_filename(feed).replace(".md", ".json")
+    base_name = get_output_filename(feed)
+    json_output_file = OUTPUT_DIR / f"{base_name}.json"
     with open(json_output_file, "w", encoding="utf-8") as file:
         json.dump(feed, file, indent=2)
     print(f"Full game JSON written to {json_output_file}")
@@ -877,24 +868,10 @@ def main():
 
     context = build_game_context(feed, venue_details)
     context["scorecard"] = player_scorecard(feed)
-    jinja_html_file = OUTPUT_DIR / get_output_filename(feed).replace(
-        ".md", ".jinja.html"
-    )
-    write_jinja_html_report(context, jinja_html_file)
-    webbrowser.open(jinja_html_file.resolve().as_uri())
-
-    output_file = OUTPUT_DIR / get_output_filename(feed)
-
-    # with open(output_file, "w", encoding="utf-8") as file:
-    #     file.write(report)
-
-    if output_choice in ["a", "c"]:
-        print(f"Report written to {output_file}")
-
-    if output_choice in ["b", "c"]:
-        html_output_file = write_html_preview(output_file)
-        webbrowser.open(html_output_file.resolve().as_uri())
-        print(f"Report opened in browser: {html_output_file}")
+    html_file = OUTPUT_DIR / f"{base_name}.html"
+    write_jinja_html_report(context, html_file)
+    webbrowser.open(html_file.resolve().as_uri())
+    print(f"Scorecard opened in browser: {html_file}")
 
 
 if __name__ == "__main__":
