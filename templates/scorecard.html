@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>⚾️ Base Boys Club</title>
+    <link rel="stylesheet" href="../styles/report.css">
+</head>
+
+<body>
+    <main id="game-report" class="report">
+        <section class="report-content">
+            <header class="game-header">
+                <h1 class="final-score">{{ game.final_score }}</h1>
+                <div class="team-info">
+
+
+                    <div class="team-away">
+                        <img class="team-logo" src="{{ title.away_logo }}" alt="{{ title.away_name }} logo" width="80">
+                        <h2>{{ title.away_name }}</h2>
+                    </div>
+                    <h1 class="at">@</h1>
+                    <div class="team-home">
+                        <img class="team-logo" src="{{ title.home_logo }}" alt="{{ title.home_name }} logo" width="80">
+                        <h2>{{ title.home_name }}</h2>
+                    </div>
+                </div>
+            </header>
+        </section>
+        <section>
+            <table>
+                <tr>
+                    <td></td>
+                    <td><span class="bold">Start Time: </span> {{ game.game_first_pitch }}</td>
+                    <td><span class="bold">Attendance: </span> {{game.attendance}} </td>
+                </tr>
+                <tr>
+                    <td><span class="bold">Date: </span> {{ game.date }}</td>
+                    <td><span class="bold">End Time: </span>{{game.game_end_time}}</td>
+                    <td><span class="bold">Wind: </span>{{ weather.wind }}</td>
+                </tr>
+                <tr>
+                    <td><span class="bold">Scorer:</span> <a
+                            href="https://github.com/kr1st1n4gr03g3r">kr1st1n4gr03g3r</a></td>
+                    <td><span class="bold">Length of Game: </span>{{game.game_duration}}</td>
+                    <td><span class="bold">Weather: </span>{{ weather.condition }} · {{ weather.temp }}</td>
+                </tr>
+            </table>
+        </section>
+        <button id="toggle-btn" onclick="toggleTeam()">Switch to Away</button>
+
+        <section id="home-scorecard">
+            <table>
+                <tr>
+                    <th>✋🏻</th>
+                    <th>#</th>
+                    <th>Line Up</th>
+                    <th>Pos</th>
+                    <th>1</th>
+                    <th>2</th>
+                    <th>3</th>
+                    <th>4</th>
+                    <th>5</th>
+                    <th>6</th>
+                    <th>7</th>
+                    <th>8</th>
+                    <th>9</th>
+                    <th>AB</th>
+                    <th>R</th>
+                    <th>H</th>
+                    <th>RBI</th>
+                    <th>AVG</th>
+                    <th>OPS</th>
+                </tr>
+                {% for slot in scorecard.home.players %}
+                <tr>
+                    <td>{% for p in slot.players %}{{ p.bat_side }}<br>{% endfor %}</td>
+                    <td>{% for p in slot.players %}{{ p.primary_number }}<br>{% endfor %}</td>
+                    <td>{% for p in slot.players %}{{ p.boxscore_name }}<br>{% endfor %}</td>
+                    <td>{% for p in slot.players %}{{ p.position }}<br>{% endfor %}</td>
+                    {% for inning in slot.innings %}
+                    <td>
+                        <table class="balls-strikes">
+                            <tr class="balls">
+                                <td>{{ inning.ball_one }}</td>
+                                <td>{{ inning.ball_two }}</td>
+                                <td>{{ inning.ball_three }}</td>
+                            </tr>
+                            <tr class="strikes">
+                                <td>{{ inning.strike_one }}</td>
+                                <td>{{ inning.strike_two }}</td>
+                            </tr>
+                        </table>
+                    </td>
+                    {% endfor %}
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                {% endfor %}
+            </table>
+        </section>
+
+        <section id="away-scorecard" style="display:none">
+            <table>
+                <tr>
+                    <th>✋🏻</th>
+                    <th>#</th>
+                    <th>Line Up</th>
+                    <th>Pos</th>
+                    <th>1</th>
+                    <th>2</th>
+                    <th>3</th>
+                    <th>4</th>
+                    <th>5</th>
+                    <th>6</th>
+                    <th>7</th>
+                    <th>8</th>
+                    <th>9</th>
+                    <th>AB</th>
+                    <th>R</th>
+                    <th>H</th>
+                    <th>RBI</th>
+                    <th>AVG</th>
+                    <th>OPS</th>
+                </tr>
+                {% for slot in scorecard.away.players %}
+                <tr>
+                    <td>{% for p in slot.players %}{{ p.bat_side }}<br>{% endfor %}</td>
+                    <td>{% for p in slot.players %}{{ p.primary_number }}<br>{% endfor %}</td>
+                    <td>{% for p in slot.players %}{{ p.boxscore_name }}<br>{% endfor %}</td>
+                    <td>{% for p in slot.players %}{{ p.position }}<br>{% endfor %}</td>
+                    {% for inning in slot.innings %}
+                    <td>
+                        <table class="balls-strikes">
+                            <tr class="balls">
+                                <td>{{ inning.ball_one }}</td>
+                                <td>{{ inning.ball_two }}</td>
+                                <td>{{ inning.ball_three }}</td>
+                            </tr>
+                            <tr class="strikes">
+                                <td>{{ inning.strike_one }}</td>
+                                <td>{{ inning.strike_two }}</td>
+                            </tr>
+                        </table>
+                    </td>
+                    {% endfor %}
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                {% endfor %}
+            </table>
+        </section>
+
+        <script>
+            function toggleTeam() {
+                const home = document.getElementById('home-scorecard');
+                const away = document.getElementById('away-scorecard');
+                const btn = document.getElementById('toggle-btn');
+                if (away.style.display === 'none') {
+                    away.style.display = 'block';
+                    home.style.display = 'none';
+                    btn.textContent = 'Switch to Home';
+                } else {
+                    home.style.display = 'block';
+                    away.style.display = 'none';
+                    btn.textContent = 'Switch to Away';
+                }
+            }
+        </script>
+    </main>
+</body>
+
+
+</html>

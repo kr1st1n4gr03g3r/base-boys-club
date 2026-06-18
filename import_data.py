@@ -1,21 +1,25 @@
+import csv
+import io
+import json
 import re
 import webbrowser
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import requests
 
-from html_report import write_html_preview, write_jinja_html_report
+from enrichment import run_enrichment
+from html_report import write_jinja_html_report
 from unit_formatters import (
     format_distance,
     format_distance_difference,
-    format_speed,
     format_temperature,
     format_wind_speed,
 )
 
 MLB_API_BASE = "https://statsapi.mlb.com/api"
+BASEBALL_SAVANT_BASE = "https://baseballsavant.mlb.com"
 
 OUTPUT_DIR = Path("output")
 
@@ -60,10 +64,6 @@ POSITION_DESCRIPTION_TO_NUMBER = {
 }
 
 
-def html_div(class_name, content):
-    return f'<div class="{class_name}">{content}</div>'
-
-
 def build_game_context(feed, venue_details=None):
     if venue_details is None:
         venue_details = {}
@@ -74,12 +74,31 @@ def build_game_context(feed, venue_details=None):
     home_name = safe_get(game_data, "teams", "home", "name", default="Home")
     home_id = safe_get(game_data, "teams", "home", "id")
     game_date = safe_get(game_data, "datetime", "officialDate", default="Unknown date")
-    game_time = format_game_time_et(feed)
+    game_first_pitch = safe_get(feed, "gameData", "gameInfo", "firstPitch")
     timezone = get_game_timezone(feed, venue_details)
     home_runs = safe_get(feed, "liveData", "linescore", "teams", "home", "runs")
     away_runs = safe_get(feed, "liveData", "linescore", "teams", "away", "runs")
     game_state = safe_get(feed, "gameData", "status", "abstractGameState", default="")
     weather = safe_get(feed, "gameData", "weather", default={})
+    attendance = safe_get(feed, "gameData", "gameInfo", "attendance")
+    game_end_time = safe_get(feed, "gameData", "gameInfo", "endDateTime")
+    game_duration = safe_get(feed, "gameData", "gameInfo", "gameDurationMinutes")
+
+    # Formatting for header
+    if game_first_pitch and game_duration:
+        start = datetime.fromisoformat(game_first_pitch.replace("Z", "+00:00"))
+        end = start + timedelta(minutes=int(game_duration))
+        eastern_start = start.astimezone(ZoneInfo("America/Toronto"))
+        eastern_end = end.astimezone(ZoneInfo("America/Toronto"))
+        game_first_pitch = eastern_start.strftime("%I:%M %p %Z").lstrip("0")
+        game_end_time = eastern_end.strftime("%I:%M %p %Z").lstrip("0")
+        hours, mins = divmod(int(game_duration), 60)
+        game_duration = f"{hours}h {mins}m"
+
+    # Add a comma for attendance number
+    if attendance:
+        attendance = f"{attendance:,}"
+
     print(game_data)  # temporary - delete after checking
     return {
         "title": {
@@ -90,15 +109,117 @@ def build_game_context(feed, venue_details=None):
         },
         "game": {
             "date": game_date,
-            "time_et": game_time,
+            "game_first_pitch": game_first_pitch,
+            "game_end_time": game_end_time,
+            "game_duration": game_duration,
             "timezone": timezone,
             "final_score": f"{game_state}: {away_runs} - {home_runs}",
+            "attendance": attendance,
         },
         "weather": {
             "condition": weather.get("condition"),
             "temp": format_temperature(weather.get("temp")),
             "wind": parse_wind(weather.get("wind")),
         },
+    }
+
+
+def get_count_display(balls, strikes):
+    ball_one = "⬛️" if balls >= 1 else "⬜️"
+    ball_two = "⬛️" if balls >= 2 else "⬜️"
+    ball_three = "⬛️" if balls >= 3 else "⬜️"
+    strike_one = "⬛️" if strikes >= 1 else "⬜️"
+    strike_two = "⬛️" if strikes >= 2 else "⬜️"
+
+    return {
+        "ball_one": ball_one,
+        "ball_two": ball_two,
+        "ball_three": ball_three,
+        "strike_one": strike_one,
+        "strike_two": strike_two,
+    }
+
+
+def build_team_players(team_players, game_players, at_bat_counts):
+    slots = {}
+
+    for _, player_data in team_players.items():
+        batting_order = player_data.get("battingOrder")
+        if not batting_order:
+            continue
+
+        batting_order_int = int(batting_order)
+        slot_number = int(str(batting_order)[0])
+
+        player_id = safe_get(player_data, "person", "id")
+        game_player = game_players.get(f"ID{player_id}", {})
+
+        if slot_number not in slots:
+            slots[slot_number] = {"players": []}
+
+        slots[slot_number]["players"].append({
+            "player_id": player_id,
+            "batting_order": batting_order_int,
+            "bat_side": safe_get(game_player, "batSide", "code", default=""),
+            "primary_number": game_player.get("primaryNumber", ""),
+            "boxscore_name": game_player.get("boxscoreName", ""),
+            "position": safe_get(game_player, "primaryPosition", "abbreviation", default=""),
+        })
+
+    result = []
+    for slot_number in sorted(slots.keys()):
+        slot = slots[slot_number]
+        slot["players"].sort(key=lambda p: p["batting_order"])
+
+        player_ids = [p["player_id"] for p in slot["players"]]
+        innings = []
+        for i in range(1, 10):
+            inning_data = {}
+            for player_id in player_ids:
+                if player_id in at_bat_counts and i in at_bat_counts[player_id]:
+                    inning_data = at_bat_counts[player_id][i]
+                    break
+            innings.append(get_count_display(
+                inning_data.get("balls", 0),
+                inning_data.get("strikes", 0),
+            ))
+
+        slot["innings"] = innings
+        result.append(slot)
+
+    return result
+
+
+def player_scorecard(feed):
+    game_players = safe_get(feed, "gameData", "players", default={})
+
+    all_plays = safe_get(feed, "liveData", "plays", "allPlays", default=[])
+    at_bat_counts = {}
+
+    for play in all_plays:
+        batter_id = safe_get(play, "matchup", "batter", "id")
+        inning = safe_get(play, "about", "inning")
+        balls = safe_get(play, "count", "balls", default=0)
+        strikes = safe_get(play, "count", "strikes", default=0)
+
+        if batter_id and inning:
+            if batter_id not in at_bat_counts:
+                at_bat_counts[batter_id] = {}
+            if inning not in at_bat_counts[batter_id]:
+                at_bat_counts[batter_id][inning] = {"balls": balls, "strikes": strikes}
+
+    home_team_players = safe_get(feed, "liveData", "boxscore", "teams", "home", "players", default={})
+    away_team_players = safe_get(feed, "liveData", "boxscore", "teams", "away", "players", default={})
+
+    return {
+        "home": {
+            "players": build_team_players(home_team_players, game_players, at_bat_counts),
+        },
+        "away": {
+            "players": build_team_players(away_team_players, game_players, at_bat_counts),
+        },
+        # "innings": {},
+        # "player_stats": {},
     }
 
 
@@ -308,40 +429,6 @@ def parse_wind(wind_text):
     return speed_text
 
 
-def get_game_weather(feed):
-    """
-    Pulls weather from the MLB game feed when available.
-    Outputs:
-      Weather: Sunny, 21°C / 69°F, Wind: 10 kph / 6 mph, R To L
-    """
-    weather = safe_get(feed, "gameData", "weather", default={})
-
-    if not weather:
-        return html_div("weather-not-available", "Weather: Not available in MLB feed")
-
-    condition = weather.get("condition")
-    temp = weather.get("temp")
-    wind = weather.get("wind")
-
-    parts = []
-
-    if condition:
-        parts.append(condition)
-
-    if temp:
-        parts.append(format_temperature(temp))
-
-    formatted_wind = parse_wind(wind)
-
-    if formatted_wind:
-        parts.append(f"Wind: {formatted_wind}")
-
-    if not parts:
-        return html_div("weather-not-available", "Weather: Not available in MLB feed")
-
-    return html_div("weather-condition-temp-wind", "Weather: " + ", ".join(parts))
-
-
 def get_game_feed(game_pk):
     url = f"{MLB_API_BASE}/v1.1/game/{game_pk}/feed/live"
     response = requests.get(url, timeout=30)
@@ -365,6 +452,160 @@ def get_venue_details(venue_id):
     return venues[0]
 
 
+def parse_float(value):
+    if value in (None, ""):
+        return None
+
+    try:
+        return float(value)
+    except ValueError:
+        return None
+
+
+def fetch_savant_csv(path, params):
+    response = requests.get(f"{BASEBALL_SAVANT_BASE}{path}", params=params, timeout=30)
+    response.raise_for_status()
+    text = response.text.lstrip("﻿")
+    return list(csv.DictReader(io.StringIO(text)))
+
+
+def get_batting_expected_stats(season):
+    """xBA, xSLG, xwOBA for qualified batters in a season."""
+    rows = fetch_savant_csv(
+        "/leaderboard/expected_statistics",
+        {"type": "batter", "year": season, "position": "", "team": "", "min": "1", "csv": "true"},
+    )
+
+    return {
+        int(row["player_id"]): {
+            "xba": parse_float(row.get("est_ba")),
+            "xslg": parse_float(row.get("est_slg")),
+            "xwoba": parse_float(row.get("est_woba")),
+        }
+        for row in rows
+    }
+
+
+def get_pitching_expected_stats(season):
+    """xERA for pitchers in a season."""
+    rows = fetch_savant_csv(
+        "/leaderboard/expected_statistics",
+        {"type": "pitcher", "year": season, "position": "", "team": "", "min": "1", "csv": "true"},
+    )
+
+    return {
+        int(row["player_id"]): {"xera": parse_float(row.get("xera"))}
+        for row in rows
+    }
+
+
+def get_batted_ball_metrics(season):
+    """Barrel%, hard-hit%, and average exit velocity for a season."""
+    rows = fetch_savant_csv(
+        "/leaderboard/custom",
+        {
+            "year": season,
+            "type": "batter",
+            "min": "1",
+            "selections": "barrel_batted_rate,hard_hit_percent,exit_velocity_avg",
+            "chart": "false",
+            "x": "barrel_batted_rate",
+            "y": "barrel_batted_rate",
+            "r": "no",
+            "chartType": "beeswarm",
+            "csv": "true",
+        },
+    )
+
+    return {
+        int(row["player_id"]): {
+            "barrel_pct": parse_float(row.get("barrel_batted_rate")),
+            "hard_hit_pct": parse_float(row.get("hard_hit_percent")),
+            "avg_ev": parse_float(row.get("exit_velocity_avg")),
+        }
+        for row in rows
+    }
+
+
+def get_sprint_speed_metrics(season):
+    """Sprint speed (ft/sec) for a season."""
+    rows = fetch_savant_csv(
+        "/leaderboard/sprint_speed",
+        {"year": season, "position": "", "team": "", "min": "0", "csv": "true"},
+    )
+
+    return {
+        int(row["player_id"]): {"sprint_speed": parse_float(row.get("sprint_speed"))}
+        for row in rows
+    }
+
+
+def get_plate_discipline_metrics(season):
+    """Whiff%, chase%, and other swing-decision/plate-discipline rates for batters."""
+    rows = fetch_savant_csv(
+        "/leaderboard/custom",
+        {
+            "year": season,
+            "type": "batter",
+            "min": "1",
+            "selections": "whiff_percent,oz_swing_percent,z_swing_percent,swing_percent,iz_contact_percent,oz_swing_miss_percent,z_swing_miss_percent",
+            "chart": "false",
+            "x": "whiff_percent",
+            "y": "whiff_percent",
+            "r": "no",
+            "chartType": "beeswarm",
+            "csv": "true",
+        },
+    )
+
+    return {
+        int(row["player_id"]): {
+            "whiff_pct": parse_float(row.get("whiff_percent")),
+            "chase_pct": parse_float(row.get("oz_swing_percent")),
+            "zone_swing_pct": parse_float(row.get("z_swing_percent")),
+            "swing_pct": parse_float(row.get("swing_percent")),
+            "zone_contact_pct": parse_float(row.get("iz_contact_percent")),
+            "chase_whiff_pct": parse_float(row.get("oz_swing_miss_percent")),
+            "zone_whiff_pct": parse_float(row.get("z_swing_miss_percent")),
+        }
+        for row in rows
+    }
+
+
+def get_statcast_metrics(season):
+    """
+    Combines xBA, xSLG, xwOBA, xERA, barrel%, hard-hit%, avg EV, sprint
+    speed, and plate-discipline rates into a single dict keyed by player_id.
+    """
+    metrics = {}
+
+    sources = [
+        get_batting_expected_stats(season),
+        get_pitching_expected_stats(season),
+        get_batted_ball_metrics(season),
+        get_sprint_speed_metrics(season),
+        get_plate_discipline_metrics(season),
+    ]
+
+    for source in sources:
+        for player_id, values in source.items():
+            metrics.setdefault(player_id, {}).update(values)
+
+    return metrics
+
+
+def attach_statcast_metrics(feed):
+    """Adds a 'statcast' dict to every player in feed['gameData']['players']."""
+    season = safe_get(feed, "gameData", "game", "season")
+    statcast_by_player_id = get_statcast_metrics(season) if season else {}
+
+    players = safe_get(feed, "gameData", "players", default={})
+
+    for player_data in players.values():
+        player_id = player_data.get("id")
+        player_data["statcast"] = statcast_by_player_id.get(player_id, {})
+
+
 def safe_get(dictionary, *keys, default=None):
     current = dictionary
 
@@ -381,40 +622,6 @@ def get_team_logo_url(team_id):
         return ""
 
     return f"https://www.mlbstatic.com/team-logos/{team_id}.svg"
-
-
-def get_final_score_lines(feed):
-    game_state = safe_get(feed, "gameData", "status", "abstractGameState", default="")
-    detailed_state = safe_get(feed, "gameData", "status", "detailedState", default="")
-
-    home_team = safe_get(feed, "gameData", "teams", "home", "name", default="Home")
-    away_team = safe_get(feed, "gameData", "teams", "away", "name", default="Away")
-
-    home_runs = safe_get(feed, "liveData", "linescore", "teams", "home", "runs")
-    away_runs = safe_get(feed, "liveData", "linescore", "teams", "away", "runs")
-
-    if home_runs is None or away_runs is None:
-        return [
-            html_div(
-                "final-score-not-available",
-                "<strong>Final Score</strong>: Not available",
-            )
-        ]
-
-    if game_state != "Final" and "Final" not in detailed_state:
-        return [
-            html_div(
-                "score-away-team-away-runs-home-team-home-runs",
-                f"<strong>Score</strong>: {away_team} {away_runs}, {home_team} {home_runs}",
-            )
-        ]
-
-    return [
-        html_div(
-            "final-score-away-team-away-runs-home-team-home-runs",
-            f"<strong>Final Score</strong>: {away_team} {away_runs}, {home_team} {home_runs}",
-        )
-    ]
 
 
 def format_count(balls, strikes):
@@ -534,449 +741,6 @@ def get_wall_asymmetry(field_info):
     return "; ".join(notes)
 
 
-def get_lineup(feed, side):
-    """
-    side should be "home" or "away".
-
-    Returns lineup grouped by batting order slot.
-    Pinch hitters and substitutes stay inside the original lineup slot.
-    """
-    team = safe_get(feed, "liveData", "boxscore", "teams", side, default={})
-    players = team.get("players", {})
-    game_players = safe_get(feed, "gameData", "players", default={})
-
-    lineup = {}
-
-    for player_key, player_data in players.items():
-        batting_order = player_data.get("battingOrder")
-
-        if not batting_order:
-            continue
-
-        batting_order_text = str(batting_order)
-
-        try:
-            slot = int(batting_order_text[0])
-            order_within_slot = int(batting_order_text)
-        except ValueError:
-            continue
-
-        person = player_data.get("person", {})
-        position = player_data.get("position", {})
-        player_id = person.get("id")
-
-        game_player_key = f"ID{player_id}" if player_id else None
-        game_player_data = game_players.get(game_player_key, {})
-
-        jersey_number = player_data.get("jerseyNumber")
-        if not jersey_number:
-            jersey_number = game_player_data.get("primaryNumber")
-
-        player = {
-            "id": player_id,
-            "name": person.get("fullName", "Unknown player"),
-            "position": position.get("abbreviation") or "Unknown",
-            "jersey_number": jersey_number or "",
-            "bats": safe_get(game_player_data, "batSide", "code", default="?"),
-            "throws": safe_get(game_player_data, "pitchHand", "code", default="?"),
-            "batting_order": batting_order_text,
-            "order_within_slot": order_within_slot,
-        }
-
-        if slot not in lineup:
-            lineup[slot] = []
-
-        lineup[slot].append(player)
-
-    for slot in lineup:
-        lineup[slot].sort(key=lambda player: player["order_within_slot"])
-
-    return lineup
-
-
-def get_lineup_table_lines(feed, side, team_label):
-    lineup = get_lineup(feed, side)
-
-    lines = []
-
-    lines.append("  <table>")
-    lines.append(
-        f'    <tr><th colspan="6">{html_div("team-label-lineup", f"{team_label} Lineup")}</th></tr>'
-    )
-    lines.append("    <tr>")
-    lines.append("      <th>#</th>")
-    lines.append("      <th>Batter</th>")
-    lines.append("      <th>Player Number</th>")
-    lines.append("      <th>Bats</th>")
-    lines.append("      <th>Throws</th>")
-    lines.append("      <th>Pos.</th>")
-    lines.append("    </tr>")
-
-    for slot in sorted(lineup):
-        players = lineup[slot]
-
-        for index, player in enumerate(players):
-            name = player.get("name", "Unknown player")
-            position = player.get("position") or "Unknown"
-            jersey_number = player.get("jersey_number")
-            bats = player.get("bats") or "?"
-            throws = player.get("throws") or "?"
-
-            if index == 0:
-                lineup_label = f"{slot}."
-            else:
-                lineup_label = "PH/SUB"
-
-            if jersey_number:
-                jersey_text = f"#{jersey_number}"
-            else:
-                jersey_text = ""
-
-            lines.append(
-                "    <tr>"
-                f"<td>{html_div('lineup-label', lineup_label)}</td>"
-                f"<td>{html_div('lineup-player-name', f'<strong>{name}</strong>')}</td>"
-                f"<td>{html_div('jersey-text', jersey_text)}</td>"
-                f"<td>{html_div('bats', bats)}</td>"
-                f"<td>{html_div('throws', throws)}</td>"
-                f"<td>{html_div('position', position)}</td>"
-                "</tr>"
-            )
-
-    lines.append("  </table>")
-
-    return lines
-
-
-def get_pitching_lines(feed, side):
-    """
-    side should be "home" or "away".
-
-    Returns HTML table rows for pitchers used in the game.
-    Uses game totals from liveData.boxscore.
-    """
-    team = safe_get(feed, "liveData", "boxscore", "teams", side, default={})
-    players = team.get("players", {})
-    pitcher_ids = team.get("pitchers", [])
-    game_players = safe_get(feed, "gameData", "players", default={})
-
-    lines = []
-
-    for pitcher_id in pitcher_ids:
-        player_key = f"ID{pitcher_id}"
-        player_data = players.get(player_key, {})
-        game_player_data = game_players.get(player_key, {})
-
-        person = player_data.get("person", {})
-        stats = safe_get(player_data, "stats", "pitching", default={})
-
-        name = person.get("fullName", "Unknown pitcher")
-        throws = safe_get(game_player_data, "pitchHand", "code", default="?")
-
-        innings_pitched = stats.get("inningsPitched", "")
-        hits = stats.get("hits", "")
-        runs = stats.get("runs", "")
-        earned_runs = stats.get("earnedRuns", "")
-        walks = stats.get("baseOnBalls", "")
-        strikeouts = stats.get("strikeOuts", "")
-        home_runs = stats.get("homeRuns", "")
-        era = stats.get("era")
-
-        if era is None:
-            era = safe_get(player_data, "seasonStats", "pitching", "era", default="")
-
-        lines.append(
-            "      <tr>"
-            f"<td>{html_div('pitcher-name', f'<strong>{name}</strong>')}</td>"
-            f"<td>{html_div('pitcher-throws', throws)}</td>"
-            f"<td>{html_div('innings-pitched', innings_pitched)}</td>"
-            f"<td>{html_div('pitching-hits', hits)}</td>"
-            f"<td>{html_div('pitching-runs', runs)}</td>"
-            f"<td>{html_div('earned-runs', earned_runs)}</td>"
-            f"<td>{html_div('walks', walks)}</td>"
-            f"<td>{html_div('strikeouts', strikeouts)}</td>"
-            f"<td>{html_div('home-runs', home_runs)}</td>"
-            f"<td>{html_div('era', era)}</td>"
-            "</tr>"
-        )
-
-    totals = safe_get(team, "teamStats", "pitching", default={})
-
-    totals_innings_pitched = totals.get("inningsPitched", "")
-    totals_hits = totals.get("hits", "")
-    totals_runs = totals.get("runs", "")
-    totals_earned_runs = totals.get("earnedRuns", "")
-    totals_walks = totals.get("baseOnBalls", "")
-    totals_strikeouts = totals.get("strikeOuts", "")
-    totals_home_runs = totals.get("homeRuns", "")
-
-    lines.append(
-        "      <tr>"
-        f"<td>{html_div('pitching-totals-label', '<strong>Totals</strong>')}</td>"
-        "<td></td>"
-        f"<td>{html_div('totals-innings-pitched', f'<strong>{totals_innings_pitched}</strong>')}</td>"
-        f"<td>{html_div('totals-hits', f'<strong>{totals_hits}</strong>')}</td>"
-        f"<td>{html_div('totals-runs', f'<strong>{totals_runs}</strong>')}</td>"
-        f"<td>{html_div('totals-earned-runs', f'<strong>{totals_earned_runs}</strong>')}</td>"
-        f"<td>{html_div('totals-walks', f'<strong>{totals_walks}</strong>')}</td>"
-        f"<td>{html_div('totals-strikeouts', f'<strong>{totals_strikeouts}</strong>')}</td>"
-        f"<td>{html_div('totals-home-runs', f'<strong>{totals_home_runs}</strong>')}</td>"
-        "<td></td>"
-        "</tr>"
-    )
-
-    return lines
-
-
-def get_pitching_table_lines(feed, side, team_abbreviation):
-    pitching_lines = get_pitching_lines(feed, side)
-
-    lines = []
-
-    lines.append("  <table>")
-    lines.append(
-        f'    <tr><th colspan="10">{html_div("team-abbreviation-pitchers", f"Pitchers - {team_abbreviation}")}</th></tr>'
-    )
-    lines.append("    <tr>")
-    lines.append("      <th>Pitcher</th>")
-    lines.append("      <th>Throws</th>")
-    lines.append("      <th>IP</th>")
-    lines.append("      <th>H</th>")
-    lines.append("      <th>R</th>")
-    lines.append("      <th>ER</th>")
-    lines.append("      <th>BB</th>")
-    lines.append("      <th>K</th>")
-    lines.append("      <th>HR</th>")
-    lines.append("      <th>ERA</th>")
-    lines.append("    </tr>")
-    lines.extend(pitching_lines)
-    lines.append("  </table>")
-
-    return lines
-
-
-def get_pitching_decision_lines(feed):
-    decisions = safe_get(feed, "liveData", "decisions", default={})
-
-    winner = safe_get(decisions, "winner", "fullName")
-    loser = safe_get(decisions, "loser", "fullName")
-    save = safe_get(decisions, "save", "fullName")
-
-    parts = []
-
-    if winner:
-        parts.append(html_div("winner", f"W: {winner}"))
-
-    if loser:
-        parts.append(html_div("loser", f"L: {loser}"))
-
-    if save:
-        parts.append(html_div("save", f"S: {save}"))
-
-    if not parts:
-        return [
-            html_div(
-                "decisions-not-available",
-                "<strong>Decisions</strong>: Not available",
-            )
-        ]
-
-    return [
-        html_div(
-            "decisions-winner-loser-save",
-            "<strong>Decisions</strong>: " + " | ".join(parts),
-        )
-    ]
-
-
-def get_ballpark_lines(feed, venue_details=None):
-    if venue_details is None:
-        venue_details = {}
-
-    venue_name = safe_get(venue_details, "name")
-    if not venue_name:
-        venue_name = safe_get(feed, "gameData", "venue", "name", default="Unknown park")
-
-    field_info = venue_details.get("fieldInfo", {})
-
-    roof_type = normalize_roof_type(field_info.get("roofType"))
-    turf_type = field_info.get("turfType", "Not available")
-
-    left_line = field_info.get("leftLine")
-    left = field_info.get("left")
-    left_center = field_info.get("leftCenter")
-    center = field_info.get("center")
-    right_center = field_info.get("rightCenter")
-    right = field_info.get("right")
-    right_line = field_info.get("rightLine")
-
-    lines = []
-
-    lines.append("<details>")
-    lines.append("<summary>Park Info</summary>")
-    lines.append("")
-    lines.append(html_div("venue-name", f"Park: {venue_name}"))
-    lines.append(
-        html_div(
-            "outfield-dimensions-left-line-left-left-center-center-right-center-right-right-line",
-            "Outfield dimensions: "
-            f"LF Line {format_distance(left_line)}, "
-            f"LF {format_distance(left)}, "
-            f"LC {format_distance(left_center)}, "
-            f"CF {format_distance(center)}, "
-            f"RC {format_distance(right_center)}, "
-            f"RF {format_distance(right)}, "
-            f"RF Line {format_distance(right_line)}",
-        )
-    )
-    lines.append(
-        html_div("left-fence-left-line", format_dimension_line("Left Fence", left_line))
-    )
-    lines.append(
-        html_div("center-fence-center", format_dimension_line("Center Fence", center))
-    )
-    lines.append(
-        html_div(
-            "right-fence-right-line",
-            format_dimension_line("Right Fence", right_line),
-        )
-    )
-    lines.append(
-        html_div(
-            "wall-asymmetry-field-info",
-            f"Wall Asymmetry: {get_wall_asymmetry(field_info)}",
-        )
-    )
-    lines.append(html_div("roof-type", f"Roof Type: {roof_type}"))
-    lines.append(html_div("turf-type", f"Turf Type: {turf_type}"))
-
-    lines.append("")
-    lines.append("</details>")
-
-    return lines
-
-
-def get_pitch_line(event):
-    """
-    Converts one pitch event into a readable line.
-    """
-    pitch_number = event.get("pitchNumber")
-    description = safe_get(event, "details", "description", default="Unknown")
-    pitch_type = safe_get(
-        event, "details", "type", "description", default="Unknown pitch"
-    )
-    speed = safe_get(event, "pitchData", "startSpeed")
-
-    balls = safe_get(event, "count", "balls")
-    strikes = safe_get(event, "count", "strikes")
-    count = format_count(balls, strikes)
-
-    speed_text = format_speed(speed)
-
-    pieces = []
-
-    if pitch_number is not None:
-        pieces.append(html_div("pitch-number", f"{pitch_number}."))
-
-    if count:
-        pieces.append(html_div("pitch-count", f"{count}:"))
-
-    pieces.append(html_div("pitch-description", description))
-
-    if speed_text:
-        pieces.append(html_div("pitch-speed", speed_text))
-
-    if pitch_type:
-        pieces.append(html_div("pitch-type", pitch_type))
-
-    return html_div("pitch-line", " ".join(pieces))
-
-
-def get_batted_ball_data(play):
-    """
-    Batted-ball data usually appears on the pitch event where the ball was put in play.
-    """
-    for event in play.get("playEvents", []):
-        if not event.get("isPitch"):
-            continue
-
-        hit_data = event.get("hitData")
-        if not hit_data:
-            continue
-
-        return {
-            "exit_velocity": hit_data.get("launchSpeed"),
-            "distance": hit_data.get("totalDistance"),
-            "launch_angle": hit_data.get("launchAngle"),
-            "trajectory": hit_data.get("trajectory"),
-        }
-
-    return None
-
-
-def get_extra_result_lines(play):
-    runners = play.get("runners", [])
-    lines = []
-
-    batter_id = safe_get(play, "matchup", "batter", "id")
-
-    for runner in runners:
-        runner_id = safe_get(runner, "details", "runner", "id")
-        runner_name = safe_get(
-            runner, "details", "runner", "fullName", default="Unknown runner"
-        )
-        event = safe_get(runner, "details", "event", default="")
-        start = safe_get(runner, "movement", "start", default="")
-        end = safe_get(runner, "movement", "end", default="")
-        is_out = safe_get(runner, "movement", "isOut", default=False)
-        rbi = safe_get(runner, "details", "rbi", default=False)
-
-        # Skip the batter's own ordinary result as it is redundant as an "extra" result.
-        if runner_id == batter_id and event in [
-            "Single",
-            "Double",
-            "Triple",
-            "Home Run",
-        ]:
-            continue
-
-        if not event and not start and not end:
-            continue
-
-        movement_parts = []
-
-        if start:
-            movement_parts.append(f"from {start}")
-
-        if end:
-            movement_parts.append(f"to {end}")
-
-        if is_out:
-            movement_parts.append("out")
-
-        if rbi:
-            movement_parts.append("RBI")
-
-        movement_text = ", ".join(movement_parts)
-
-        if movement_text:
-            lines.append(
-                html_div(
-                    "extra-result-runner-name-event-movement-text",
-                    f"Extra result: {runner_name} - {event} ({movement_text})",
-                )
-            )
-        else:
-            lines.append(
-                html_div(
-                    "extra-result-runner-name-event",
-                    f"Extra result: {runner_name} - {event}",
-                )
-            )
-
-    return lines
-
-
 def derive_batting_orders(feed):
     """
     Derives batting order numbers from boxscore battingOrder values.
@@ -1007,195 +771,6 @@ def derive_batting_orders(feed):
     return orders
 
 
-def generate_pitch_by_pitch_report(feed, venue_details=None):
-    game_data = feed.get("gameData", {})
-    live_data = feed.get("liveData", {})
-
-    game_date = safe_get(game_data, "datetime", "officialDate", default="Unknown date")
-    game_time_et = format_game_time_et(feed)
-    game_timezone = get_game_timezone(feed, venue_details)
-
-    home_team = safe_get(
-        game_data, "teams", "home", "name", default="Unknown home team"
-    )
-    away_team = safe_get(
-        game_data, "teams", "away", "name", default="Unknown away team"
-    )
-
-    home_team_id = safe_get(game_data, "teams", "home", "id")
-    away_team_id = safe_get(game_data, "teams", "away", "id")
-    home_logo_url = get_team_logo_url(home_team_id)
-    away_logo_url = get_team_logo_url(away_team_id)
-
-    batting_orders = derive_batting_orders(feed)
-
-    lines = []
-    lines.append(
-        f"# {away_team} @ {home_team} <br><br>"
-        f'<div class="away-logo-url-away-team"><img src="{away_logo_url}" alt="{away_team} logo" width="100"></div>'
-        f'<div class="home-logo-url-home-team"><img src="{home_logo_url}" alt="{home_team} logo" width="100"></div>'
-    )
-
-    lines.append(f'<div class="game-date">Game Date: {game_date}</div>')
-    lines.append(f'<div class="game-time">Time (ET): {game_time_et}</div>')
-    lines.append(f'<div class="timezone">Timezone: {game_timezone}</div>')
-
-    lines.append(get_game_weather(feed))
-    lines.extend(get_final_score_lines(feed))
-    lines.extend(get_ballpark_lines(feed, venue_details))
-
-    lines.append("")
-    lines.append("## Lineups")
-    lines.append("")
-    lines.append("<table>")
-    lines.append("  <tr>")
-    lines.append('    <td style="vertical-align: top;">')
-    lines.extend(get_lineup_table_lines(feed, "away", "Away"))
-    lines.append("    </td>")
-    lines.append('    <td style="vertical-align: top;">')
-    lines.extend(get_lineup_table_lines(feed, "home", "Home"))
-    lines.append("    </td>")
-    lines.append("  </tr>")
-    lines.append("</table>")
-    lines.append("")
-
-    away_abbreviation = safe_get(
-        game_data, "teams", "away", "abbreviation", default="AWAY"
-    )
-    home_abbreviation = safe_get(
-        game_data, "teams", "home", "abbreviation", default="HOME"
-    )
-
-    lines.append("")
-    lines.append("## Pitching")
-    lines.append("")
-    lines.append("<table>")
-    lines.append("  <tr>")
-    lines.append('    <td style="vertical-align: top;">')
-    lines.extend(get_pitching_table_lines(feed, "away", away_abbreviation))
-    lines.append("    </td>")
-    lines.append('    <td style="vertical-align: top;">')
-    lines.extend(get_pitching_table_lines(feed, "home", home_abbreviation))
-    lines.append("    </td>")
-    lines.append("  </tr>")
-    lines.append("</table>")
-    lines.append("")
-    lines.extend(get_pitching_decision_lines(feed))
-    lines.append("")
-
-    current_half = None
-
-    all_plays = safe_get(live_data, "plays", "allPlays", default=[])
-
-    for play in all_plays:
-        inning = safe_get(play, "about", "inning")
-        half = safe_get(play, "about", "halfInning")
-
-        if inning is None or half is None:
-            continue
-
-        half_label = f"{half.title()} {inning}"
-
-        if half_label != current_half:
-            current_half = half_label
-            lines.append("")
-            lines.append(f'##=== <span class="half-label">{half_label}</span> ===')
-            lines.append("")
-
-        batter = safe_get(
-            play, "matchup", "batter", "fullName", default="Unknown batter"
-        )
-        batter_id = safe_get(play, "matchup", "batter", "id")
-        pitcher = safe_get(
-            play, "matchup", "pitcher", "fullName", default="Unknown pitcher"
-        )
-
-        lineup_number = batting_orders.get(batter_id)
-        lineup_text = f"#{lineup_number}" if lineup_number else "Unknown lineup slot"
-
-        event = safe_get(play, "result", "event", default="Unknown result")
-        description = safe_get(play, "result", "description", default="")
-
-        result_shorthand = get_batter_result_shorthand(play)
-
-        final_balls = safe_get(play, "count", "balls")
-        final_strikes = safe_get(play, "count", "strikes")
-        final_count = format_count(final_balls, final_strikes)
-
-        lines.append("---")
-        lines.append(
-            f'<div class="batter-lineup-text"><strong>Batter: {batter} ({lineup_text})</strong></div>'
-        )
-        lines.append(f'<div class="pitcher">Pitcher: {pitcher}</div>')
-        lines.append("")
-
-        if result_shorthand:
-            lines.append(
-                f'<div class="batter-result-event-result-shorthand"><strong>Batter result</strong>: {event} - {result_shorthand}</div>'
-            )
-            lines.append("")
-        else:
-            lines.append(
-                f'<div class="batter-result-event">Batter result: {event}</div>'
-            )
-
-        if description:
-            lines.append(f'<div class="description">Description: {description}</div>')
-
-        extra_result_lines = get_extra_result_lines(play)
-
-        for extra_line in extra_result_lines:
-            lines.append(extra_line)
-
-        if final_count:
-            lines.append(f'<div class="final-count">Final count: {final_count}</div>')
-
-        batted_ball = get_batted_ball_data(play)
-        exit_velocity_lines = []
-
-        if batted_ball:
-            ev = batted_ball.get("exit_velocity")
-            distance = batted_ball.get("distance")
-            angle = batted_ball.get("launch_angle")
-            trajectory = batted_ball.get("trajectory")
-
-            if ev is not None:
-                exit_velocity_lines.append(
-                    f'<div class="exit-velocity-value">Exit velocity: {format_speed(ev)}</div>'
-                )
-
-            if distance is not None:
-                exit_velocity_lines.append(
-                    f'<div class="distance">Distance: {format_distance(distance)}</div>'
-                )
-
-            if angle is not None:
-                exit_velocity_lines.append(
-                    f'<div class="launch-angle">Launch angle: {angle}°</div>'
-                )
-
-            if trajectory:
-                exit_velocity_lines.append(
-                    f'<div class="trajectory">Trajectory: {trajectory}</div>'
-                )
-
-        exit_velocity_lines.append('<div class="pitches-label">Pitches:</div>')
-
-        for event_item in play.get("playEvents", []):
-            if not event_item.get("isPitch"):
-                continue
-
-            exit_velocity_lines.append(get_pitch_line(event_item))
-
-        lines.append(
-            '<div class="pitch-details">' + "\n".join(exit_velocity_lines) + "</div>"
-        )
-
-        lines.append("")
-
-    return "\n".join(lines)
-
-
 def slugify_team_name(team_name):
     return (
         team_name.lower()
@@ -1216,59 +791,59 @@ def get_output_filename(feed):
     home_slug = slugify_team_name(home_team)
     away_slug = slugify_team_name(away_team)
 
-    return f"{game_date}_{away_slug}_at_{home_slug}.md"
+    return f"{game_date}_{away_slug}_at_{home_slug}"
 
 
 def main():
-    game_date = input("Game date (YYYY-MM-DD): ").strip()
-    home = input("Home team, e.g. Orioles: ").strip()
-    away = input("Away team, e.g. Blue Jays: ").strip()
+    date_or_game_pk = input(
+        "Game date (YYYY-MM-DD) or baseball game number: "
+    ).strip()
 
-    games = get_schedule(game_date, home_team_name=home, away_team_name=away)
+    games = []
 
-    print("")
-    print("Would you like:")
-    print("a) 📁 Save .md only?")
-    print("b) 🌎 Create/open .html preview only?")
-    print("c) 🎉 Save .md and create/open .html preview")
-    output_choice = input("Choose a, b, or c: ").strip().lower()
+    if not date_or_game_pk.isdigit():
+        home = input("Home team, e.g. Orioles: ").strip()
+        away = input("Away team, e.g. Blue Jays: ").strip()
+        games = get_schedule(date_or_game_pk, home_team_name=home, away_team_name=away)
 
-    if output_choice not in ["a", "b", "c"]:
-        print("Invalid selection. Please choose a, b, or c.")
-
-    if not games:
-        print("")
-        print("No matching games found.")
-        print("Try using full team names, for example:")
-        print("  Home: Baltimore Orioles")
-        print("  Away: Toronto Blue Jays")
-        return
-
-    if len(games) > 1:
-        print("")
-        print("Multiple matching games found:")
-        for index, game in enumerate(games, start=1):
-            print(
-                f"{index}. gamePk {game['gamePk']}: {game['away']} at {game['home']}, {game['venue']}"
-            )
-
-        selected = input("Select game number: ").strip()
-
-        try:
-            selected_index = int(selected) - 1
-            game = games[selected_index]
-        except (ValueError, IndexError):
-            print("Invalid selection.")
-            return
+    if date_or_game_pk.isdigit():
+        game_pk = int(date_or_game_pk)
     else:
-        game = games[0]
+        if not games:
+            print("")
+            print("No matching games found.")
+            print("Try using full team names, for example:")
+            print("  Home: Baltimore Orioles")
+            print("  Away: Toronto Blue Jays")
+            return
 
-    print("")
-    print(f"Found gamePk: {game['gamePk']}")
-    print(f"{game['away']} at {game['home']}, {game['venue']}")
-    print("")
+        if len(games) > 1:
+            print("")
+            print("Multiple matching games found:")
+            for index, game in enumerate(games, start=1):
+                print(
+                    f"{index}. gamePk {game['gamePk']}: {game['away']} at {game['home']}, {game['venue']}"
+                )
 
-    feed = get_game_feed(game["gamePk"])
+            selected = input("Select game number: ").strip()
+
+            try:
+                selected_index = int(selected) - 1
+                game = games[selected_index]
+            except (ValueError, IndexError):
+                print("Invalid selection.")
+                return
+        else:
+            game = games[0]
+
+        print("")
+        print(f"Found gamePk: {game['gamePk']}")
+        print(f"{game['away']} at {game['home']}, {game['venue']}")
+        print("")
+
+        game_pk = game["gamePk"]
+
+    feed = get_game_feed(game_pk)
 
     venue_id = safe_get(feed, "gameData", "venue", "id")
     venue_details = {}
@@ -1276,29 +851,27 @@ def main():
     if venue_id:
         venue_details = get_venue_details(venue_id)
 
-    report = generate_pitch_by_pitch_report(feed, venue_details)
+    attach_statcast_metrics(feed)
+
+    print("Running enrichment blocks A, B, C, F, I...")
+    counter = run_enrichment(feed)
 
     OUTPUT_DIR.mkdir(exist_ok=True)
 
+    base_name = get_output_filename(feed)
+    json_output_file = OUTPUT_DIR / f"{base_name}.json"
+    with open(json_output_file, "w", encoding="utf-8") as file:
+        json.dump(feed, file, indent=2)
+    print(f"Full game JSON written to {json_output_file}")
+
+    counter.print_summary()
+
     context = build_game_context(feed, venue_details)
-    jinja_html_file = OUTPUT_DIR / get_output_filename(feed).replace(
-        ".md", ".jinja.html"
-    )
-    write_jinja_html_report(context, jinja_html_file)
-    webbrowser.open(jinja_html_file.resolve().as_uri())
-
-    output_file = OUTPUT_DIR / get_output_filename(feed)
-
-    with open(output_file, "w", encoding="utf-8") as file:
-        file.write(report)
-
-    if output_choice in ["a", "c"]:
-        print(f"Report written to {output_file}")
-
-    if output_choice in ["b", "c"]:
-        html_output_file = write_html_preview(output_file)
-        webbrowser.open(html_output_file.resolve().as_uri())
-        print(f"Report opened in browser: {html_output_file}")
+    context["scorecard"] = player_scorecard(feed)
+    html_file = OUTPUT_DIR / f"{base_name}.html"
+    write_jinja_html_report(context, html_file)
+    webbrowser.open(html_file.resolve().as_uri())
+    print(f"Scorecard opened in browser: {html_file}")
 
 
 if __name__ == "__main__":

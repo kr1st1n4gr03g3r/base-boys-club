@@ -1,47 +1,50 @@
 # ⚾ Base Boys Club
 
-A Python project that pulls completed MLB game data from the MLB Stats API and generates baseball game reports for analysis.
-
-The project creates:
-
-- 📄 Markdown reports for saving, archiving, and feeding into AI tools later
-- 🌎 HTML previews for easier browser-based visual review
-- 📊 Pitch-by-pitch breakdowns, lineups, pitching totals, weather, park info, scoring plays, and more
+A Python project that pulls completed MLB game data from various MLB Stats APIs and generates various baseball game dashboards for analysis.
 
 ## What This Project Does
 
-`base-boys-club` uses the public MLB Stats API to fetch completed game data and generate a detailed report.
+`base-boys-club` pulls completed game data from three public APIs and stores it as JSON. That JSON is then used to power dashboards and analysis tools.
 
-The report currently includes:
+- **MLB Stats API** (`statsapi.mlb.com`) — game feed, lineups, pitching, play-by-play
+- **Baseball Savant / Statcast** (`baseballsavant.mlb.com`) — pitch-level Statcast data and season metrics (exit velocity, launch angle, spin rate, plate location, and more)
+- **MLB Static** (`mlbstatic.com`) — team logos
+
+**First iteration:** a per-game player scorecard dashboard.
+
+**Second feature:** additional analysis and views built from the same JSON source — one data pull, multiple uses.
+
+The data currently includes:
 
 - Game date and time
 - Teams and final score
-- Weather
-- Ballpark information
+- Weather and ballpark information
 - Team logos
-- Lineups
-- Pitching totals
-- Pitching decisions
-- At-bat results
-- Extra runner results
-- Pitch-by-pitch plate appearance data
-- Batted-ball data such as exit velocity, distance, launch angle, and trajectory
+- Lineups and batting order
+- Statcast metrics: xBA, xSLG, xwOBA, xERA, barrel%, hard-hit%, avg exit velocity, sprint speed
+- Plate discipline: whiff%, chase%, zone swing%, zone contact%, and more
+- Platoon splits (vs RHP / vs LHP) for hitters and pitchers
+- Recent form (last 15 and last 30 days)
+- Batter-vs-pitcher history (career and current season)
+- Pitcher workload: last 5 starts, pitch counts, days rest, IL context
+- Bullpen usage: recent appearances, pitches per day, back-to-back flags
 
 ## Project Structure
 
 ```text
 base-boys-club/
-├── import_data.py
+├── import_data.py      # main entry point
+├── enrichment.py       # per-game enrichment (MLB Stats API blocks)
+├── html_report.py      # Jinja2 HTML scorecard renderer
 ├── unit_formatters.py
-├── html_report.py
 ├── templates/
-│   └── report_template.html
+│   └── scorecard.html
 ├── styles/
 │   └── report.css
-├── output/
+├── output/             # generated .json and .html files
+├── .cache/             # disk cache for API responses (gitignored)
 ├── requirements.txt
 ├── requirements-dev.txt
-├── .gitignore
 └── README.md
 ```
 
@@ -73,14 +76,15 @@ python3 -m pip install -r requirements-dev.txt
 
 ## Dependencies
 
-Recommended `requirements.txt`:
+`requirements.txt`:
 
 ```txt
 requests
-markdown
+jinja2
+pybaseball
 ```
 
-Recommended `requirements-dev.txt`:
+`requirements-dev.txt`:
 
 ```txt
 ruff
@@ -94,87 +98,40 @@ From the project root:
 python3 import_data.py
 ```
 
-You will be prompted for:
+You will be prompted for a game date or a direct MLB game number (gamePk):
 
 ```text
-Game date (YYYY-MM-DD):
-Home team, e.g. Orioles:
-Away team, e.g. Blue Jays:
+Game date (YYYY-MM-DD) or baseball game number:
 ```
 
-Example:
+**By game number** (fastest):
 
 ```text
-Game date (YYYY-MM-DD): 2026-05-31
-Home team, e.g. Orioles: orioles
-Away team, e.g. Blue Jays: jays
+Game date (YYYY-MM-DD) or baseball game number: 824750
 ```
 
-The program then generates a report in the `output/` folder.
-
-## Output Options
-
-The CLI can ask what kind of output you want:
+**By date** (prompts for home and away team):
 
 ```text
-Would you like:
-a) 📁 A markdown file saved to the /output folder?
-b) 🌎 The browser to open the report?
-c) 🎉 Both, please
+Game date (YYYY-MM-DD) or baseball game number: 2026-05-31
+Home team, e.g. Orioles: Orioles
+Away team, e.g. Blue Jays: Blue Jays
 ```
 
-Recommended use:
+The program writes two files to `output/`:
 
-- Choose `a` when you want to save a Markdown report for later AI analysis
-- Choose `b` when you are testing the browser preview
-- Choose `c` when you want both
+- `<date>_<away>_at_<home>.json` — full enriched game data
+- `<date>_<away>_at_<home>.html` — Jinja2 scorecard, opened automatically in the browser
 
-## Markdown vs HTML
-
-The project separates the report into two useful formats.
-
-### 📄 Markdown
-
-The Markdown report is the main archive format.
-
-It is useful for:
-
-- Saving completed game reports
-- Reading the raw report text
-- Feeding the report into AI later
-- Keeping the data portable and simple
-
-### 🌎 HTML
-
-The HTML report is for visual inspection.
-
-It is useful for:
-
-- Browser preview
-- Styling with CSS
-- Better readability while analyzing games
-- Testing layout ideas
-
-The HTML preview is generated from the Markdown report using `html_report.py`.
+API responses are cached in `.cache/` for one hour so re-runs are fast.
 
 ## Useful Testing Shortcut
 
-You can create a file called `test_input.txt`:
-
-```text
-2026-05-31
-orioles
-jays
-b
-```
-
-Then run:
+You can pipe input to skip the prompts:
 
 ```bash
-python3 import_data.py < test_input.txt
+echo "824750" | python3 import_data.py
 ```
-
-This feeds the prompts automatically while testing.
 
 ## Development Tools
 
@@ -190,21 +147,3 @@ To check for Python syntax errors:
 ```bash
 python3 -m py_compile import_data.py
 ```
-
-## Git Ignore Suggestions
-
-The project should ignore generated files, local environment files, and Python clutter:
-
-```gitignore
-output/
-.DS_Store
-__pycache__/
-*.pyc
-.venv/
-```
-
-## Notes
-
-This project is designed for completed MLB games, not live games.
-
-The Markdown output is intended to remain useful for analysis, while the HTML output can become more visual and styled over time.

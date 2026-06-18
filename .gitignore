@@ -12,3 +12,10 @@ __pycache__/
 *.pyc
 .claude/
 /__pycache__/*
+*.md
+/output/*.md
+/output/*.json
+.cache/
+notes.md
+/.cache/*
+/.cache/
