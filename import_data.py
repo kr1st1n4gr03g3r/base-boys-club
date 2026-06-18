@@ -623,6 +623,9 @@ def get_statcast_metrics(season):
     return metrics
 
 
+SKIP_ENRICHMENT = True  # set to False for full run
+
+
 def attach_statcast_metrics(feed):
     """Adds a 'statcast' dict to every player in feed['gameData']['players']."""
     season = safe_get(feed, "gameData", "game", "season")
@@ -880,8 +883,11 @@ def main():
 
     attach_statcast_metrics(feed)
 
-    print("Running enrichment blocks A, B, C, F, I...")
-    counter = run_enrichment(feed)
+    if not SKIP_ENRICHMENT:
+        attach_statcast_metrics(feed)
+        print("Running enrichment blocks A, B, C, F, I...")
+        counter = run_enrichment(feed)
+        counter.print_summary()
 
     OUTPUT_DIR.mkdir(exist_ok=True)
 
