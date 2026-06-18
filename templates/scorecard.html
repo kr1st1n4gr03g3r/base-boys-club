@@ -79,18 +79,24 @@
                     <td>{% for p in slot.players %}{{ p.boxscore_name }}<br>{% endfor %}</td>
                     <td>{% for p in slot.players %}{{ p.position }}<br>{% endfor %}</td>
                     {% for inning in slot.innings %}
-                    <td>
+                    <td class="balls-strikes-outer">
                         <table class="balls-strikes">
-                            <tr class="balls">
-                                <td>{{ inning.ball_one }}</td>
-                                <td>{{ inning.ball_two }}</td>
-                                <td>{{ inning.ball_three }}</td>
-                            </tr>
-                            <tr class="strikes">
-                                <td>{{ inning.strike_one }}</td>
-                                <td>{{ inning.strike_two }}</td>
-                            </tr>
-                            <img src="templates/icons/DEFAULT.svg">
+                            <tbody class="balls-strikes-inner">
+                                <tr class="balls">
+                                    <td class="balls-inner">{{ inning.ball_one }}</td>
+                                    <td class="balls-inner">{{ inning.ball_two }}</td>
+                                    <td class="balls-inner">{{ inning.ball_three }}</td>
+                                </tr>
+                                <tr class="strikes">
+                                    <td class="strikes-inner">{{ inning.strike_one }}</td>
+                                    <td class="strikes-inner">{{ inning.strike_two }}</td>
+                                </tr>
+                                <tr class="diamond-outer">
+                                    <td class="diamond">
+                                        {% include 'icons/DEFAULT.svg' %}
+                                    </td>
+                                </tr>
+                            </tbody>
                         </table>
                     </td>
                     {% endfor %}
@@ -135,17 +141,24 @@
                     <td>{% for p in slot.players %}{{ p.boxscore_name }}<br>{% endfor %}</td>
                     <td>{% for p in slot.players %}{{ p.position }}<br>{% endfor %}</td>
                     {% for inning in slot.innings %}
-                    <td>
+                    <td class="balls-strikes-outer">
                         <table class="balls-strikes">
-                            <tr class="balls">
-                                <td>{{ inning.ball_one }}</td>
-                                <td>{{ inning.ball_two }}</td>
-                                <td>{{ inning.ball_three }}</td>
-                            </tr>
-                            <tr class="strikes">
-                                <td>{{ inning.strike_one }}</td>
-                                <td>{{ inning.strike_two }}</td>
-                            </tr>
+                            <tbody class="balls-strikes-inner">
+                                <tr class="balls">
+                                    <td class="balls-inner">{{ inning.ball_one }}</td>
+                                    <td class="balls-inner">{{ inning.ball_two }}</td>
+                                    <td class="balls-inner">{{ inning.ball_three }}</td>
+                                </tr>
+                                <tr class="strikes">
+                                    <td class="strikes-inner">{{ inning.strike_one }}</td>
+                                    <td class="strikes-inner">{{ inning.strike_two }}</td>
+                                </tr>
+                                <tr class="diamond-outer">
+                                    <td class="diamond">
+                                        {% include 'icons/DEFAULT.svg' %}
+                                    </td>
+                                </tr>
+                            </tbody>
                         </table>
                     </td>
                     {% endfor %}

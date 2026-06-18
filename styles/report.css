@@ -79,9 +79,13 @@ span.bold {
     font-weight:700;
 }
 
+tr.balls {
+    padding-top: 2px;
+}
+
 .balls, .strikes {
     font-size:x-small;
-    padding: 0px;
+    padding: 0px 0px 0px 2px;
     border: 0px;
 }
 
@@ -92,4 +96,32 @@ span.bold {
 
 table.balls-strikes {
     margin: 0px;
+}
+
+tbody.balls-strikes-inner {
+    display: flex;
+    flex-direction: column;
+}
+
+td.balls-strikes-outer {
+    padding: 0px;
+    width: 80px;
+    height: 80px
+}
+
+td.strikes-inner, td.balls-inner {
+    padding: 0 2px;
+}
+
+td.diamond {
+    padding: 8px 0px;
+    border: 0px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+td.diamond svg {
+    width: 32px;
+    height: 32px;
 }

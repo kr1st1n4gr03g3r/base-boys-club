@@ -828,6 +828,14 @@ def get_output_filename(feed):
 
 def main():
     date_or_game_pk = input("Game date (YYYY-MM-DD) or baseball game number: ").strip()
+    clear_cache = input("Clear previous cache? (Y/N): ").strip().lower()
+
+    if clear_cache == "y":
+        cache_dir = Path(".cache")
+        if cache_dir.exists():
+            for f in cache_dir.glob("*.json"):
+                f.unlink()
+        print("Cache cleared.")
 
     games = []
 
@@ -896,8 +904,6 @@ def main():
     with open(json_output_file, "w", encoding="utf-8") as file:
         json.dump(feed, file, indent=2)
     print(f"Full game JSON written to {json_output_file}")
-
-    counter.print_summary()
 
     context = build_game_context(feed, venue_details)
     context["scorecard"] = player_scorecard(feed)
