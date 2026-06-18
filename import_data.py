@@ -8,6 +8,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import requests
+from tqdm import tqdm
 
 from enrichment import run_enrichment
 from html_report import write_jinja_html_report
@@ -157,14 +158,18 @@ def build_team_players(team_players, game_players, at_bat_counts):
         if slot_number not in slots:
             slots[slot_number] = {"players": []}
 
-        slots[slot_number]["players"].append({
-            "player_id": player_id,
-            "batting_order": batting_order_int,
-            "bat_side": safe_get(game_player, "batSide", "code", default=""),
-            "primary_number": game_player.get("primaryNumber", ""),
-            "boxscore_name": game_player.get("boxscoreName", ""),
-            "position": safe_get(game_player, "primaryPosition", "abbreviation", default=""),
-        })
+        slots[slot_number]["players"].append(
+            {
+                "player_id": player_id,
+                "batting_order": batting_order_int,
+                "bat_side": safe_get(game_player, "batSide", "code", default=""),
+                "primary_number": game_player.get("primaryNumber", ""),
+                "boxscore_name": game_player.get("boxscoreName", ""),
+                "position": safe_get(
+                    game_player, "primaryPosition", "abbreviation", default=""
+                ),
+            }
+        )
 
     result = []
     for slot_number in sorted(slots.keys()):
@@ -179,10 +184,12 @@ def build_team_players(team_players, game_players, at_bat_counts):
                 if player_id in at_bat_counts and i in at_bat_counts[player_id]:
                     inning_data = at_bat_counts[player_id][i]
                     break
-            innings.append(get_count_display(
-                inning_data.get("balls", 0),
-                inning_data.get("strikes", 0),
-            ))
+            innings.append(
+                get_count_display(
+                    inning_data.get("balls", 0),
+                    inning_data.get("strikes", 0),
+                )
+            )
 
         slot["innings"] = innings
         result.append(slot)
@@ -208,15 +215,23 @@ def player_scorecard(feed):
             if inning not in at_bat_counts[batter_id]:
                 at_bat_counts[batter_id][inning] = {"balls": balls, "strikes": strikes}
 
-    home_team_players = safe_get(feed, "liveData", "boxscore", "teams", "home", "players", default={})
-    away_team_players = safe_get(feed, "liveData", "boxscore", "teams", "away", "players", default={})
+    home_team_players = safe_get(
+        feed, "liveData", "boxscore", "teams", "home", "players", default={}
+    )
+    away_team_players = safe_get(
+        feed, "liveData", "boxscore", "teams", "away", "players", default={}
+    )
 
     return {
         "home": {
-            "players": build_team_players(home_team_players, game_players, at_bat_counts),
+            "players": build_team_players(
+                home_team_players, game_players, at_bat_counts
+            ),
         },
         "away": {
-            "players": build_team_players(away_team_players, game_players, at_bat_counts),
+            "players": build_team_players(
+                away_team_players, game_players, at_bat_counts
+            ),
         },
         # "innings": {},
         # "player_stats": {},
@@ -473,7 +488,14 @@ def get_batting_expected_stats(season):
     """xBA, xSLG, xwOBA for qualified batters in a season."""
     rows = fetch_savant_csv(
         "/leaderboard/expected_statistics",
-        {"type": "batter", "year": season, "position": "", "team": "", "min": "1", "csv": "true"},
+        {
+            "type": "batter",
+            "year": season,
+            "position": "",
+            "team": "",
+            "min": "1",
+            "csv": "true",
+        },
     )
 
     return {
@@ -490,12 +512,18 @@ def get_pitching_expected_stats(season):
     """xERA for pitchers in a season."""
     rows = fetch_savant_csv(
         "/leaderboard/expected_statistics",
-        {"type": "pitcher", "year": season, "position": "", "team": "", "min": "1", "csv": "true"},
+        {
+            "type": "pitcher",
+            "year": season,
+            "position": "",
+            "team": "",
+            "min": "1",
+            "csv": "true",
+        },
     )
 
     return {
-        int(row["player_id"]): {"xera": parse_float(row.get("xera"))}
-        for row in rows
+        int(row["player_id"]): {"xera": parse_float(row.get("xera"))} for row in rows
     }
 
 
@@ -580,14 +608,15 @@ def get_statcast_metrics(season):
     metrics = {}
 
     sources = [
-        get_batting_expected_stats(season),
-        get_pitching_expected_stats(season),
-        get_batted_ball_metrics(season),
-        get_sprint_speed_metrics(season),
-        get_plate_discipline_metrics(season),
+        get_batting_expected_stats,
+        get_pitching_expected_stats,
+        get_batted_ball_metrics,
+        get_sprint_speed_metrics,
+        get_plate_discipline_metrics,
     ]
 
-    for source in sources:
+    for fetch in tqdm(sources, desc="Fetching Statcast data"):
+        source = fetch(season)  # call it here, inside the loop
         for player_id, values in source.items():
             metrics.setdefault(player_id, {}).update(values)
 
@@ -795,9 +824,7 @@ def get_output_filename(feed):
 
 
 def main():
-    date_or_game_pk = input(
-        "Game date (YYYY-MM-DD) or baseball game number: "
-    ).strip()
+    date_or_game_pk = input("Game date (YYYY-MM-DD) or baseball game number: ").strip()
 
     games = []
 
