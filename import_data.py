@@ -100,7 +100,8 @@ def build_game_context(feed, venue_details=None):
     if attendance:
         attendance = f"{attendance:,}"
 
-    print(game_data)  # temporary - delete after checking
+    # prints all game data
+    # print(game_data)
     return {
         "title": {
             "away_logo": get_team_logo_url(away_id),
@@ -365,6 +366,7 @@ def get_batter_result_shorthand(play):
     if position_number:
         return f"{result_code}: {position_number}"
 
+    print(result_code)
     return result_code
 
 

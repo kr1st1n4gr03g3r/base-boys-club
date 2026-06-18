@@ -133,6 +133,16 @@ You can pipe input to skip the prompts:
 echo "824750" | python3 import_data.py
 ```
 
+## Reference Scripts
+
+Scripts in `reference/` query the MLB Stats API and open the results in the browser.
+
+| Script | What it shows |
+|---|---|
+| `python3 reference/query-event-types.py` | All MLB event types with their official codes and abbreviations |
+
+Output files are written to `reference/` and can be reopened without re-fetching.
+
 ## Development Tools
 
 Format and lint with Ruff:
