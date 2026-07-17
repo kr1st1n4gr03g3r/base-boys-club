@@ -19,3 +19,4 @@ __pycache__/
 notes.md
 /.cache/*
 /.cache/
+test_input.txt

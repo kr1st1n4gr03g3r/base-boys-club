@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>MLB Event Types</title>
+    <style>
+        body { font-family: monospace; padding: 2rem; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ccc; padding: 0.4rem 0.8rem; text-align: left; }
+        th { background: #f0f0f0; }
+    </style>
+</head>
+<body>
+    <h1>MLB Event Types</h1>
+    <table>
+        <thead>
+            <tr><th>event</th><th>Abbreviation</th><th>event_type</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Pickoff 1B</td><td></td><td>pickoff_1b</td></tr>
+<tr><td>Pickoff 2B</td><td></td><td>pickoff_2b</td></tr>
+<tr><td>Pickoff 3B</td><td></td><td>pickoff_3b</td></tr>
+<tr><td>Pitcher Step Off</td><td></td><td>pitcher_step_off</td></tr>
+<tr><td>Pickoff Error 1B</td><td></td><td>pickoff_error_1b</td></tr>
+<tr><td>Pickoff Error 2B</td><td></td><td>pickoff_error_2b</td></tr>
+<tr><td>Pickoff Error 3B</td><td></td><td>pickoff_error_3b</td></tr>
+<tr><td>Batter Timeout</td><td></td><td>batter_timeout</td></tr>
+<tr><td>Mound Visit</td><td></td><td>mound_visit</td></tr>
+<tr><td>No Pitch</td><td></td><td>no_pitch</td></tr>
+<tr><td>Single</td><td></td><td>single</td></tr>
+<tr><td>Double</td><td></td><td>double</td></tr>
+<tr><td>Triple</td><td></td><td>triple</td></tr>
+<tr><td>Home Run</td><td></td><td>home_run</td></tr>
+<tr><td>Double Play</td><td></td><td>double_play</td></tr>
+<tr><td>Field Error</td><td></td><td>field_error</td></tr>
+<tr><td>Error</td><td></td><td>error</td></tr>
+<tr><td>Field Out</td><td></td><td>field_out</td></tr>
+<tr><td>Fielders Choice</td><td></td><td>fielders_choice</td></tr>
+<tr><td>Fielders Choice Out</td><td></td><td>fielders_choice_out</td></tr>
+<tr><td>Forceout</td><td></td><td>force_out</td></tr>
+<tr><td>Grounded Into DP</td><td></td><td>grounded_into_double_play</td></tr>
+<tr><td>Grounded Into TP</td><td></td><td>grounded_into_triple_play</td></tr>
+<tr><td>Strikeout</td><td></td><td>strikeout</td></tr>
+<tr><td>Strike Out</td><td></td><td>strike_out</td></tr>
+<tr><td>Strikeout Double Play</td><td></td><td>strikeout_double_play</td></tr>
+<tr><td>Strikeout Triple Play</td><td></td><td>strikeout_triple_play</td></tr>
+<tr><td>Triple Play</td><td></td><td>triple_play</td></tr>
+<tr><td>Sac Fly</td><td></td><td>sac_fly</td></tr>
+<tr><td>Catcher Interference</td><td></td><td>catcher_interf</td></tr>
+<tr><td>Batter Interference</td><td></td><td>batter_interference</td></tr>
+<tr><td>Fielder Interference</td><td></td><td>fielder_interference</td></tr>
+<tr><td>Runner Interference</td><td></td><td>runner_interference</td></tr>
+<tr><td>Fan Interference</td><td></td><td>fan_interference</td></tr>
+<tr><td>Batter Turn</td><td></td><td>batter_turn</td></tr>
+<tr><td>Ejection</td><td></td><td>ejection</td></tr>
+<tr><td>Cs Double Play</td><td></td><td>cs_double_play</td></tr>
+<tr><td>Defensive Indiff</td><td></td><td>defensive_indiff</td></tr>
+<tr><td>Sac Fly Double Play</td><td></td><td>sac_fly_double_play</td></tr>
+<tr><td>Sac Bunt</td><td></td><td>sac_bunt</td></tr>
+<tr><td>Sac Bunt Double Play</td><td></td><td>sac_bunt_double_play</td></tr>
+<tr><td>Walk</td><td></td><td>walk</td></tr>
+<tr><td>Intent Walk</td><td></td><td>intent_walk</td></tr>
+<tr><td>Hit By Pitch</td><td></td><td>hit_by_pitch</td></tr>
+<tr><td>Injury</td><td></td><td>injury</td></tr>
+<tr><td>Official Scorer Ruling Pending</td><td></td><td>os_ruling_pending_prior</td></tr>
+<tr><td>Official Scorer Ruling Pending</td><td></td><td>os_ruling_pending_primary</td></tr>
+<tr><td>At Bat Start</td><td></td><td>at_bat_start</td></tr>
+<tr><td>Passed Ball</td><td></td><td>passed_ball</td></tr>
+<tr><td>Other Advance</td><td></td><td>other_advance</td></tr>
+<tr><td>Runner Double Play</td><td></td><td>runner_double_play</td></tr>
+<tr><td>Runner Placed On Base</td><td></td><td>runner_placed</td></tr>
+<tr><td>Pitching Substitution</td><td></td><td>pitching_substitution</td></tr>
+<tr><td>Offensive Substitution</td><td></td><td>offensive_substitution</td></tr>
+<tr><td>Defensive Switch</td><td></td><td>defensive_switch</td></tr>
+<tr><td>Umpire Substitution</td><td></td><td>umpire_substitution</td></tr>
+<tr><td>Pitcher Switch</td><td></td><td>pitcher_switch</td></tr>
+<tr><td>Game Advisory</td><td></td><td>game_advisory</td></tr>
+<tr><td>Stolen Base</td><td></td><td>stolen_base</td></tr>
+<tr><td>Stolen Base 2B</td><td></td><td>stolen_base_2b</td></tr>
+<tr><td>Stolen Base 3B</td><td></td><td>stolen_base_3b</td></tr>
+<tr><td>Stolen Base Home</td><td></td><td>stolen_base_home</td></tr>
+<tr><td>Caught Stealing</td><td></td><td>caught_stealing</td></tr>
+<tr><td>Caught Stealing 2B</td><td></td><td>caught_stealing_2b</td></tr>
+<tr><td>Caught Stealing 3B</td><td></td><td>caught_stealing_3b</td></tr>
+<tr><td>Caught Stealing Home</td><td></td><td>caught_stealing_home</td></tr>
+<tr><td>Defensive Sub</td><td></td><td>defensive_substitution</td></tr>
+<tr><td>Pickoff Caught Stealing 2B</td><td></td><td>pickoff_caught_stealing_2b</td></tr>
+<tr><td>Pickoff Caught Stealing 3B</td><td></td><td>pickoff_caught_stealing_3b</td></tr>
+<tr><td>Pickoff Caught Stealing Home</td><td></td><td>pickoff_caught_stealing_home</td></tr>
+<tr><td>Balk</td><td></td><td>balk</td></tr>
+<tr><td>Disengagement Violation</td><td></td><td>forced_balk</td></tr>
+<tr><td>Wild Pitch</td><td></td><td>wild_pitch</td></tr>
+<tr><td>Runner Out</td><td></td><td>other_out</td></tr>
+
+        </tbody>
+    </table>
+</body>
+</html>

@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&display=swap');
 
+
 body {
     margin: 0;
     padding: 24px;
@@ -79,9 +80,13 @@ span.bold {
     font-weight:700;
 }
 
+tr.balls {
+    padding-top: 2px;
+}
+
 .balls, .strikes {
     font-size:x-small;
-    padding: 0px;
+    padding: 0px 0px 0px 2px;
     border: 0px;
 }
 
@@ -93,3 +98,40 @@ span.bold {
 table.balls-strikes {
     margin: 0px;
 }
+
+tbody.balls-strikes-inner {
+    display: flex;
+    flex-direction: column;
+}
+
+td.balls-strikes-outer {
+    padding: 0px;
+    width: 80px;
+    height: 80px
+}
+
+td.strikes-inner, td.balls-inner {
+    padding: 0 2px;
+}
+
+td.diamond {
+    padding: 8px 0px;
+    border: 0px;
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+
+td.diamond svg {
+    width: 32px;
+    height: 32px;
+}
+
+
+td.diamond svg,
+td.diamond .diamond-result {
+    grid-area: 1 / 1;
+}
+

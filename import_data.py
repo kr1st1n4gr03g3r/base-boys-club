@@ -8,6 +8,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import requests
+from tqdm import tqdm
 
 from enrichment import run_enrichment
 from html_report import write_jinja_html_report
@@ -99,7 +100,8 @@ def build_game_context(feed, venue_details=None):
     if attendance:
         attendance = f"{attendance:,}"
 
-    print(game_data)  # temporary - delete after checking
+    # prints all game data
+    # print(game_data)
     return {
         "title": {
             "away_logo": get_team_logo_url(away_id),
@@ -140,6 +142,37 @@ def get_count_display(balls, strikes):
     }
 
 
+def get_diamond_icon(play):
+    """
+    Returns the diamond icon name for how the batter reached base (e.g. "B1"),
+    or "" if the batter didn't reach base.
+
+    TODO: not yet handled -- catcher's interference, fielder obstruction,
+    batted ball striking a runner or umpire.
+    """
+    event_type = safe_get(play, "result", "eventType", default="")
+    description = safe_get(play, "result", "description", default="").lower()
+    is_out = safe_get(play, "result", "isOut", default=False)
+
+    if event_type == "single":
+        return "B1"
+
+    if event_type == "hit_by_pitch":
+        return "B1"
+
+    if event_type in ("walk", "intent_walk") and not is_out:
+        return "B1"
+
+    if event_type in ("field_error", "fielders_choice") and not is_out:
+        return "B1"
+
+    # dropped third strike / wild pitch still lets the batter reach 1st
+    if event_type == "strikeout" and not is_out and "wild pitch" in description:
+        return "B1"
+
+    return ""
+
+
 def build_team_players(team_players, game_players, at_bat_counts):
     slots = {}
 
@@ -157,14 +190,18 @@ def build_team_players(team_players, game_players, at_bat_counts):
         if slot_number not in slots:
             slots[slot_number] = {"players": []}
 
-        slots[slot_number]["players"].append({
-            "player_id": player_id,
-            "batting_order": batting_order_int,
-            "bat_side": safe_get(game_player, "batSide", "code", default=""),
-            "primary_number": game_player.get("primaryNumber", ""),
-            "boxscore_name": game_player.get("boxscoreName", ""),
-            "position": safe_get(game_player, "primaryPosition", "abbreviation", default=""),
-        })
+        slots[slot_number]["players"].append(
+            {
+                "player_id": player_id,
+                "batting_order": batting_order_int,
+                "bat_side": safe_get(game_player, "batSide", "code", default=""),
+                "primary_number": game_player.get("primaryNumber", ""),
+                "boxscore_name": game_player.get("boxscoreName", ""),
+                "position": safe_get(
+                    game_player, "primaryPosition", "abbreviation", default=""
+                ),
+            }
+        )
 
     result = []
     for slot_number in sorted(slots.keys()):
@@ -179,10 +216,13 @@ def build_team_players(team_players, game_players, at_bat_counts):
                 if player_id in at_bat_counts and i in at_bat_counts[player_id]:
                     inning_data = at_bat_counts[player_id][i]
                     break
-            innings.append(get_count_display(
+            count_display = get_count_display(
                 inning_data.get("balls", 0),
                 inning_data.get("strikes", 0),
-            ))
+            )
+            count_display["result"] = inning_data.get("result", "")
+            count_display["icon"] = inning_data.get("icon", "")
+            innings.append(count_display)
 
         slot["innings"] = innings
         result.append(slot)
@@ -192,7 +232,6 @@ def build_team_players(team_players, game_players, at_bat_counts):
 
 def player_scorecard(feed):
     game_players = safe_get(feed, "gameData", "players", default={})
-
     all_plays = safe_get(feed, "liveData", "plays", "allPlays", default=[])
     at_bat_counts = {}
 
@@ -206,17 +245,30 @@ def player_scorecard(feed):
             if batter_id not in at_bat_counts:
                 at_bat_counts[batter_id] = {}
             if inning not in at_bat_counts[batter_id]:
-                at_bat_counts[batter_id][inning] = {"balls": balls, "strikes": strikes}
+                at_bat_counts[batter_id][inning] = {
+                    "balls": balls,
+                    "strikes": strikes,
+                    "result": get_batter_result_shorthand(play),
+                    "icon": get_diamond_icon(play),
+                }
 
-    home_team_players = safe_get(feed, "liveData", "boxscore", "teams", "home", "players", default={})
-    away_team_players = safe_get(feed, "liveData", "boxscore", "teams", "away", "players", default={})
+    home_team_players = safe_get(
+        feed, "liveData", "boxscore", "teams", "home", "players", default={}
+    )
+    away_team_players = safe_get(
+        feed, "liveData", "boxscore", "teams", "away", "players", default={}
+    )
 
     return {
         "home": {
-            "players": build_team_players(home_team_players, game_players, at_bat_counts),
+            "players": build_team_players(
+                home_team_players, game_players, at_bat_counts
+            ),
         },
         "away": {
-            "players": build_team_players(away_team_players, game_players, at_bat_counts),
+            "players": build_team_players(
+                away_team_players, game_players, at_bat_counts
+            ),
         },
         # "innings": {},
         # "player_stats": {},
@@ -240,7 +292,7 @@ def get_position_from_description(description):
     return ""
 
 
-def get_result_type_shorthand(event, description):
+def get_result_type_shorthand(event, description, is_out=False):
     event_lower = event.lower() if event else ""
     description_lower = description.lower() if description else ""
 
@@ -254,6 +306,9 @@ def get_result_type_shorthand(event, description):
         return "HR"
 
     if "strikeout" in event_lower:
+        # WILD - dropped third strike / wild pitch still lets the batter reach 1st
+        if not is_out and "wild pitch" in description_lower:
+            return "WILD"
         if (
             "strikes out looking" in description_lower
             or "called out on strikes" in description_lower
@@ -281,6 +336,22 @@ def get_result_type_shorthand(event, description):
 
     if event_lower == "triple":
         return "B3"
+
+    # HBP
+    if event_lower == "hit by pitch":
+        return "HBP"
+
+    # BB
+    if event_lower == "walk" and not is_out:
+        return "BB"
+
+    # IW
+    if event_lower == "intent walk" and not is_out:
+        return "IW"
+
+    # Err
+    if event_lower in ("field error", "fielders choice") and not is_out:
+        return "Err"
 
     return ""
 
@@ -331,8 +402,9 @@ def get_fielding_sequence_from_description(description):
 def get_batter_result_shorthand(play):
     event = safe_get(play, "result", "event", default="")
     description = safe_get(play, "result", "description", default="")
+    is_out = safe_get(play, "result", "isOut", default=False)
 
-    result_code = get_result_type_shorthand(event, description)
+    result_code = get_result_type_shorthand(event, description, is_out)
 
     if not result_code:
         return ""
@@ -473,7 +545,14 @@ def get_batting_expected_stats(season):
     """xBA, xSLG, xwOBA for qualified batters in a season."""
     rows = fetch_savant_csv(
         "/leaderboard/expected_statistics",
-        {"type": "batter", "year": season, "position": "", "team": "", "min": "1", "csv": "true"},
+        {
+            "type": "batter",
+            "year": season,
+            "position": "",
+            "team": "",
+            "min": "1",
+            "csv": "true",
+        },
     )
 
     return {
@@ -490,12 +569,18 @@ def get_pitching_expected_stats(season):
     """xERA for pitchers in a season."""
     rows = fetch_savant_csv(
         "/leaderboard/expected_statistics",
-        {"type": "pitcher", "year": season, "position": "", "team": "", "min": "1", "csv": "true"},
+        {
+            "type": "pitcher",
+            "year": season,
+            "position": "",
+            "team": "",
+            "min": "1",
+            "csv": "true",
+        },
     )
 
     return {
-        int(row["player_id"]): {"xera": parse_float(row.get("xera"))}
-        for row in rows
+        int(row["player_id"]): {"xera": parse_float(row.get("xera"))} for row in rows
     }
 
 
@@ -580,18 +665,22 @@ def get_statcast_metrics(season):
     metrics = {}
 
     sources = [
-        get_batting_expected_stats(season),
-        get_pitching_expected_stats(season),
-        get_batted_ball_metrics(season),
-        get_sprint_speed_metrics(season),
-        get_plate_discipline_metrics(season),
+        get_batting_expected_stats,
+        get_pitching_expected_stats,
+        get_batted_ball_metrics,
+        get_sprint_speed_metrics,
+        get_plate_discipline_metrics,
     ]
 
-    for source in sources:
+    for fetch in tqdm(sources, desc="Fetching Statcast data"):
+        source = fetch(season)  # call it here, inside the loop
         for player_id, values in source.items():
             metrics.setdefault(player_id, {}).update(values)
 
     return metrics
+
+
+SKIP_ENRICHMENT = True  # set to False for full run
 
 
 def attach_statcast_metrics(feed):
@@ -795,9 +884,15 @@ def get_output_filename(feed):
 
 
 def main():
-    date_or_game_pk = input(
-        "Game date (YYYY-MM-DD) or baseball game number: "
-    ).strip()
+    date_or_game_pk = input("Game date (YYYY-MM-DD) or baseball game number: ").strip()
+    clear_cache = input("Clear previous cache? (Y/N): ").strip().lower()
+
+    if clear_cache == "y":
+        cache_dir = Path(".cache")
+        if cache_dir.exists():
+            for f in cache_dir.glob("*.json"):
+                f.unlink()
+        print("Cache cleared.")
 
     games = []
 
@@ -853,8 +948,11 @@ def main():
 
     attach_statcast_metrics(feed)
 
-    print("Running enrichment blocks A, B, C, F, I...")
-    counter = run_enrichment(feed)
+    if not SKIP_ENRICHMENT:
+        attach_statcast_metrics(feed)
+        print("Running enrichment blocks A, B, C, F, I...")
+        counter = run_enrichment(feed)
+        counter.print_summary()
 
     OUTPUT_DIR.mkdir(exist_ok=True)
 
@@ -863,8 +961,6 @@ def main():
     with open(json_output_file, "w", encoding="utf-8") as file:
         json.dump(feed, file, indent=2)
     print(f"Full game JSON written to {json_output_file}")
-
-    counter.print_summary()
 
     context = build_game_context(feed, venue_details)
     context["scorecard"] = player_scorecard(feed)
