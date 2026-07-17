@@ -93,7 +93,8 @@
                                 </tr>
                                 <tr class="diamond-outer">
                                     <td class="diamond">
-                                        {% include 'icons/DEFAULT.svg' %}
+                                        {# TODO: catcher's interference, fielder obstruction, batted ball striking a runner/umpire not yet covered by inning.icon #}
+                                        {% include 'icons/' ~ (inning.icon or 'DEFAULT') ~ '.svg' %}
                                         <span class="diamond-result">{{ inning.result }}</span>
                                     </td>
                                 </tr>
@@ -156,7 +157,8 @@
                                 </tr>
                                 <tr class="diamond-outer">
                                     <td class="diamond">
-                                        {% include 'icons/DEFAULT.svg' %}
+                                        {# TODO: catcher's interference, fielder obstruction, batted ball striking a runner/umpire not yet covered by inning.icon #}
+                                        {% include 'icons/' ~ (inning.icon or 'DEFAULT') ~ '.svg' %}
                                         <span class="diamond-result">{{ inning.result }}</span>
                                     </td>
                                 </tr>

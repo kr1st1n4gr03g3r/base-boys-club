@@ -142,6 +142,37 @@ def get_count_display(balls, strikes):
     }
 
 
+def get_diamond_icon(play):
+    """
+    Returns the diamond icon name for how the batter reached base (e.g. "B1"),
+    or "" if the batter didn't reach base.
+
+    TODO: not yet handled -- catcher's interference, fielder obstruction,
+    batted ball striking a runner or umpire.
+    """
+    event_type = safe_get(play, "result", "eventType", default="")
+    description = safe_get(play, "result", "description", default="").lower()
+    is_out = safe_get(play, "result", "isOut", default=False)
+
+    if event_type == "single":
+        return "B1"
+
+    if event_type == "hit_by_pitch":
+        return "B1"
+
+    if event_type in ("walk", "intent_walk") and not is_out:
+        return "B1"
+
+    if event_type in ("field_error", "fielders_choice") and not is_out:
+        return "B1"
+
+    # dropped third strike / wild pitch still lets the batter reach 1st
+    if event_type == "strikeout" and not is_out and "wild pitch" in description:
+        return "B1"
+
+    return ""
+
+
 def build_team_players(team_players, game_players, at_bat_counts):
     slots = {}
 
@@ -190,6 +221,7 @@ def build_team_players(team_players, game_players, at_bat_counts):
                 inning_data.get("strikes", 0),
             )
             count_display["result"] = inning_data.get("result", "")
+            count_display["icon"] = inning_data.get("icon", "")
             innings.append(count_display)
 
         slot["innings"] = innings
@@ -200,7 +232,6 @@ def build_team_players(team_players, game_players, at_bat_counts):
 
 def player_scorecard(feed):
     game_players = safe_get(feed, "gameData", "players", default={})
-
     all_plays = safe_get(feed, "liveData", "plays", "allPlays", default=[])
     at_bat_counts = {}
 
@@ -218,6 +249,7 @@ def player_scorecard(feed):
                     "balls": balls,
                     "strikes": strikes,
                     "result": get_batter_result_shorthand(play),
+                    "icon": get_diamond_icon(play),
                 }
 
     home_team_players = safe_get(
@@ -260,7 +292,7 @@ def get_position_from_description(description):
     return ""
 
 
-def get_result_type_shorthand(event, description):
+def get_result_type_shorthand(event, description, is_out=False):
     event_lower = event.lower() if event else ""
     description_lower = description.lower() if description else ""
 
@@ -274,6 +306,9 @@ def get_result_type_shorthand(event, description):
         return "HR"
 
     if "strikeout" in event_lower:
+        # WILD - dropped third strike / wild pitch still lets the batter reach 1st
+        if not is_out and "wild pitch" in description_lower:
+            return "WILD"
         if (
             "strikes out looking" in description_lower
             or "called out on strikes" in description_lower
@@ -301,6 +336,18 @@ def get_result_type_shorthand(event, description):
 
     if event_lower == "triple":
         return "B3"
+
+    # HBP
+    if event_lower == "hit by pitch":
+        return "HBP"
+
+    # IW
+    if event_lower in ("walk", "intent walk") and not is_out:
+        return "IW"
+
+    # Err
+    if event_lower in ("field error", "fielders choice") and not is_out:
+        return "Err"
 
     return ""
 
@@ -351,8 +398,9 @@ def get_fielding_sequence_from_description(description):
 def get_batter_result_shorthand(play):
     event = safe_get(play, "result", "event", default="")
     description = safe_get(play, "result", "description", default="")
+    is_out = safe_get(play, "result", "isOut", default=False)
 
-    result_code = get_result_type_shorthand(event, description)
+    result_code = get_result_type_shorthand(event, description, is_out)
 
     if not result_code:
         return ""
