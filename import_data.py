@@ -370,7 +370,6 @@ def get_batter_result_shorthand(play):
     if position_number:
         return f"{result_code}: {position_number}"
 
-    print(result_code)
     return result_code
 
 
