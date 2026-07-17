@@ -185,12 +185,12 @@ def build_team_players(team_players, game_players, at_bat_counts):
                 if player_id in at_bat_counts and i in at_bat_counts[player_id]:
                     inning_data = at_bat_counts[player_id][i]
                     break
-            innings.append(
-                get_count_display(
-                    inning_data.get("balls", 0),
-                    inning_data.get("strikes", 0),
-                )
+            count_display = get_count_display(
+                inning_data.get("balls", 0),
+                inning_data.get("strikes", 0),
             )
+            count_display["result"] = inning_data.get("result", "")
+            innings.append(count_display)
 
         slot["innings"] = innings
         result.append(slot)
@@ -214,7 +214,11 @@ def player_scorecard(feed):
             if batter_id not in at_bat_counts:
                 at_bat_counts[batter_id] = {}
             if inning not in at_bat_counts[batter_id]:
-                at_bat_counts[batter_id][inning] = {"balls": balls, "strikes": strikes}
+                at_bat_counts[batter_id][inning] = {
+                    "balls": balls,
+                    "strikes": strikes,
+                    "result": get_batter_result_shorthand(play),
+                }
 
     home_team_players = safe_get(
         feed, "liveData", "boxscore", "teams", "home", "players", default={}

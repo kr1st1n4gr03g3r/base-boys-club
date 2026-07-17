@@ -116,12 +116,18 @@ td.strikes-inner, td.balls-inner {
 td.diamond {
     padding: 8px 0px;
     border: 0px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    display: grid;
+    place-items: center;
 }
+
 
 td.diamond svg {
     width: 32px;
     height: 32px;
+}
+
+
+td.diamond svg,
+td.diamond .diamond-result {
+    grid-area: 1 / 1;
 }
