@@ -341,8 +341,12 @@ def get_result_type_shorthand(event, description, is_out=False):
     if event_lower == "hit by pitch":
         return "HBP"
 
+    # BB
+    if event_lower == "walk" and not is_out:
+        return "BB"
+
     # IW
-    if event_lower in ("walk", "intent walk") and not is_out:
+    if event_lower == "intent walk" and not is_out:
         return "IW"
 
     # Err
