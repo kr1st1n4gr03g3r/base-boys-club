@@ -8,7 +8,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import requests
-from tqdm import tqdm
+from tqdm import tqdm  # type: ignore[reportMissingModuleSource]
 
 from enrichment import run_enrichment
 from html_report import write_jinja_html_report
