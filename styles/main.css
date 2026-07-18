@@ -135,3 +135,6 @@ td.diamond .diamond-result {
     grid-area: 1 / 1;
 }
 
+td.diamond .diamond-result--hr {
+    color: white;
+}

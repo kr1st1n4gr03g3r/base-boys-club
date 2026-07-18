@@ -153,30 +153,43 @@ def get_diamond_icon(play):
     event_type = safe_get(play, "result", "eventType", default="")
     description = safe_get(play, "result", "description", default="").lower()
     is_out = safe_get(play, "result", "isOut", default=False)
+    # start_base = safe_get(play, "runners", "movement", "start", default="")
+    # end_base = safe_get(play, "runners", "movement", "end", default="")
+    is_out = safe_get(play, "runners", "movement", "isOut", default=False)
     print(event_type, description)
 
     # Reaches First (B1)
 
-    if event_type == "single":
-        return "B1"
-
-    if event_type == "hit_by_pitch":
-        return "B1"
-
-    if event_type in ("walk", "intent_walk") and not is_out:
-        return "B1"
-
-    if event_type in ("field_error", "fielders_choice") and not is_out:
+    if (
+        event_type
+        in (
+            "single",
+            "hit_by_pitch",
+            "walk",
+            "intent_walk",
+            "field_error",
+            "fielders_choice",
+        )
+        and not is_out
+    ):
         return "B1"
 
     # dropped third strike / wild pitch still lets the batter reach 1st
-    if event_type == "strikeout" and not is_out and "wild pitch" in description:
-        return "B1"
+    # if event_type in ("strikeout" and not is_out and "wild pitch" in description):
+    #     return "B1"
 
     # Reaches Second (B2)
 
-    if event_type == "double":
+    if event_type == "double" and not is_out:
         return "B2"
+
+    if event_type == "home_run" and not is_out:
+        return "HOMERUN"
+
+    print(play["runners"])
+
+    # if start_base == "null" and end_base == "2B":
+    #     return "B2"
 
     return ""
 

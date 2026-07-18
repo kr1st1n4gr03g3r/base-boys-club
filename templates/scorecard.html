@@ -93,9 +93,13 @@
                                 </tr>
                                 <tr class="diamond-outer">
                                     <td class="diamond">
-                                        {# TODO: catcher's interference, fielder obstruction, batted ball striking a runner/umpire not yet covered by inning.icon #}
+                                        {# TODO: catcher's interference, fielder obstruction, batted ball striking a
+                                        runner/umpire not yet covered by inning.icon #}
                                         {% include 'icons/' ~ (inning.icon or 'DEFAULT') ~ '.svg' %}
-                                        <span class="diamond-result">{{ inning.result }}</span>
+                                        <span
+                                            class="diamond-result{% if inning.result == 'HR' %} diamond-result--hr{% endif %}">{{
+                                            inning.result }}</span>
+
                                     </td>
                                 </tr>
                             </tbody>
@@ -157,9 +161,13 @@
                                 </tr>
                                 <tr class="diamond-outer">
                                     <td class="diamond">
-                                        {# TODO: catcher's interference, fielder obstruction, batted ball striking a runner/umpire not yet covered by inning.icon #}
+                                        {# TODO: catcher's interference, fielder obstruction, batted ball striking a
+                                        runner/umpire not yet covered by inning.icon #}
                                         {% include 'icons/' ~ (inning.icon or 'DEFAULT') ~ '.svg' %}
-                                        <span class="diamond-result">{{ inning.result }}</span>
+                                        <span
+                                            class="diamond-result{% if inning.result == 'HR' %} diamond-result--hr{% endif %}">{{
+                                            inning.result }}</span>
+
                                     </td>
                                 </tr>
                             </tbody>
