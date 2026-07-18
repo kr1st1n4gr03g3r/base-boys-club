@@ -153,6 +153,9 @@ def get_diamond_icon(play):
     event_type = safe_get(play, "result", "eventType", default="")
     description = safe_get(play, "result", "description", default="").lower()
     is_out = safe_get(play, "result", "isOut", default=False)
+    print(event_type, description)
+
+    # Reaches First (B1)
 
     if event_type == "single":
         return "B1"
@@ -169,6 +172,11 @@ def get_diamond_icon(play):
     # dropped third strike / wild pitch still lets the batter reach 1st
     if event_type == "strikeout" and not is_out and "wild pitch" in description:
         return "B1"
+
+    # Reaches Second (B2)
+
+    if event_type == "double":
+        return "B2"
 
     return ""
 
