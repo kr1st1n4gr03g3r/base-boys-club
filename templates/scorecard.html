@@ -81,8 +81,8 @@
                     {% for inning in slot.innings %}
                     <td class="balls-strikes-outer">
                         <div class="extra-details">
-                            <span>PR</span>
-                            <span>SB</span>
+                            <span>{{ inning.substitution or '' }}</span>
+                            <span>{{ '' }}</span>
                         </div>
                         <table class="balls-strikes">
                             <tbody class="balls-strikes-inner">
@@ -154,8 +154,8 @@
                     {% for inning in slot.innings %}
                     <td class="balls-strikes-outer">
                         <div class="extra-details">
-                            <span>PR</span>
-                            <span>SB</span>
+                            <span>{{ inning.substitution or '' }}</span>
+                            <span>{{ '' }}</span>
                         </div>
                         <table class="balls-strikes">
                             <tbody class="balls-strikes-inner">

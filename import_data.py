@@ -234,12 +234,26 @@ def build_team_players(team_players, game_players, at_bat_counts):
             )
             count_display["result"] = inning_data.get("result", "")
             count_display["icon"] = inning_data.get("icon", "")
+            count_display["substitution"] = inning_data.get("substitution", "")
             innings.append(count_display)
 
         slot["innings"] = innings
         result.append(slot)
 
     return result
+
+
+def get_offensive_substitution(play):
+    for event in play.get("playEvents", []):
+        if (
+            event.get("isSubstitution")
+            and safe_get(event, "details", "event") == "Offensive Substitution"
+        ):
+            incoming_id = safe_get(event, "player", "id")
+            replaced_id = safe_get(event, "replacedPlayer", "id")
+            abbreviation = safe_get(event, "position", "abbreviation")
+            return incoming_id, replaced_id, abbreviation
+    return None, None, None
 
 
 def player_scorecard(feed):
@@ -255,6 +269,7 @@ def player_scorecard(feed):
         inning = safe_get(play, "about", "inning")
         balls = safe_get(play, "count", "balls", default=0)
         strikes = safe_get(play, "count", "strikes", default=0)
+        incoming_id, replaced_id, substitution = get_offensive_substitution(play)
 
         if batter_id and inning:
             if batter_id not in at_bat_counts:
@@ -265,7 +280,12 @@ def player_scorecard(feed):
                     "strikes": strikes,
                     "result": get_batter_result_shorthand(play),
                     "icon": get_diamond_icon(play),
+                    "substitution": substitution if incoming_id == batter_id else "",
                 }
+
+            if incoming_id and incoming_id != batter_id and replaced_id in runner_cells:
+                runner_cells[incoming_id] = runner_cells[replaced_id]
+                runner_cells[incoming_id]["substitution"] = substitution
 
             for runner in play.get("runners", []):
                 runner_id = safe_get(runner, "details", "runner", "id")
