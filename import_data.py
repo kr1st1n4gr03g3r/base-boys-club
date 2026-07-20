@@ -153,11 +153,7 @@ def get_diamond_icon(play):
     batted ball striking a runner or umpire.
     """
     event_type = safe_get(play, "result", "eventType", default="")
-    description = safe_get(play, "result", "description", default=False)
-    # start_base = safe_get(play, "runners", "movement", "start", default="")
-    # end_base = safe_get(play, "runners", "movement", "end", default="")
-    is_out = safe_get(play, "runners", "result", "movement", "isOut", default=False)
-    print(description)
+    is_out = safe_get(play, "result", "isOut", default=False)
 
     # Reaches First (B1)
 
@@ -175,10 +171,6 @@ def get_diamond_icon(play):
     ):
         return "B1"
 
-    # dropped third strike / wild pitch still lets the batter reach 1st
-    # if event_type in ("strikeout" and not is_out and "wild pitch" in description):
-    #     return "B1"
-
     # Reaches Second (B2)
 
     if event_type == "double" and not is_out:
@@ -186,8 +178,6 @@ def get_diamond_icon(play):
 
     if event_type == "home_run" and not is_out:
         return "HOMERUN"
-
-    print(play["runners"])
 
     # if start_base == "null" and end_base == "2B":
     #     return "B2"
@@ -257,6 +247,9 @@ def player_scorecard(feed):
     all_plays = safe_get(feed, "liveData", "plays", "allPlays", default=[])
     at_bat_counts = {}
 
+    # Add second dictionary runner_cells{} to map player_id to the specific inning-cell dictionary that they currently occupy
+    runner_cells = {}
+
     for play in all_plays:
         batter_id = safe_get(play, "matchup", "batter", "id")
         inning = safe_get(play, "about", "inning")
@@ -273,6 +266,25 @@ def player_scorecard(feed):
                     "result": get_batter_result_shorthand(play),
                     "icon": get_diamond_icon(play),
                 }
+
+            for runner in play.get("runners", []):
+                runner_id = safe_get(runner, "details", "runner", "id")
+                runner_cells[batter_id] = at_bat_counts[batter_id][inning]
+                move_end = safe_get(runner, "movement", "end")
+                is_runner_out = safe_get(runner, "movement", "isOut", default=False)
+
+                if runner_id == batter_id or runner_id not in runner_cells:
+                    continue
+
+                if is_runner_out:
+                    continue
+                # Update diamond icons for previous on-base player
+                if move_end == "score":
+                    runner_cells[runner_id]["icon"] = "RUN"
+                elif move_end == "3B":
+                    runner_cells[runner_id]["icon"] = "B3"
+                elif move_end == "B2":
+                    runner_cells[runner_id]["icon"] = "B2"
 
     home_team_players = safe_get(
         feed, "liveData", "boxscore", "teams", "home", "players", default={}
@@ -318,14 +330,14 @@ def get_result_type_shorthand(event, description, is_out=False):
     event_lower = event.lower() if event else ""
     description_lower = description.lower() if description else ""
 
-    if "triple play" in event_lower or "triple play" in description_lower:
-        return "TP"
-
     if "pinch-runner" in description_lower:
         return "PR"
 
     if "double play" in event_lower or "double play" in description_lower:
         return "DP"
+
+    if "sacrifice fly" in description_lower:
+        return "SACFLY"
 
     if "home run" in event_lower:
         return "HR"
@@ -353,6 +365,9 @@ def get_result_type_shorthand(event, description, is_out=False):
     if event_lower == "groundout":
         return "G"
 
+    if event_lower == "forceout":
+        return "FO"
+
     if event_lower == "single":
         return "B1"
 
@@ -378,9 +393,6 @@ def get_result_type_shorthand(event, description, is_out=False):
     if event_lower in ("field error", "fielders choice") and not is_out:
         return "Err"
 
-    # # PR
-    # if event_lower == "Pinch runner" and not is_out:
-    #     return "PR"
     print(description)
     return ""
 
