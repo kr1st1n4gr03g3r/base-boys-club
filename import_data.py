@@ -70,6 +70,7 @@ def build_game_context(feed, venue_details=None):
         venue_details = {}
 
     game_data = feed.get("gameData", {})
+    game_number = safe_get(game_data, "game", "pk", default="")
     away_name = safe_get(game_data, "teams", "away", "name", default="Away")
     away_id = safe_get(game_data, "teams", "away", "id")
     home_name = safe_get(game_data, "teams", "home", "name", default="Home")
@@ -110,6 +111,7 @@ def build_game_context(feed, venue_details=None):
             "home_name": home_name,
         },
         "game": {
+            "game_number": game_number,
             "date": game_date,
             "game_first_pitch": game_first_pitch,
             "game_end_time": game_end_time,
