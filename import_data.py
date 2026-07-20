@@ -151,12 +151,11 @@ def get_diamond_icon(play):
     batted ball striking a runner or umpire.
     """
     event_type = safe_get(play, "result", "eventType", default="")
-    description = safe_get(play, "result", "description", default="").lower()
-    is_out = safe_get(play, "result", "isOut", default=False)
+    description = safe_get(play, "result", "description", default=False)
     # start_base = safe_get(play, "runners", "movement", "start", default="")
     # end_base = safe_get(play, "runners", "movement", "end", default="")
-    is_out = safe_get(play, "runners", "movement", "isOut", default=False)
-    print(event_type, description)
+    is_out = safe_get(play, "runners", "result", "movement", "isOut", default=False)
+    print(description)
 
     # Reaches First (B1)
 
@@ -320,6 +319,9 @@ def get_result_type_shorthand(event, description, is_out=False):
     if "triple play" in event_lower or "triple play" in description_lower:
         return "TP"
 
+    if "pinch-runner" in description_lower:
+        return "PR"
+
     if "double play" in event_lower or "double play" in description_lower:
         return "DP"
 
@@ -374,6 +376,10 @@ def get_result_type_shorthand(event, description, is_out=False):
     if event_lower in ("field error", "fielders choice") and not is_out:
         return "Err"
 
+    # # PR
+    # if event_lower == "Pinch runner" and not is_out:
+    #     return "PR"
+    print(description)
     return ""
 
 

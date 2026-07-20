@@ -80,6 +80,10 @@
                     <td>{% for p in slot.players %}{{ p.position }}<br>{% endfor %}</td>
                     {% for inning in slot.innings %}
                     <td class="balls-strikes-outer">
+                        <div class="extra-details">
+                            <span>PR</span>
+                            <span>SB</span>
+                        </div>
                         <table class="balls-strikes">
                             <tbody class="balls-strikes-inner">
                                 <tr class="balls">
@@ -96,6 +100,7 @@
                                         {# TODO: catcher's interference, fielder obstruction, batted ball striking a
                                         runner/umpire not yet covered by inning.icon #}
                                         {% include 'icons/' ~ (inning.icon or 'DEFAULT') ~ '.svg' %}
+
                                         <span
                                             class="diamond-result{% if inning.result == 'HR' %} diamond-result--hr{% endif %}">{{
                                             inning.result }}</span>
@@ -148,6 +153,10 @@
                     <td>{% for p in slot.players %}{{ p.position }}<br>{% endfor %}</td>
                     {% for inning in slot.innings %}
                     <td class="balls-strikes-outer">
+                        <div class="extra-details">
+                            <span>PR</span>
+                            <span>SB</span>
+                        </div>
                         <table class="balls-strikes">
                             <tbody class="balls-strikes-inner">
                                 <tr class="balls">
@@ -164,9 +173,11 @@
                                         {# TODO: catcher's interference, fielder obstruction, batted ball striking a
                                         runner/umpire not yet covered by inning.icon #}
                                         {% include 'icons/' ~ (inning.icon or 'DEFAULT') ~ '.svg' %}
+
                                         <span
                                             class="diamond-result{% if inning.result == 'HR' %} diamond-result--hr{% endif %}">{{
                                             inning.result }}</span>
+
 
                                     </td>
                                 </tr>
