@@ -1,137 +1,152 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&display=swap');
-
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&display=swap");
 
 body {
-    margin: 0;
-    padding: 24px;
-    font-family: "IBM Plex Sans", sans-serif;
-    font-size: small;
-    background: #f6f6f6;
-    color: #222;
+  margin: 0;
+  padding: 24px;
+  font-family: "IBM Plex Sans", sans-serif;
+  font-size: small;
+  background: #f6f6f6;
+  color: #222;
 }
 
 .report {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 24px;
-    background: #fff;
-    border-radius: 12px;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px;
+  background: #fff;
+  border-radius: 12px;
 }
 
 table {
-    border-collapse: collapse;
-    width: 100%;
-    margin: 16px 0;
+  border-collapse: collapse;
+  width: 100%;
+  margin: 16px 0;
 }
 
 th,
 td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    vertical-align: top;
+  border: 1px solid #ddd;
+  padding: 8px;
+  vertical-align: top;
 }
 
 th {
-    background: #eee;
+  background: #eee;
 }
 
 details {
-    margin: 16px 0;
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background: #fafafa;
+  margin: 16px 0;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fafafa;
 }
 
 sub {
-    display: block;
-    margin-left: 12px;
-    color: #555;
+  display: block;
+  margin-left: 12px;
+  color: #555;
 }
 
 #toronto_blue_jays {
-    background: #134A8E;
-    color: #1D2D5C;
-    border: 1px solid #E8291C;
+  background: #134a8e;
+  color: #1d2d5c;
+  border: 1px solid #e8291c;
 }
 
 body {
-    background: #134A8E;
+  background: #134a8e;
 }
 
 .final-score,
 .team-info,
 .team-home,
 .team-away {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
 }
-
 
 .team-logo,
 h1.at {
-    margin: 1em;
+  margin: 1em;
 }
 
 span.bold {
-    font-weight:700;
+  font-weight: 700;
 }
 
 tr.balls {
-    padding-top: 2px;
+  padding-top: 2px;
 }
 
-.balls, .strikes {
-    font-size:x-small;
-    padding: 0px 0px 0px 2px;
-    border: 0px;
+.balls,
+.strikes {
+  font-size: x-small;
+  padding: 0px 0px 0px 2px;
+  border: 0px;
 }
 
-.balls td, .strikes td {
-    padding: 0px;
-    border: 0px;
+.balls td,
+.strikes td {
+  padding: 0px;
+  border: 0px;
 }
 
 table.balls-strikes {
-    margin: 0px;
+  margin: 0px;
 }
 
 tbody.balls-strikes-inner {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 
 td.balls-strikes-outer {
-    padding: 0px;
-    width: 80px;
-    height: 80px
+  padding: 0px;
+  width: 80px;
+  height: 80px;
+  position: relative;
 }
 
-td.strikes-inner, td.balls-inner {
-    padding: 0 2px;
+td.strikes-inner,
+td.balls-inner {
+  padding: 0 2px;
 }
 
 td.diamond {
-    padding: 8px 0px;
-    border: 0px;
-    display: grid;
-    place-items: center;
-    font-size: 14px;
-    font-weight: 500;
+  padding: 8px 0px;
+  border: 0px;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  font-weight: 500;
 }
-
 
 td.diamond svg {
-    width: 32px;
-    height: 32px;
+  width: 32px;
+  height: 32px;
 }
-
 
 td.diamond svg,
 td.diamond .diamond-result {
-    grid-area: 1 / 1;
+  grid-area: 1 / 1;
 }
 
+td.diamond .diamond-result--hr {
+  color: white;
+}
+
+.extra-details {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 10px;
+  font-weight: 500;
+  color: blue;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}

@@ -30,7 +30,7 @@
         <section>
             <table>
                 <tr>
-                    <td></td>
+                    <td><span class="bold">Game # </span>{{ game.game_number }}</td>
                     <td><span class="bold">Start Time: </span> {{ game.game_first_pitch }}</td>
                     <td><span class="bold">Attendance: </span> {{game.attendance}} </td>
                 </tr>
@@ -80,6 +80,10 @@
                     <td>{% for p in slot.players %}{{ p.position }}<br>{% endfor %}</td>
                     {% for inning in slot.innings %}
                     <td class="balls-strikes-outer">
+                        <div class="extra-details">
+                            <span>{{ inning.substitution or '' }}</span>
+                            <span>{{ '' }}</span>
+                        </div>
                         <table class="balls-strikes">
                             <tbody class="balls-strikes-inner">
                                 <tr class="balls">
@@ -93,9 +97,14 @@
                                 </tr>
                                 <tr class="diamond-outer">
                                     <td class="diamond">
-                                        {# TODO: catcher's interference, fielder obstruction, batted ball striking a runner/umpire not yet covered by inning.icon #}
+                                        {# TODO: catcher's interference, fielder obstruction, batted ball striking a
+                                        runner/umpire not yet covered by inning.icon #}
                                         {% include 'icons/' ~ (inning.icon or 'DEFAULT') ~ '.svg' %}
-                                        <span class="diamond-result">{{ inning.result }}</span>
+
+                                        <span
+                                            class="diamond-result{% if inning.result == 'HR' %} diamond-result--hr{% endif %}">{{
+                                            inning.result }}</span>
+
                                     </td>
                                 </tr>
                             </tbody>
@@ -144,6 +153,10 @@
                     <td>{% for p in slot.players %}{{ p.position }}<br>{% endfor %}</td>
                     {% for inning in slot.innings %}
                     <td class="balls-strikes-outer">
+                        <div class="extra-details">
+                            <span>{{ inning.substitution or '' }}</span>
+                            <span>{{ '' }}</span>
+                        </div>
                         <table class="balls-strikes">
                             <tbody class="balls-strikes-inner">
                                 <tr class="balls">
@@ -157,9 +170,15 @@
                                 </tr>
                                 <tr class="diamond-outer">
                                     <td class="diamond">
-                                        {# TODO: catcher's interference, fielder obstruction, batted ball striking a runner/umpire not yet covered by inning.icon #}
+                                        {# TODO: catcher's interference, fielder obstruction, batted ball striking a
+                                        runner/umpire not yet covered by inning.icon #}
                                         {% include 'icons/' ~ (inning.icon or 'DEFAULT') ~ '.svg' %}
-                                        <span class="diamond-result">{{ inning.result }}</span>
+
+                                        <span
+                                            class="diamond-result{% if inning.result == 'HR' %} diamond-result--hr{% endif %}">{{
+                                            inning.result }}</span>
+
+
                                     </td>
                                 </tr>
                             </tbody>

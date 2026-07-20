@@ -8,7 +8,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import requests
-from tqdm import tqdm
+from tqdm import tqdm  # type: ignore[reportMissingModuleSource]
 
 from enrichment import run_enrichment
 from html_report import write_jinja_html_report
@@ -70,6 +70,7 @@ def build_game_context(feed, venue_details=None):
         venue_details = {}
 
     game_data = feed.get("gameData", {})
+    game_number = safe_get(game_data, "game", "pk", default="")
     away_name = safe_get(game_data, "teams", "away", "name", default="Away")
     away_id = safe_get(game_data, "teams", "away", "id")
     home_name = safe_get(game_data, "teams", "home", "name", default="Home")
@@ -110,6 +111,7 @@ def build_game_context(feed, venue_details=None):
             "home_name": home_name,
         },
         "game": {
+            "game_number": game_number,
             "date": game_date,
             "game_first_pitch": game_first_pitch,
             "game_end_time": game_end_time,
@@ -151,24 +153,34 @@ def get_diamond_icon(play):
     batted ball striking a runner or umpire.
     """
     event_type = safe_get(play, "result", "eventType", default="")
-    description = safe_get(play, "result", "description", default="").lower()
     is_out = safe_get(play, "result", "isOut", default=False)
 
-    if event_type == "single":
+    # Reaches First (B1)
+
+    if (
+        event_type
+        in (
+            "single",
+            "hit_by_pitch",
+            "walk",
+            "intent_walk",
+            "field_error",
+            "fielders_choice",
+        )
+        and not is_out
+    ):
         return "B1"
 
-    if event_type == "hit_by_pitch":
-        return "B1"
+    # Reaches Second (B2)
 
-    if event_type in ("walk", "intent_walk") and not is_out:
-        return "B1"
+    if event_type == "double" and not is_out:
+        return "B2"
 
-    if event_type in ("field_error", "fielders_choice") and not is_out:
-        return "B1"
+    if event_type == "home_run" and not is_out:
+        return "HOMERUN"
 
-    # dropped third strike / wild pitch still lets the batter reach 1st
-    if event_type == "strikeout" and not is_out and "wild pitch" in description:
-        return "B1"
+    # if start_base == "null" and end_base == "2B":
+    #     return "B2"
 
     return ""
 
@@ -222,6 +234,7 @@ def build_team_players(team_players, game_players, at_bat_counts):
             )
             count_display["result"] = inning_data.get("result", "")
             count_display["icon"] = inning_data.get("icon", "")
+            count_display["substitution"] = inning_data.get("substitution", "")
             innings.append(count_display)
 
         slot["innings"] = innings
@@ -230,16 +243,33 @@ def build_team_players(team_players, game_players, at_bat_counts):
     return result
 
 
+def get_offensive_substitution(play):
+    for event in play.get("playEvents", []):
+        if (
+            event.get("isSubstitution")
+            and safe_get(event, "details", "event") == "Offensive Substitution"
+        ):
+            incoming_id = safe_get(event, "player", "id")
+            replaced_id = safe_get(event, "replacedPlayer", "id")
+            abbreviation = safe_get(event, "position", "abbreviation")
+            return incoming_id, replaced_id, abbreviation
+    return None, None, None
+
+
 def player_scorecard(feed):
     game_players = safe_get(feed, "gameData", "players", default={})
     all_plays = safe_get(feed, "liveData", "plays", "allPlays", default=[])
     at_bat_counts = {}
+
+    # Add second dictionary runner_cells{} to map player_id to the specific inning-cell dictionary that they currently occupy
+    runner_cells = {}
 
     for play in all_plays:
         batter_id = safe_get(play, "matchup", "batter", "id")
         inning = safe_get(play, "about", "inning")
         balls = safe_get(play, "count", "balls", default=0)
         strikes = safe_get(play, "count", "strikes", default=0)
+        incoming_id, replaced_id, substitution = get_offensive_substitution(play)
 
         if batter_id and inning:
             if batter_id not in at_bat_counts:
@@ -250,7 +280,31 @@ def player_scorecard(feed):
                     "strikes": strikes,
                     "result": get_batter_result_shorthand(play),
                     "icon": get_diamond_icon(play),
+                    "substitution": substitution if incoming_id == batter_id else "",
                 }
+
+            if incoming_id and incoming_id != batter_id and replaced_id in runner_cells:
+                runner_cells[incoming_id] = runner_cells[replaced_id]
+                runner_cells[incoming_id]["substitution"] = substitution
+
+            for runner in play.get("runners", []):
+                runner_id = safe_get(runner, "details", "runner", "id")
+                runner_cells[batter_id] = at_bat_counts[batter_id][inning]
+                move_end = safe_get(runner, "movement", "end")
+                is_runner_out = safe_get(runner, "movement", "isOut", default=False)
+
+                if runner_id == batter_id or runner_id not in runner_cells:
+                    continue
+
+                if is_runner_out:
+                    continue
+                # Update diamond icons for previous on-base player
+                if move_end == "score":
+                    runner_cells[runner_id]["icon"] = "RUN"
+                elif move_end == "3B":
+                    runner_cells[runner_id]["icon"] = "B3"
+                elif move_end == "B2":
+                    runner_cells[runner_id]["icon"] = "B2"
 
     home_team_players = safe_get(
         feed, "liveData", "boxscore", "teams", "home", "players", default={}
@@ -296,11 +350,14 @@ def get_result_type_shorthand(event, description, is_out=False):
     event_lower = event.lower() if event else ""
     description_lower = description.lower() if description else ""
 
-    if "triple play" in event_lower or "triple play" in description_lower:
-        return "TP"
+    if "pinch-runner" in description_lower:
+        return "PR"
 
     if "double play" in event_lower or "double play" in description_lower:
         return "DP"
+
+    if "sacrifice fly" in description_lower:
+        return "SACFLY"
 
     if "home run" in event_lower:
         return "HR"
@@ -328,6 +385,9 @@ def get_result_type_shorthand(event, description, is_out=False):
     if event_lower == "groundout":
         return "G"
 
+    if event_lower == "forceout":
+        return "FO"
+
     if event_lower == "single":
         return "B1"
 
@@ -353,6 +413,7 @@ def get_result_type_shorthand(event, description, is_out=False):
     if event_lower in ("field error", "fielders choice") and not is_out:
         return "Err"
 
+    print(description)
     return ""
 
 
