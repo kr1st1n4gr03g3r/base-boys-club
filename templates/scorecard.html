@@ -75,12 +75,12 @@
                         </table>
                     </td>
                     {% endfor %}
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
+                    <td>{% for p in slot.players %}{{ p.at_bats }}<br>{% endfor %}</td>
+                    <td>{% for p in slot.players %}{{p.player_runs}}<br>{% endfor %}</td>
+                    <td>{% for p in slot.players %}{{p.player_hits}}<br>{% endfor %}</td>
+                    <td>{% for p in slot.players %}{{p.player_rbi}}<br>{% endfor %}</td>
+                    <td>{% for p in slot.players %}{{p.player_average}}<br>{% endfor %}</td>
+                    <td>{% for p in slot.players %}{{p.player_ops}}<br>{% endfor %}</td>
                 </tr>
                 {% endfor %}
             </table>
@@ -149,12 +149,12 @@
                         </table>
                     </td>
                     {% endfor %}
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
+                    <td>{% for p in slot.players %}{{ p.at_bats }}<br>{% endfor %}</td>
+                    <td>{% for p in slot.players %}{{p.player_runs}}<br>{% endfor %}</td>
+                    <td>{% for p in slot.players %}{{p.player_hits}}<br>{% endfor %}</td>
+                    <td>{% for p in slot.players %}{{p.player_rbi}}<br>{% endfor %}</td>
+                    <td>{% for p in slot.players %}{{p.player_average}}<br>{% endfor %}</td>
+                    <td>{% for p in slot.players %}{{p.player_ops}}<br>{% endfor %}</td>
                 </tr>
                 {% endfor %}
             </table>
@@ -176,6 +176,7 @@
                 }
             }
         </script>
+        {% include 'partials/game_info.html' %}
     </main>
 </body>
 

@@ -198,6 +198,24 @@ def build_team_players(team_players, game_players, at_bat_counts):
                 "position": safe_get(
                     player_data, "position", "abbreviation", default=""
                 ),
+                "at_bats": safe_get(
+                    player_data, "stats", "batting", "atBats", default=0
+                ),
+                "player_runs": safe_get(
+                    player_data, "stats", "batting", "runs", default=0
+                ),
+                "player_hits": safe_get(
+                    player_data, "stats", "batting", "hits", default=0
+                ),
+                "player_rbi": safe_get(
+                    player_data, "stats", "batting", "rbi", default=0
+                ),
+                "player_average": safe_get(
+                    player_data, "seasonStats", "batting", "avg", default=0
+                ),
+                "player_ops": safe_get(
+                    player_data, "seasonStats", "batting", "ops", default=0
+                ),
             }
         )
 
