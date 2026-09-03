@@ -2,3 +2,5 @@ requests
 jinja2
 pybaseball
 tqdm
+MLB-StatsAPI
+playwright
