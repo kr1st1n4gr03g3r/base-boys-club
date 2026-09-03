@@ -78,6 +78,28 @@ span.bold {
   font-weight: 700;
 }
 
+.nav-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin: 24px 0;
+}
+
+.nav-button {
+  display: inline-block;
+  padding: 10px 20px;
+  border-radius: 6px;
+  background: #134a8e;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 700;
+  font-family: inherit;
+}
+
+.nav-button:hover {
+  opacity: 0.85;
+}
+
 tr.balls {
   padding-top: 2px;
 }

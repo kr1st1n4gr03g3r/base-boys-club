@@ -1025,10 +1025,18 @@ def main():
 
     context = build_game_context(feed, venue_details)
     context["scorecard"] = player_scorecard(feed)
-    html_file = OUTPUT_DIR / f"{base_name}.html"
-    write_jinja_html_report(context, html_file)
-    webbrowser.open(html_file.resolve().as_uri())
-    print(f"Scorecard opened in browser: {html_file}")
+
+    home_file = OUTPUT_DIR / f"{base_name}.html"
+    scorecard_file = OUTPUT_DIR / f"{base_name}_scorecard.html"
+
+    context["scorecard_filename"] = scorecard_file.name
+    context["home_filename"] = home_file.name
+
+    write_jinja_html_report(context, scorecard_file, template_name="scorecard.html")
+    write_jinja_html_report(context, home_file, template_name="home.html")
+
+    webbrowser.open(home_file.resolve().as_uri())
+    print(f"Home page opened in browser: {home_file}")
 
 
 if __name__ == "__main__":

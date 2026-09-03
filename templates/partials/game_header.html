@@ -1,0 +1,37 @@
+<section class="report-content">
+    <header class="game-header">
+        <h1 class="final-score">{{ game.final_score }}</h1>
+        <div class="team-info">
+
+            <div class="team-away">
+                <img class="team-logo" src="{{ title.away_logo }}" alt="{{ title.away_name }} logo" width="80">
+                <h2>{{ title.away_name }}</h2>
+            </div>
+            <h1 class="at">@</h1>
+            <div class="team-home">
+                <img class="team-logo" src="{{ title.home_logo }}" alt="{{ title.home_name }} logo" width="80">
+                <h2>{{ title.home_name }}</h2>
+            </div>
+        </div>
+    </header>
+</section>
+<section>
+    <table>
+        <tr>
+            <td><span class="bold">Game # </span>{{ game.game_number }}</td>
+            <td><span class="bold">Start Time: </span> {{ game.game_first_pitch }}</td>
+            <td><span class="bold">Attendance: </span> {{game.attendance}} </td>
+        </tr>
+        <tr>
+            <td><span class="bold">Date: </span> {{ game.date }}</td>
+            <td><span class="bold">End Time: </span>{{game.game_end_time}}</td>
+            <td><span class="bold">Wind: </span>{{ weather.wind }}</td>
+        </tr>
+        <tr>
+            <td><span class="bold">Scorer:</span> <a
+                    href="https://github.com/kr1st1n4gr03g3r">kr1st1n4gr03g3r</a></td>
+            <td><span class="bold">Length of Game: </span>{{game.game_duration}}</td>
+            <td><span class="bold">Weather: </span>{{ weather.condition }} · {{ weather.temp }}</td>
+        </tr>
+    </table>
+</section>
