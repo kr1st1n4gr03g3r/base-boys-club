@@ -72,6 +72,7 @@ body {
 .team-logo,
 h1.at {
   margin: 1em;
+  height: 40px;
 }
 
 span.bold {

@@ -210,7 +210,7 @@ def build_team_players(team_players, game_players, at_bat_counts):
                 "primary_number": game_player.get("primaryNumber", ""),
                 "boxscore_name": game_player.get("boxscoreName", ""),
                 "position": safe_get(
-                    game_player, "primaryPosition", "abbreviation", default=""
+                    player_data, "position", "abbreviation", default=""
                 ),
             }
         )
