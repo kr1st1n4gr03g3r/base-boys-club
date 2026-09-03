@@ -395,6 +395,7 @@ def build_scorebug_context(feed):
     linescore = safe_get(feed, "liveData", "linescore", default={})
     offense = linescore.get("offense", {})
     defense = linescore.get("defense", {})
+    game_state = safe_get(feed, "gameData", "status", "abstractGameState", default="")
 
     # offense.pitcher lags behind mid-inning pitching changes; defense.pitcher
     # is the one that's actually current.
@@ -403,6 +404,8 @@ def build_scorebug_context(feed):
     is_top_inning = linescore.get("isTopInning", True)
 
     return {
+        "is_preview": game_state == "Preview",
+        "is_final": game_state == "Final",
         "pitcher_name": get_boxscore_name(feed, pitcher_id)
         or safe_get(defense, "pitcher", "fullName", default=""),
         "pitch_count": get_pitch_count(feed, pitcher_id),

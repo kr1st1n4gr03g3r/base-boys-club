@@ -101,7 +101,8 @@ def render_on_save():
 
 
 def refresh_live_feed(game_pk):
-    """Real network call: game feed + venue. Runs on LIVE_FEED_REFRESH_SECONDS."""
+    """Real network call: game feed + venue. Runs on LIVE_FEED_REFRESH_SECONDS.
+    Returns the game's abstractGameState (e.g. 'Preview', 'Live', 'Final')."""
     feed = import_data.get_game_feed(game_pk)
     venue_id = import_data.safe_get(feed, "gameData", "venue", "id")
     venue_details = import_data.get_venue_details(venue_id) if venue_id else {}
@@ -115,6 +116,10 @@ def refresh_live_feed(game_pk):
 
     print("Refreshed live game feed")
     render()
+
+    return import_data.safe_get(
+        feed, "gameData", "status", "abstractGameState", default=""
+    )
 
 
 def refresh_statcast():
@@ -142,7 +147,11 @@ def background_refresh_loop(game_pk):
     while True:
         time.sleep(LIVE_FEED_REFRESH_SECONDS)
         try:
-            refresh_live_feed(game_pk)
+            game_state = refresh_live_feed(game_pk)
+
+            if game_state == "Final":
+                print("Game is Final -- stopping background refresh, no more network calls.")
+                return
 
             with state_lock:
                 statcast_due = (time.time() - state["last_statcast_refresh"]) >= STATCAST_REFRESH_SECONDS
@@ -176,7 +185,13 @@ def main():
     apply_cached_statcast(feed)
     render()
 
-    threading.Thread(target=background_refresh_loop, args=(game_pk,), daemon=True).start()
+    game_state = import_data.safe_get(
+        feed, "gameData", "status", "abstractGameState", default=""
+    )
+    if game_state == "Final":
+        print("Game is already Final -- background refresh won't start, no more network calls.")
+    else:
+        threading.Thread(target=background_refresh_loop, args=(game_pk,), daemon=True).start()
 
     server = Server()
     server.watch(str(PROJECT_ROOT / "templates" / "**" / "*.html"), render_on_save)

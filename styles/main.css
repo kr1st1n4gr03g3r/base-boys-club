@@ -205,6 +205,12 @@ left: -10px;
   font-weight: 500;
 }
 
+.scorebug-row--footer .scorebug-inning:only-child {
+  flex: 1;
+  text-align: center;
+  letter-spacing: 0.05em;
+}
+
 span.bold {
   font-weight: 700;
 }
