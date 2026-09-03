@@ -944,11 +944,15 @@ def get_output_filename(feed):
     return f"{game_date}_{away_slug}_at_{home_slug}"
 
 
-def main():
+def prompt_for_game_selection():
+    """
+    Runs the interactive "which game?" prompt flow.
+    Returns (game_pk, clear_cache) -- game_pk is None if no game was resolved.
+    """
     date_or_game_pk = input("Game date (YYYY-MM-DD) or baseball game number: ").strip()
-    clear_cache = input("Clear previous cache? (Y/N): ").strip().lower()
+    clear_cache = input("Clear previous cache? (Y/N): ").strip().lower() == "y"
 
-    if clear_cache == "y":
+    if clear_cache:
         cache_dir = Path(".cache")
         if cache_dir.exists():
             for f in cache_dir.glob("*.json"):
@@ -963,41 +967,48 @@ def main():
         games = get_schedule(date_or_game_pk, home_team_name=home, away_team_name=away)
 
     if date_or_game_pk.isdigit():
-        game_pk = int(date_or_game_pk)
+        return int(date_or_game_pk), clear_cache
+
+    if not games:
+        print("")
+        print("No matching games found.")
+        print("Try using full team names, for example:")
+        print("  Home: Baltimore Orioles")
+        print("  Away: Toronto Blue Jays")
+        return None, clear_cache
+
+    if len(games) > 1:
+        print("")
+        print("Multiple matching games found:")
+        for index, game in enumerate(games, start=1):
+            print(
+                f"{index}. gamePk {game['gamePk']}: {game['away']} at {game['home']}, {game['venue']}"
+            )
+
+        selected = input("Select game number: ").strip()
+
+        try:
+            selected_index = int(selected) - 1
+            game = games[selected_index]
+        except (ValueError, IndexError):
+            print("Invalid selection.")
+            return None, clear_cache
     else:
-        if not games:
-            print("")
-            print("No matching games found.")
-            print("Try using full team names, for example:")
-            print("  Home: Baltimore Orioles")
-            print("  Away: Toronto Blue Jays")
-            return
+        game = games[0]
 
-        if len(games) > 1:
-            print("")
-            print("Multiple matching games found:")
-            for index, game in enumerate(games, start=1):
-                print(
-                    f"{index}. gamePk {game['gamePk']}: {game['away']} at {game['home']}, {game['venue']}"
-                )
+    print("")
+    print(f"Found gamePk: {game['gamePk']}")
+    print(f"{game['away']} at {game['home']}, {game['venue']}")
+    print("")
 
-            selected = input("Select game number: ").strip()
+    return game["gamePk"], clear_cache
 
-            try:
-                selected_index = int(selected) - 1
-                game = games[selected_index]
-            except (ValueError, IndexError):
-                print("Invalid selection.")
-                return
-        else:
-            game = games[0]
 
-        print("")
-        print(f"Found gamePk: {game['gamePk']}")
-        print(f"{game['away']} at {game['home']}, {game['venue']}")
-        print("")
+def main():
+    game_pk, _clear_cache = prompt_for_game_selection()
 
-        game_pk = game["gamePk"]
+    if game_pk is None:
+        return
 
     feed = get_game_feed(game_pk)
 

@@ -4,3 +4,4 @@ pybaseball
 tqdm
 MLB-StatsAPI
 playwright
+livereload
