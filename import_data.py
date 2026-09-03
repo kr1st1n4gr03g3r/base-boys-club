@@ -71,16 +71,9 @@ def build_game_context(feed, venue_details=None):
 
     game_data = feed.get("gameData", {})
     game_number = safe_get(game_data, "game", "pk", default="")
-    away_name = safe_get(game_data, "teams", "away", "name", default="Away")
-    away_id = safe_get(game_data, "teams", "away", "id")
-    home_name = safe_get(game_data, "teams", "home", "name", default="Home")
-    home_id = safe_get(game_data, "teams", "home", "id")
     game_date = safe_get(game_data, "datetime", "officialDate", default="Unknown date")
     game_first_pitch = safe_get(feed, "gameData", "gameInfo", "firstPitch")
     timezone = get_game_timezone(feed, venue_details)
-    home_runs = safe_get(feed, "liveData", "linescore", "teams", "home", "runs")
-    away_runs = safe_get(feed, "liveData", "linescore", "teams", "away", "runs")
-    game_state = safe_get(feed, "gameData", "status", "abstractGameState", default="")
     weather = safe_get(feed, "gameData", "weather", default={})
     attendance = safe_get(feed, "gameData", "gameInfo", "attendance")
     game_end_time = safe_get(feed, "gameData", "gameInfo", "endDateTime")
@@ -104,12 +97,6 @@ def build_game_context(feed, venue_details=None):
     # prints all game data
     # print(game_data)
     return {
-        "title": {
-            "away_logo": get_team_logo_url(away_id),
-            "home_logo": get_team_logo_url(home_id),
-            "away_name": away_name,
-            "home_name": home_name,
-        },
         "game": {
             "game_number": game_number,
             "date": game_date,
@@ -117,7 +104,6 @@ def build_game_context(feed, venue_details=None):
             "game_end_time": game_end_time,
             "game_duration": game_duration,
             "timezone": timezone,
-            "final_score": f"{game_state}: {away_runs} - {home_runs}",
             "attendance": attendance,
         },
         "weather": {
@@ -326,6 +312,106 @@ def player_scorecard(feed):
         },
         # "innings": {},
         # "player_stats": {},
+    }
+
+
+def get_boxscore_name(feed, player_id):
+    if not player_id:
+        return ""
+    return safe_get(
+        feed, "gameData", "players", f"ID{player_id}", "boxscoreName", default=""
+    )
+
+
+def get_pitch_count(feed, pitcher_id):
+    if not pitcher_id:
+        return None
+
+    for side in ("home", "away"):
+        pitcher_boxscore = safe_get(
+            feed,
+            "liveData",
+            "boxscore",
+            "teams",
+            side,
+            "players",
+            f"ID{pitcher_id}",
+        )
+        if pitcher_boxscore:
+            return safe_get(pitcher_boxscore, "stats", "pitching", "numberOfPitches")
+
+    return None
+
+
+def get_batter_line(feed, batter_id):
+    """Batter's hits-atBats for the game so far, e.g. '0-1'."""
+    if not batter_id:
+        return None
+
+    for side in ("home", "away"):
+        batter_boxscore = safe_get(
+            feed,
+            "liveData",
+            "boxscore",
+            "teams",
+            side,
+            "players",
+            f"ID{batter_id}",
+        )
+        if batter_boxscore:
+            hits = safe_get(batter_boxscore, "stats", "batting", "hits")
+            at_bats = safe_get(batter_boxscore, "stats", "batting", "atBats")
+            if hits is not None and at_bats is not None:
+                return f"{hits}-{at_bats}"
+
+    return None
+
+
+def build_scorebug_context(feed):
+    """
+    Broadcast-style scorebug: current pitcher/pitch count, current batter,
+    baserunners, score, inning, count, outs. Sourced from
+    liveData.linescore, which reflects whatever half-inning/count/outs the
+    feed was fetched at -- refresh the feed to update it.
+    """
+    linescore = safe_get(feed, "liveData", "linescore", default={})
+    offense = linescore.get("offense", {})
+    defense = linescore.get("defense", {})
+
+    # offense.pitcher lags behind mid-inning pitching changes; defense.pitcher
+    # is the one that's actually current.
+    pitcher_id = safe_get(defense, "pitcher", "id")
+    batter_id = safe_get(offense, "batter", "id")
+    is_top_inning = linescore.get("isTopInning", True)
+
+    return {
+        "pitcher_name": get_boxscore_name(feed, pitcher_id)
+        or safe_get(defense, "pitcher", "fullName", default=""),
+        "pitch_count": get_pitch_count(feed, pitcher_id),
+        "batter_order": offense.get("battingOrder"),
+        "batter_name": get_boxscore_name(feed, batter_id)
+        or safe_get(offense, "batter", "fullName", default=""),
+        "batter_line": get_batter_line(feed, batter_id),
+        "bases": {
+            "first": bool(offense.get("first")),
+            "second": bool(offense.get("second")),
+            "third": bool(offense.get("third")),
+        },
+        "away_abbr": safe_get(
+            feed, "gameData", "teams", "away", "abbreviation", default=""
+        ),
+        "home_abbr": safe_get(
+            feed, "gameData", "teams", "home", "abbreviation", default=""
+        ),
+        "away_runs": safe_get(linescore, "teams", "away", "runs", default=0),
+        "home_runs": safe_get(linescore, "teams", "home", "runs", default=0),
+        "batting_team_is_home": not is_top_inning,
+        "is_top_inning": is_top_inning,
+        "inning": linescore.get("currentInning"),
+        "inning_ordinal": linescore.get("currentInningOrdinal", ""),
+        "balls": linescore.get("balls", 0),
+        "strikes": linescore.get("strikes", 0),
+        "outs": linescore.get("outs", 0),
     }
 
 
@@ -767,13 +853,6 @@ def safe_get(dictionary, *keys, default=None):
     return current if current is not None else default
 
 
-def get_team_logo_url(team_id):
-    if not team_id:
-        return ""
-
-    return f"https://www.mlbstatic.com/team-logos/{team_id}.svg"
-
-
 def format_count(balls, strikes):
     if balls is None or strikes is None:
         return ""
@@ -1036,6 +1115,7 @@ def main():
 
     context = build_game_context(feed, venue_details)
     context["scorecard"] = player_scorecard(feed)
+    context["scorebug"] = build_scorebug_context(feed)
 
     home_file = OUTPUT_DIR / f"{base_name}.html"
     scorecard_file = OUTPUT_DIR / f"{base_name}_scorecard.html"

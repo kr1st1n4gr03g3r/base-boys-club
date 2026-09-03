@@ -1,17 +1,5 @@
 <section class="report-content">
-    <header class="game-header">
-        <h1 class="final-score">{{ game.final_score }}</h1>
-        <div class="team-info">
-
-            <div class="team-away">
-                <img class="team-logo" src="{{ title.away_logo }}" alt="{{ title.away_name }} logo" width="80">
-            </div>
-            <h1 class="at">@</h1>
-            <div class="team-home">
-                <img class="team-logo" src="{{ title.home_logo }}" alt="{{ title.home_name }} logo" width="80">
-            </div>
-        </div>
-    </header>
+    {% include 'partials/scorebug.html' %}
 </section>
 <details class="game-info-toggle">
     <summary>Game Info</summary>

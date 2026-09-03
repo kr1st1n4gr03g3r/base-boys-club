@@ -82,6 +82,7 @@ def render():
 
     context = import_data.build_game_context(feed, venue_details)
     context["scorecard"] = import_data.player_scorecard(feed)
+    context["scorebug"] = import_data.build_scorebug_context(feed)
 
     home_file = OUTPUT_DIR / f"{base_name}.html"
     scorecard_file = OUTPUT_DIR / f"{base_name}_scorecard.html"
