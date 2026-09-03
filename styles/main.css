@@ -89,12 +89,15 @@ span.bold {
 .nav-button {
   display: inline-block;
   padding: 10px 20px;
+  border: none;
   border-radius: 6px;
   background: #134a8e;
   color: #fff;
   text-decoration: none;
   font-weight: 700;
   font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
 }
 
 .nav-button:hover {
