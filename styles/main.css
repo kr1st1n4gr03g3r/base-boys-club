@@ -17,6 +17,11 @@ body {
   border-radius: 12px;
 }
 
+header.game-header {
+  display: flex;
+  flex-direction: column-reverse;
+}
+
 table {
   border-collapse: collapse;
   width: 100%;
@@ -40,6 +45,33 @@ details {
   border: 1px solid #ddd;
   border-radius: 8px;
   background: #fafafa;
+}
+
+.game-info-toggle summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+}
+
+.game-info-toggle summary::-webkit-details-marker {
+  display: none;
+}
+
+.game-info-toggle summary::before {
+  content: "▸";
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+
+.game-info-toggle[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.game-info-toggle table {
+  margin-bottom: 0;
 }
 
 sub {
