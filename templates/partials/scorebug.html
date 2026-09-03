@@ -1,0 +1,48 @@
+<div class="scorebug">
+    {% if scorebug.pitcher_name %}
+    <div class="scorebug-row scorebug-row--pitcher">
+        <span class="scorebug-pitcher">{{ scorebug.pitcher_name | upper }}</span>
+        {% if scorebug.pitch_count is not none %}
+        <span class="scorebug-pitch-count">P: {{ scorebug.pitch_count }}</span>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if scorebug.batter_name %}
+    <div class="scorebug-row scorebug-row--batter">
+        <span class="scorebug-batter">{{ scorebug.batter_order }}. {{ scorebug.batter_name | upper }}</span>
+        {% if scorebug.batter_line %}
+        <span class="scorebug-batter-line">{{ scorebug.batter_line }}</span>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="scorebug-row scorebug-row--main">
+        <div class="scorebug-bases">
+            <div class="scorebug-diamond">
+                <span class="scorebug-base scorebug-base--second{% if scorebug.bases.second %} is-on{% endif %}"></span>
+                <span class="scorebug-base scorebug-base--third{% if scorebug.bases.third %} is-on{% endif %}"></span>
+                <span class="scorebug-base scorebug-base--first{% if scorebug.bases.first %} is-on{% endif %}"></span>
+            </div>
+        </div>
+        <div class="scorebug-teams">
+            <div class="scorebug-team{% if not scorebug.batting_team_is_home %} is-batting{% endif %}">
+                <span class="scorebug-team-abbr">{{ scorebug.away_abbr }}</span>
+                <span class="scorebug-team-runs">{{ scorebug.away_runs }}</span>
+            </div>
+            <div class="scorebug-team{% if scorebug.batting_team_is_home %} is-batting{% endif %}">
+                <span class="scorebug-team-abbr">{{ scorebug.home_abbr }}</span>
+                <span class="scorebug-team-runs">{{ scorebug.home_runs }}</span>
+            </div>
+        </div>
+        <div class="scorebug-emoji">⚾</div>
+    </div>
+
+    <div class="scorebug-row scorebug-row--footer">
+        {% if scorebug.inning %}
+        <span class="scorebug-inning">{{ '▲' if scorebug.is_top_inning else '▼' }} {{ scorebug.inning_ordinal | upper }}</span>
+        {% endif %}
+        <span class="scorebug-count">{{ scorebug.balls }}-{{ scorebug.strikes }}</span>
+        <span class="scorebug-outs">{{ scorebug.outs }} OUT{{ 'S' if scorebug.outs != 1 else '' }}</span>
+    </div>
+</div>

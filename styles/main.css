@@ -42,6 +42,33 @@ details {
   background: #fafafa;
 }
 
+.game-info-toggle summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+}
+
+.game-info-toggle summary::-webkit-details-marker {
+  display: none;
+}
+
+.game-info-toggle summary::before {
+  content: "▸";
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+
+.game-info-toggle[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.game-info-toggle table {
+  margin-bottom: 0;
+}
+
 sub {
   display: block;
   margin-left: 12px;
@@ -58,24 +85,153 @@ body {
   background: #134a8e;
 }
 
-.final-score,
-.team-info,
-.team-home,
-.team-away {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
+.scorebug {
+  max-width: 260px;
+  margin: 8px auto 16px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #0b1f45;
+  color: #fff;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 18px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
 }
 
-.team-logo,
-h1.at {
-  margin: 1em;
+.scorebug-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 10px;
+}
+
+.scorebug-row--pitcher,
+.scorebug-row--batter {
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.scorebug-row--pitcher {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  padding-left: 12px;
+}
+
+.scorebug-pitcher {
+  padding-left: 30px;
+}
+
+.scorebug-row--main {
+  gap: 10px;
+    /* padding-top: 8px; */
+    padding-right: 10px;
+    /* padding-bottom: 24px; */
+    padding-left: 10px;
+}
+
+.scorebug-bases {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  flex: 1;
+}
+
+.scorebug-diamond {
+  position: relative;
+  width: 30px;
+  height: 40px;
+}
+
+.scorebug-base {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 1px solid white;
+  transform: rotate(45deg);
+}
+
+.scorebug-base.is-on {
+  background: #f5c518;
+}
+
+.scorebug-base--second {
+  top: -6px;
+  left: 6px;
+}
+
+.scorebug-base--third {
+  top: 10px;
+left: -10px;
+}
+
+.scorebug-base--first {
+  top: 10px;
+  left: 22px;
+}
+
+.scorebug-teams {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+
+
+.scorebug-team {
+  display: flex;
+  justify-content: space-between;
+  padding: 0px 8px;
+  border-radius: 3px;
+  font-weight: 500;
+  font-size: 24px;
+}
+
+.scorebug-team.is-batting {
+  background: #1450d8;
+}
+
+.scorebug-emoji {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  flex: 1;
+  font-size: 24px;
+}
+
+.scorebug-row--footer {
+  background: #fff;
+  color: #0b1f45;
+  font-weight: 500;
 }
 
 span.bold {
   font-weight: 700;
+}
+
+.nav-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin: 24px 0;
+}
+
+.nav-button {
+  display: inline-block;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  background: #134a8e;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 700;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+}
+
+.nav-button:hover {
+  opacity: 0.85;
 }
 
 tr.balls {

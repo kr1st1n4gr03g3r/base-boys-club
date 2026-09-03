@@ -71,16 +71,9 @@ def build_game_context(feed, venue_details=None):
 
     game_data = feed.get("gameData", {})
     game_number = safe_get(game_data, "game", "pk", default="")
-    away_name = safe_get(game_data, "teams", "away", "name", default="Away")
-    away_id = safe_get(game_data, "teams", "away", "id")
-    home_name = safe_get(game_data, "teams", "home", "name", default="Home")
-    home_id = safe_get(game_data, "teams", "home", "id")
     game_date = safe_get(game_data, "datetime", "officialDate", default="Unknown date")
     game_first_pitch = safe_get(feed, "gameData", "gameInfo", "firstPitch")
     timezone = get_game_timezone(feed, venue_details)
-    home_runs = safe_get(feed, "liveData", "linescore", "teams", "home", "runs")
-    away_runs = safe_get(feed, "liveData", "linescore", "teams", "away", "runs")
-    game_state = safe_get(feed, "gameData", "status", "abstractGameState", default="")
     weather = safe_get(feed, "gameData", "weather", default={})
     attendance = safe_get(feed, "gameData", "gameInfo", "attendance")
     game_end_time = safe_get(feed, "gameData", "gameInfo", "endDateTime")
@@ -104,12 +97,6 @@ def build_game_context(feed, venue_details=None):
     # prints all game data
     # print(game_data)
     return {
-        "title": {
-            "away_logo": get_team_logo_url(away_id),
-            "home_logo": get_team_logo_url(home_id),
-            "away_name": away_name,
-            "home_name": home_name,
-        },
         "game": {
             "game_number": game_number,
             "date": game_date,
@@ -117,7 +104,6 @@ def build_game_context(feed, venue_details=None):
             "game_end_time": game_end_time,
             "game_duration": game_duration,
             "timezone": timezone,
-            "final_score": f"{game_state}: {away_runs} - {home_runs}",
             "attendance": attendance,
         },
         "weather": {
@@ -210,7 +196,25 @@ def build_team_players(team_players, game_players, at_bat_counts):
                 "primary_number": game_player.get("primaryNumber", ""),
                 "boxscore_name": game_player.get("boxscoreName", ""),
                 "position": safe_get(
-                    game_player, "primaryPosition", "abbreviation", default=""
+                    player_data, "position", "abbreviation", default=""
+                ),
+                "at_bats": safe_get(
+                    player_data, "stats", "batting", "atBats", default=0
+                ),
+                "player_runs": safe_get(
+                    player_data, "stats", "batting", "runs", default=0
+                ),
+                "player_hits": safe_get(
+                    player_data, "stats", "batting", "hits", default=0
+                ),
+                "player_rbi": safe_get(
+                    player_data, "stats", "batting", "rbi", default=0
+                ),
+                "player_average": safe_get(
+                    player_data, "seasonStats", "batting", "avg", default=0
+                ),
+                "player_ops": safe_get(
+                    player_data, "seasonStats", "batting", "ops", default=0
                 ),
             }
         )
@@ -326,6 +330,106 @@ def player_scorecard(feed):
         },
         # "innings": {},
         # "player_stats": {},
+    }
+
+
+def get_boxscore_name(feed, player_id):
+    if not player_id:
+        return ""
+    return safe_get(
+        feed, "gameData", "players", f"ID{player_id}", "boxscoreName", default=""
+    )
+
+
+def get_pitch_count(feed, pitcher_id):
+    if not pitcher_id:
+        return None
+
+    for side in ("home", "away"):
+        pitcher_boxscore = safe_get(
+            feed,
+            "liveData",
+            "boxscore",
+            "teams",
+            side,
+            "players",
+            f"ID{pitcher_id}",
+        )
+        if pitcher_boxscore:
+            return safe_get(pitcher_boxscore, "stats", "pitching", "numberOfPitches")
+
+    return None
+
+
+def get_batter_line(feed, batter_id):
+    """Batter's hits-atBats for the game so far, e.g. '0-1'."""
+    if not batter_id:
+        return None
+
+    for side in ("home", "away"):
+        batter_boxscore = safe_get(
+            feed,
+            "liveData",
+            "boxscore",
+            "teams",
+            side,
+            "players",
+            f"ID{batter_id}",
+        )
+        if batter_boxscore:
+            hits = safe_get(batter_boxscore, "stats", "batting", "hits")
+            at_bats = safe_get(batter_boxscore, "stats", "batting", "atBats")
+            if hits is not None and at_bats is not None:
+                return f"{hits}-{at_bats}"
+
+    return None
+
+
+def build_scorebug_context(feed):
+    """
+    Broadcast-style scorebug: current pitcher/pitch count, current batter,
+    baserunners, score, inning, count, outs. Sourced from
+    liveData.linescore, which reflects whatever half-inning/count/outs the
+    feed was fetched at -- refresh the feed to update it.
+    """
+    linescore = safe_get(feed, "liveData", "linescore", default={})
+    offense = linescore.get("offense", {})
+    defense = linescore.get("defense", {})
+
+    # offense.pitcher lags behind mid-inning pitching changes; defense.pitcher
+    # is the one that's actually current.
+    pitcher_id = safe_get(defense, "pitcher", "id")
+    batter_id = safe_get(offense, "batter", "id")
+    is_top_inning = linescore.get("isTopInning", True)
+
+    return {
+        "pitcher_name": get_boxscore_name(feed, pitcher_id)
+        or safe_get(defense, "pitcher", "fullName", default=""),
+        "pitch_count": get_pitch_count(feed, pitcher_id),
+        "batter_order": offense.get("battingOrder"),
+        "batter_name": get_boxscore_name(feed, batter_id)
+        or safe_get(offense, "batter", "fullName", default=""),
+        "batter_line": get_batter_line(feed, batter_id),
+        "bases": {
+            "first": bool(offense.get("first")),
+            "second": bool(offense.get("second")),
+            "third": bool(offense.get("third")),
+        },
+        "away_abbr": safe_get(
+            feed, "gameData", "teams", "away", "abbreviation", default=""
+        ),
+        "home_abbr": safe_get(
+            feed, "gameData", "teams", "home", "abbreviation", default=""
+        ),
+        "away_runs": safe_get(linescore, "teams", "away", "runs", default=0),
+        "home_runs": safe_get(linescore, "teams", "home", "runs", default=0),
+        "batting_team_is_home": not is_top_inning,
+        "is_top_inning": is_top_inning,
+        "inning": linescore.get("currentInning"),
+        "inning_ordinal": linescore.get("currentInningOrdinal", ""),
+        "balls": linescore.get("balls", 0),
+        "strikes": linescore.get("strikes", 0),
+        "outs": linescore.get("outs", 0),
     }
 
 
@@ -767,13 +871,6 @@ def safe_get(dictionary, *keys, default=None):
     return current if current is not None else default
 
 
-def get_team_logo_url(team_id):
-    if not team_id:
-        return ""
-
-    return f"https://www.mlbstatic.com/team-logos/{team_id}.svg"
-
-
 def format_count(balls, strikes):
     if balls is None or strikes is None:
         return ""
@@ -944,11 +1041,15 @@ def get_output_filename(feed):
     return f"{game_date}_{away_slug}_at_{home_slug}"
 
 
-def main():
+def prompt_for_game_selection():
+    """
+    Runs the interactive "which game?" prompt flow.
+    Returns (game_pk, clear_cache) -- game_pk is None if no game was resolved.
+    """
     date_or_game_pk = input("Game date (YYYY-MM-DD) or baseball game number: ").strip()
-    clear_cache = input("Clear previous cache? (Y/N): ").strip().lower()
+    clear_cache = input("Clear previous cache? (Y/N): ").strip().lower() == "y"
 
-    if clear_cache == "y":
+    if clear_cache:
         cache_dir = Path(".cache")
         if cache_dir.exists():
             for f in cache_dir.glob("*.json"):
@@ -963,41 +1064,48 @@ def main():
         games = get_schedule(date_or_game_pk, home_team_name=home, away_team_name=away)
 
     if date_or_game_pk.isdigit():
-        game_pk = int(date_or_game_pk)
+        return int(date_or_game_pk), clear_cache
+
+    if not games:
+        print("")
+        print("No matching games found.")
+        print("Try using full team names, for example:")
+        print("  Home: Baltimore Orioles")
+        print("  Away: Toronto Blue Jays")
+        return None, clear_cache
+
+    if len(games) > 1:
+        print("")
+        print("Multiple matching games found:")
+        for index, game in enumerate(games, start=1):
+            print(
+                f"{index}. gamePk {game['gamePk']}: {game['away']} at {game['home']}, {game['venue']}"
+            )
+
+        selected = input("Select game number: ").strip()
+
+        try:
+            selected_index = int(selected) - 1
+            game = games[selected_index]
+        except (ValueError, IndexError):
+            print("Invalid selection.")
+            return None, clear_cache
     else:
-        if not games:
-            print("")
-            print("No matching games found.")
-            print("Try using full team names, for example:")
-            print("  Home: Baltimore Orioles")
-            print("  Away: Toronto Blue Jays")
-            return
+        game = games[0]
 
-        if len(games) > 1:
-            print("")
-            print("Multiple matching games found:")
-            for index, game in enumerate(games, start=1):
-                print(
-                    f"{index}. gamePk {game['gamePk']}: {game['away']} at {game['home']}, {game['venue']}"
-                )
+    print("")
+    print(f"Found gamePk: {game['gamePk']}")
+    print(f"{game['away']} at {game['home']}, {game['venue']}")
+    print("")
 
-            selected = input("Select game number: ").strip()
+    return game["gamePk"], clear_cache
 
-            try:
-                selected_index = int(selected) - 1
-                game = games[selected_index]
-            except (ValueError, IndexError):
-                print("Invalid selection.")
-                return
-        else:
-            game = games[0]
 
-        print("")
-        print(f"Found gamePk: {game['gamePk']}")
-        print(f"{game['away']} at {game['home']}, {game['venue']}")
-        print("")
+def main():
+    game_pk, _clear_cache = prompt_for_game_selection()
 
-        game_pk = game["gamePk"]
+    if game_pk is None:
+        return
 
     feed = get_game_feed(game_pk)
 
@@ -1025,10 +1133,19 @@ def main():
 
     context = build_game_context(feed, venue_details)
     context["scorecard"] = player_scorecard(feed)
-    html_file = OUTPUT_DIR / f"{base_name}.html"
-    write_jinja_html_report(context, html_file)
-    webbrowser.open(html_file.resolve().as_uri())
-    print(f"Scorecard opened in browser: {html_file}")
+    context["scorebug"] = build_scorebug_context(feed)
+
+    home_file = OUTPUT_DIR / f"{base_name}.html"
+    scorecard_file = OUTPUT_DIR / f"{base_name}_scorecard.html"
+
+    context["scorecard_filename"] = scorecard_file.name
+    context["home_filename"] = home_file.name
+
+    write_jinja_html_report(context, scorecard_file, template_name="scorecard.html")
+    write_jinja_html_report(context, home_file, template_name="home.html")
+
+    webbrowser.open(home_file.resolve().as_uri())
+    print(f"Home page opened in browser: {home_file}")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>⚾️ Base Boys Club</title>
+    <link rel="stylesheet" href="../styles/main.css">
+</head>
+
+<body>
+    <main id="game-report" class="report">
+        {% include 'partials/game_header.html' %}
+        <nav class="nav-buttons">
+            <a class="nav-button" href="{{ scorecard_filename }}">Scorecard</a>
+        </nav>
+        <section id="lineup-stats">
+            <table>
+                <tr>
+                    <th>NAME</th>
+                    <th>POS</th>
+                    <th>batSide</th>
+                    <th>AVG</th>
+                </tr>
+                {% for slot in scorecard.away.players %}
+                <tr>
+                    <td>{% for p in slot.players %}{{ p.boxscore_name }}<br>{% endfor %}</td>
+                    <td>{% for p in slot.players %}{{ p.position }}<br>{% endfor %}</td>
+                    <td>{% for p in slot.players %}{{ p.bat_side }}<br>{% endfor %}</td>
+                    <td>{% for p in slot.players %}{{p.player_average}}<br>{% endfor %}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </section>
+        <section id="lineup-stats">
+            <table>
+                <tr>
+                    <th>NAME</th>
+                    <th>POS</th>
+                    <th>batSide</th>
+                    <th>AVG</th>
+                </tr>
+                {% for slot in scorecard.home.players %}
+                <tr>
+                    <td>{% for p in slot.players %}{{ p.boxscore_name }}<br>{% endfor %}</td>
+                    <td>{% for p in slot.players %}{{ p.position }}<br>{% endfor %}</td>
+                    <td>{% for p in slot.players %}{{ p.bat_side }}<br>{% endfor %}</td>
+                    <td>{% for p in slot.players %}{{p.player_average}}<br>{% endfor %}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </section>
+        {% include 'partials/game_info.html' %}
+    </main>
